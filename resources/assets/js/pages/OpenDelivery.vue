@@ -10,7 +10,7 @@
                             <h4>Details</h4>
                             <app-deliverydetails v-model="delivery"></app-deliverydetails>
                             <hr>
-                            <h4>Contents</h4>
+                            <h4>Contents: &nbsp; <a type="button" :href="addLink" class="btn btn-primary btn-xs"><i class="fa fa-fw fa-plus"></i>Add</a></h4>
                             <app-deliverycontentlist v-model="delivery"></app-deliverycontentlist>
                         </div>
                         <div class="panel-footer">
@@ -27,11 +27,17 @@
     export default {
             data(){
                 return{
+                    
                     delivery:{}
                 }
             },
             mounted() {
                 this.load(this.$route.params.id);
+            },
+            computed:{
+                addLink(){
+                    return '#/deliveries/'+this.delivery.id+"/addcontent";
+                }
             },
             methods: {
                 load(id) {

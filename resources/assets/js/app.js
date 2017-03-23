@@ -6,6 +6,8 @@
  */
 
 require('./bootstrap');
+
+
 Vue.use(VeeValidate);
 Vue.use(VueResource);
 Vue.use(VueRouter);
@@ -16,6 +18,7 @@ Vue.use(VueRouter);
  * or customize the JavaScript scaffolding to fit your unique needs.
  */
 
+//UI components
 Vue.component('example', require('./components/Example.vue'));
 Vue.component('modal', require('./components/Modal.vue'));
 Vue.component('alert', require('./components/Alert.vue'))
@@ -25,6 +28,7 @@ Vue.component('mainnav', require('./components/MainNav.vue'));
 Vue.component('tbvue-ajax-dropdown', require('./components/tbvue_ajax_dropdown.vue'));
 Vue.component('tbvue-input', require('./components/tbvue_input.vue'));
 
+// Fragments Components
 Vue.component('app-customseditor', require('./fragments/AppCustomsEditor.vue'));
 Vue.component('app-customtypeselector', require('./fragments/AppCustomTypeSelector.vue'));
 Vue.component('app-customaddfield', require('./fragments/AppCustomAddField.vue'));
@@ -32,7 +36,13 @@ Vue.component('app-customeditfield', require('./fragments/AppCustomEditField.vue
 Vue.component('app-deliverydetails', require('./fragments/AppDeliveryDetails.vue'));
 Vue.component('app-deliverycontentlist', require('./fragments/AppDeliveryContentList.vue'));
 
-
+//Delivery Components
+Vue.component('app-plaintext', require('./components/app/Text.vue'));
+Vue.component('app-wysiwyg', require('./components/app/Wysiwyg.vue'));
+Vue.component('app-image', require('./components/app/Image.vue'));
+Vue.component('app-checkbox', require('./components/app/Checkbox.vue'));
+Vue.component('app-dropdown', require('./components/app/Dropdown.vue'));
+Vue.component('app-separator', require('./components/app/Separator.vue'));
 
 const Home = require('./pages/Home.vue');
 const Partners = require('./pages/Partners.vue');
@@ -46,6 +56,7 @@ const EditRegion = require('./pages/EditRegion.vue');
 const NewDelivery = require('./pages/NewDelivery.vue');
 const EditDelivery = require('./pages/EditDelivery.vue');
 const OpenDelivery = require('./pages/OpenDelivery.vue');
+const AddContent = require('./pages/AddContent.vue');
 
 const Error400 = require('./pages/Error400.vue');
 const Error404 = require('./pages/Error404.vue');
@@ -64,6 +75,7 @@ const routeList = [
   { path: '/delivery/new', component: NewDelivery },
   { path: '/deliveries/:id', component: EditDelivery },
   { path: '/deliveries/:id/edit', component: OpenDelivery },
+  { path: '/deliveries/:id/addcontent', component: AddContent },
   { path: '/400', component: Error400 },
   { path: '*', component: Error404 }
 ]

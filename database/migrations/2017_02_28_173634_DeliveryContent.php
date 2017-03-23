@@ -30,7 +30,7 @@ class DeliveryContent extends Migration
             $table->integer('delivery_id')->unsigned();
             $table->string('name');
             $table->integer('status_id')->unsigned();
-            $table->unsignedSmallInteger('rotation');
+            $table->unsignedSmallInteger('distribution')->default(100);
             $table->softDeletes();
             $table->timestamps();
             $table->foreign('delivery_id')->references('id')->on('deliveries')->onDelete('cascade');

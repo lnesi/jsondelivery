@@ -43,6 +43,12 @@ window.axios.defaults.headers.common = {
     'X-Requested-With': 'XMLHttpRequest'
 };
 
+require('tinymce');
+require('tinymce/themes/modern');
+require('tinymce/plugins/link');
+require('tinymce/plugins/table');
+require('tinymce/plugins/code');
+require('tinymce/plugins/wordcount');
 
 /**
  * Echo exposes an expressive API for subscribing to channels and listening

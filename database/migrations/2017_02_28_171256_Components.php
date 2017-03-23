@@ -21,7 +21,7 @@ class Components extends Migration
         });
 
         Schema::table('components',function(Blueprint $table){
-            $sql="INSERT INTO components(name,tag) VALUES('Plain Text','plain_text'),('HTML Text','html_text'),('Multiple Choice','multiple_choice'),('Checkbox','checkbox'),('Separator','separator'),('Panel Open','panel_open'),('Panel Close','panel_close');";
+            $sql="INSERT INTO components(name,tag) VALUES('Plain Text','app-plaintext'),('HTML Text','app-wysiwyg'),('Image','app-image'),('Checkbox','app-checkbox'),('Dropdown','app-dropdown'),('Separator','app-separator');";
             DB::connection()->getPdo()->exec($sql);
         });
     }

@@ -8324,3 +8324,23 @@ button.close {
   opacity: 0.75;
   margin-top: 5px;
 }
+
+#detailsTitle {
+  cursor: pointer;
+}
+
+#detailsTitle .fa-plus-circle {
+  display: none;
+}
+
+#detailsTitle .fa-minus-circle {
+  display: inline-block;
+}
+
+#detailsTitle.collapsed .fa-minus-circle {
+  display: none;
+}
+
+#detailsTitle.collapsed .fa-plus-circle {
+  display: inline-block;
+}

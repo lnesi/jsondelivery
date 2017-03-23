@@ -1,0 +1,78 @@
+<template>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                 <form  @submit="validate()" onsubmit="return false;">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">Delivery</div>
+
+                        <div class="panel-body">
+                            <h4  data-toggle="collapse" data-target="#detailsHolder" id="detailsTitle" class="collapsed">Details <i class="fa fa-fw fa-plus-circle" ></i><i class="fa fa-fw fa-minus-circle" ></i></h4>
+                            <app-deliverydetails v-model="delivery" collapseId="detailsHolder" collapse="true"></app-deliverydetails>
+                            <hr>
+                            <div :is="field.component" v-for="field in fields" v-bind="field.props" :ref="field.props.id"></div>
+                        </div>
+                        <div class="panel-footer">
+                            <a  class="btn btn-default" :href="backURL" ><i class="fa fa-fw fa-chevron-left"></i> Back</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+    export default {
+            data(){
+                return{
+                    
+                    delivery:{},
+                    fields:[]
+                }
+            },
+            mounted() {
+                this.load(this.$route.params.id);
+            },
+            computed:{
+              
+                backURL(){
+                    return '#/deliveries/'+this.delivery.id+"/edit";
+                },
+                
+            },
+            methods: {
+                load(id) {
+                    this.$parent.$emit("SHOW_PRELOADER");
+                    this.$http.get("/ajax/deliveries/" + id).then(response => {
+                        this.$parent.$emit("HIDE_PRELOADER");
+                        this.delivery = response.body;
+                        this.createForm();
+                    }, response => {
+                        this.$parent.$emit("HIDE_PRELOADER");
+                        this.$router.push('/400');
+                    });
+                },
+                createForm(){
+                    $.each(this.delivery.customs,function(i,field){
+                        var oField={
+                                    component: field.component.tag, 
+                                    props: {id:"custom_"+field.id,
+                                            name:field.key,
+                                            label: field.name,
+                                            help_text:field.help_text
+                                            }
+                                }
+                        this.fields.push(oField);
+                        
+                        
+                        
+                        $("#formHolder").append("<alert></alert>");
+                        
+                    }.bind(this));
+                 
+                }
+            }
+    }
+
+</script>

@@ -15,67 +15,68 @@
 			</div>
 		</div>
 		<br>
-		<div class="row">
-			<div class="col col-sm-2">
-				<strong>Type</strong>
+		<div :class="{'collapse':collapse=='true'}" :id="collapseId">
+			<div class="row">
+				<div class="col col-sm-2">
+					<strong>Type</strong>
+				</div>
+				<div class="col col-sm-4">
+					{{delivery.type.name}} <small>({{delivery.type.abbr|uppercase}})</small>
+				</div>
+				<div class="col col-sm-2">
+					<strong>Size</strong>
+				</div>
+				<div class="col col-sm-4">
+					{{delivery.size.name}} 
+				</div>
 			</div>
-			<div class="col col-sm-4">
-				{{delivery.type.name}} <small>({{delivery.type.abbr|uppercase}})</small>
+			<br>
+			<div class="row">
+				<div class="col col-sm-2">
+					<strong>Partner</strong>
+				</div>
+				<div class="col col-sm-4">
+					{{delivery.partner.name}} <small>({{delivery.partner.abbr|uppercase}})</small>
+				</div>
 			</div>
-			<div class="col col-sm-2">
-				<strong>Size</strong>
+			<div class="row">
+				<div class="col col-sm-2">
+					<strong>Campaign</strong>
+				</div>
+				<div class="col col-sm-4">
+					{{delivery.campaign.name}} <small>({{delivery.campaign.abbr|uppercase}})</small>
+				</div>
+				<div class="col col-sm-2">
+					<strong>Audience</strong>
+				</div>
+				<div class="col col-sm-4">
+					{{delivery.audience.name}} <small>({{delivery.audience.abbr|uppercase}})</small>
+				</div>
 			</div>
-			<div class="col col-sm-4">
-				{{delivery.size.name}} 
+			<br>
+			<div class="row">
+				<div class="col col-sm-2">
+					<strong>Region</strong>
+				</div>
+				<div class="col col-sm-4">
+					{{delivery.region.name}} <small>({{delivery.region.abbr|uppercase}})</small>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col col-sm-2">
+					<strong>Country</strong>
+				</div>
+				<div class="col col-sm-4">
+					{{delivery.country.name}} <small>({{delivery.country.code|uppercase}})</small>
+				</div>
+				<div class="col col-sm-2">
+					<strong>Language</strong>
+				</div>
+				<div class="col col-sm-4">
+					{{delivery.language.name}} <small>({{delivery.language.code|uppercase}})</small>
+				</div>
 			</div>
 		</div>
-		<br>
-		<div class="row">
-			<div class="col col-sm-2">
-				<strong>Partner</strong>
-			</div>
-			<div class="col col-sm-4">
-				{{delivery.partner.name}} <small>({{delivery.partner.abbr|uppercase}})</small>
-			</div>
-		</div>
-		<div class="row">
-			<div class="col col-sm-2">
-				<strong>Campaign</strong>
-			</div>
-			<div class="col col-sm-4">
-				{{delivery.campaign.name}} <small>({{delivery.campaign.abbr|uppercase}})</small>
-			</div>
-			<div class="col col-sm-2">
-				<strong>Audience</strong>
-			</div>
-			<div class="col col-sm-4">
-				{{delivery.audience.name}} <small>({{delivery.audience.abbr|uppercase}})</small>
-			</div>
-		</div>
-		<br>
-		<div class="row">
-			<div class="col col-sm-2">
-				<strong>Region</strong>
-			</div>
-			<div class="col col-sm-4">
-				{{delivery.region.name}} <small>({{delivery.region.abbr|uppercase}})</small>
-			</div>
-		</div>
-		<div class="row">
-			<div class="col col-sm-2">
-				<strong>Country</strong>
-			</div>
-			<div class="col col-sm-4">
-				{{delivery.country.name}} <small>({{delivery.country.code|uppercase}})</small>
-			</div>
-			<div class="col col-sm-2">
-				<strong>Language</strong>
-			</div>
-			<div class="col col-sm-4">
-				{{delivery.language.name}} <small>({{delivery.language.code|uppercase}})</small>
-			</div>
-		</div>
-
 	</div>
 </template>
 <script>
@@ -94,7 +95,7 @@
 				}
 			}
 		},
-	    props: ['value'],
+	    props: ['value','collapseId','collapse'],
 	    watch:{
 	    	value:{
 	        	handler: function() {

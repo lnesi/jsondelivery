@@ -16,3 +16,19 @@
     opacity: 0.75;
     margin-top: 5px;
 }
+
+#detailsTitle{
+    cursor: pointer;
+    .fa-plus-circle{
+        display: none;
+    }
+    .fa-minus-circle{
+        display:inline-block;
+    }
+    &.collapsed .fa-minus-circle{
+        display: none ;
+    }
+    &.collapsed .fa-plus-circle{
+        display: inline-block ;
+    }
+}
