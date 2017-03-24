@@ -12,7 +12,7 @@ class DeliveryContent extends Model
     protected $table = 'delivery_contents';
     protected $dates = ['deleted_at','created_at','updated_at','published_at'];
     protected $fillable=['name','rotation'];
-    protected $with=['status'];
+    protected $with=['status','values'];
     protected $hidden=['status_id','delivery_id'];
     public function delivery(){
     	return $this->belongsTo(Delivery::class,'delivery_id');
@@ -22,5 +22,8 @@ class DeliveryContent extends Model
     	return $this->belongsTo(Status::class,'status_id');
     }
 
+    public function values(){
+        return $this->hasMany(CustomValue::class,'set_id');
+    }
 
 }

@@ -63,7 +63,7 @@
 /******/ 	__webpack_require__.p = "./";
 
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 165);
+/******/ 	return __webpack_require__(__webpack_require__.s = 173);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -12029,9 +12029,9 @@ module.exports = function spread(callback) {
 
 "use strict";
 /* WEBPACK VAR INJECTION */(function(__webpack_provided_window_dot_jQuery) {Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vee_validate__ = __webpack_require__(41);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vee_validate__ = __webpack_require__(49);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vee_validate___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_vee_validate__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_vue_router__ = __webpack_require__(43);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_vue_router__ = __webpack_require__(51);
 
 window._ = __webpack_require__(35);
 
@@ -12051,8 +12051,8 @@ __webpack_require__(33);
  * and simple, leaving you to focus on building your next great project.
  */
 
-window.Vue = __webpack_require__(45);
-window.VueResource = __webpack_require__(42);
+window.Vue = __webpack_require__(53);
+window.VueResource = __webpack_require__(50);
 
 
 
@@ -12072,12 +12072,12 @@ window.axios.defaults.headers.common = {
   'X-Requested-With': 'XMLHttpRequest'
 };
 
+__webpack_require__(48);
+__webpack_require__(46);
 __webpack_require__(40);
+__webpack_require__(42);
 __webpack_require__(38);
-__webpack_require__(173);
-__webpack_require__(175);
-__webpack_require__(177);
-__webpack_require__(179);
+__webpack_require__(44);
 
 /**
  * Echo exposes an expressive API for subscribing to channels and listening
@@ -31568,7 +31568,7 @@ if (typeof jQuery === 'undefined') {
   }
 }.call(this));
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(46)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(54)(module)))
 
 /***/ }),
 /* 36 */
@@ -31826,16 +31826,5923 @@ exports.clearImmediate = clearImmediate;
 /* 38 */
 /***/ (function(module, exports, __webpack_require__) {
 
+// Exports the "code" plugin for usage with module loaders
+// Usage:
+//   CommonJS:
+//     require('tinymce/plugins/code')
+//   ES2015:
+//     import 'tinymce/plugins/code'
+__webpack_require__(39);
+
+/***/ }),
+/* 39 */
+/***/ (function(module, exports) {
+
+/**
+ * plugin.js
+ *
+ * Released under LGPL License.
+ * Copyright (c) 1999-2015 Ephox Corp. All rights reserved
+ *
+ * License: http://www.tinymce.com/license
+ * Contributing: http://www.tinymce.com/contributing
+ */
+
+/*global tinymce:true */
+
+tinymce.PluginManager.add('code', function(editor) {
+	function showDialog() {
+		var win = editor.windowManager.open({
+			title: "Source code",
+			body: {
+				type: 'textbox',
+				name: 'code',
+				multiline: true,
+				minWidth: editor.getParam("code_dialog_width", 600),
+				minHeight: editor.getParam("code_dialog_height", Math.min(tinymce.DOM.getViewPort().h - 200, 500)),
+				spellcheck: false,
+				style: 'direction: ltr; text-align: left'
+			},
+			onSubmit: function(e) {
+				// We get a lovely "Wrong document" error in IE 11 if we
+				// don't move the focus to the editor before creating an undo
+				// transation since it tries to make a bookmark for the current selection
+				editor.focus();
+
+				editor.undoManager.transact(function() {
+					editor.setContent(e.data.code);
+				});
+
+				editor.selection.setCursorLocation();
+				editor.nodeChanged();
+			}
+		});
+
+		// Gecko has a major performance issue with textarea
+		// contents so we need to set it when all reflows are done
+		win.find('#code').value(editor.getContent({source_view: true}));
+	}
+
+	editor.addCommand("mceCodeEditor", showDialog);
+
+	editor.addButton('code', {
+		icon: 'code',
+		tooltip: 'Source code',
+		onclick: showDialog
+	});
+
+	editor.addMenuItem('code', {
+		icon: 'code',
+		text: 'Source code',
+		context: 'tools',
+		onclick: showDialog
+	});
+});
+
+/***/ }),
+/* 40 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// Exports the "link" plugin for usage with module loaders
+// Usage:
+//   CommonJS:
+//     require('tinymce/plugins/link')
+//   ES2015:
+//     import 'tinymce/plugins/link'
+__webpack_require__(41);
+
+/***/ }),
+/* 41 */
+/***/ (function(module, exports) {
+
+/**
+ * plugin.js
+ *
+ * Released under LGPL License.
+ * Copyright (c) 1999-2015 Ephox Corp. All rights reserved
+ *
+ * License: http://www.tinymce.com/license
+ * Contributing: http://www.tinymce.com/contributing
+ */
+
+/*global tinymce:true */
+
+tinymce.PluginManager.add('link', function(editor) {
+	var attachState = {};
+
+	function isLink(elm) {
+		return elm && elm.nodeName === 'A' && elm.href;
+	}
+
+	function hasLinks(elements) {
+		return tinymce.util.Tools.grep(elements, isLink).length > 0;
+	}
+
+	function getLink(elm) {
+		return editor.dom.getParent(elm, 'a[href]');
+	}
+
+	function getSelectedLink() {
+		return getLink(editor.selection.getStart());
+	}
+
+	function getHref(elm) {
+		// Returns the real href value not the resolved a.href value
+		var href = elm.getAttribute('data-mce-href');
+		return href ? href : elm.getAttribute('href');
+	}
+
+	function isContextMenuVisible() {
+		var contextmenu = editor.plugins.contextmenu;
+		return contextmenu ? contextmenu.isContextMenuVisible() : false;
+	}
+
+	var hasOnlyAltModifier = function (e) {
+		return e.altKey === true && e.shiftKey === false && e.ctrlKey === false && e.metaKey === false;
+	};
+
+	function leftClickedOnAHref(elm) {
+		var sel, rng, node;
+		if (editor.settings.link_context_toolbar && !isContextMenuVisible() && isLink(elm)) {
+			sel = editor.selection;
+			rng = sel.getRng();
+			node = rng.startContainer;
+			// ignore cursor positions at the beginning/end (to make context toolbar less noisy)
+			if (node.nodeType == 3 && sel.isCollapsed() && rng.startOffset > 0 && rng.startOffset < node.data.length) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	function appendClickRemove(link, evt) {
+		document.body.appendChild(link);
+		link.dispatchEvent(evt);
+		document.body.removeChild(link);
+	}
+
+	function openDetachedWindow(url) {
+		// Chrome and Webkit has implemented noopener and works correctly with/without popup blocker
+		// Firefox has it implemented noopener but when the popup blocker is activated it doesn't work
+		// Edge has only implemented noreferrer and it seems to remove opener as well
+		// Older IE versions pre IE 11 falls back to a window.open approach
+		if (!tinymce.Env.ie || tinymce.Env.ie > 10) {
+			var link = document.createElement('a');
+			link.target = '_blank';
+			link.href = url;
+			link.rel = 'noreferrer noopener';
+
+			var evt = document.createEvent('MouseEvents');
+			evt.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+
+			appendClickRemove(link, evt);
+		} else {
+			var win = window.open('', '_blank');
+			if (win) {
+				win.opener = null;
+				var doc = win.document;
+				doc.open();
+				doc.write('<meta http-equiv="refresh" content="0; url=' + tinymce.DOM.encode(url) + '">');
+				doc.close();
+			}
+		}
+	}
+
+	function gotoLink(a) {
+		if (a) {
+			var href = getHref(a);
+			if (/^#/.test(href)) {
+				var targetEl = editor.$(href);
+				if (targetEl.length) {
+					editor.selection.scrollIntoView(targetEl[0], true);
+				}
+			} else {
+				openDetachedWindow(a.href);
+			}
+		}
+	}
+
+	function gotoSelectedLink() {
+		gotoLink(getSelectedLink());
+	}
+
+	function toggleViewLinkState() {
+        var self = this;
+
+		var toggleVisibility = function (e) {
+			if (hasLinks(e.parents)) {
+				self.show();
+			} else {
+				self.hide();
+			}
+		};
+
+		if (!hasLinks(editor.dom.getParents(editor.selection.getStart()))) {
+			self.hide();
+		}
+
+        editor.on('nodechange', toggleVisibility);
+
+		self.on('remove', function () {
+			editor.off('nodechange', toggleVisibility);
+		});
+	}
+
+	function createLinkList(callback) {
+		return function() {
+			var linkList = editor.settings.link_list;
+
+			if (typeof linkList == "string") {
+				tinymce.util.XHR.send({
+					url: linkList,
+					success: function(text) {
+						callback(tinymce.util.JSON.parse(text));
+					}
+				});
+			} else if (typeof linkList == "function") {
+				linkList(callback);
+			} else {
+				callback(linkList);
+			}
+		};
+	}
+
+	function buildListItems(inputList, itemCallback, startItems) {
+		function appendItems(values, output) {
+			output = output || [];
+
+			tinymce.each(values, function(item) {
+				var menuItem = {text: item.text || item.title};
+
+				if (item.menu) {
+					menuItem.menu = appendItems(item.menu);
+				} else {
+					menuItem.value = item.value;
+
+					if (itemCallback) {
+						itemCallback(menuItem);
+					}
+				}
+
+				output.push(menuItem);
+			});
+
+			return output;
+		}
+
+		return appendItems(inputList, startItems || []);
+	}
+
+	function showDialog(linkList) {
+		var data = {}, selection = editor.selection, dom = editor.dom, selectedElm, anchorElm, initialText;
+		var win, onlyText, textListCtrl, linkListCtrl, relListCtrl, targetListCtrl, classListCtrl, linkTitleCtrl, value;
+
+		function linkListChangeHandler(e) {
+			var textCtrl = win.find('#text');
+
+			if (!textCtrl.value() || (e.lastControl && textCtrl.value() == e.lastControl.text())) {
+				textCtrl.value(e.control.text());
+			}
+
+			win.find('#href').value(e.control.value());
+		}
+
+		function buildAnchorListControl(url) {
+			var anchorList = [];
+
+			tinymce.each(editor.dom.select('a:not([href])'), function(anchor) {
+				var id = anchor.name || anchor.id;
+
+				if (id) {
+					anchorList.push({
+						text: id,
+						value: '#' + id,
+						selected: url.indexOf('#' + id) != -1
+					});
+				}
+			});
+
+			if (anchorList.length) {
+				anchorList.unshift({text: 'None', value: ''});
+
+				return {
+					name: 'anchor',
+					type: 'listbox',
+					label: 'Anchors',
+					values: anchorList,
+					onselect: linkListChangeHandler
+				};
+			}
+		}
+
+		function updateText() {
+			if (!initialText && data.text.length === 0 && onlyText) {
+				this.parent().parent().find('#text')[0].value(this.value());
+			}
+		}
+
+		function urlChange(e) {
+			var meta = e.meta || {};
+
+			if (linkListCtrl) {
+				linkListCtrl.value(editor.convertURL(this.value(), 'href'));
+			}
+
+			tinymce.each(e.meta, function(value, key) {
+				var inp = win.find('#' + key);
+
+				if (key === 'text') {
+					if (initialText.length === 0) {
+						inp.value(value);
+						data.text = value;
+					}
+				} else {
+					inp.value(value);
+				}
+			});
+
+			if (meta.attach) {
+				attachState = {
+					href: this.value(),
+					attach: meta.attach
+				};
+			}
+
+			if (!meta.text) {
+				updateText.call(this);
+			}
+		}
+
+		function isOnlyTextSelected(anchorElm) {
+			var html = selection.getContent();
+
+			// Partial html and not a fully selected anchor element
+			if (/</.test(html) && (!/^<a [^>]+>[^<]+<\/a>$/.test(html) || html.indexOf('href=') == -1)) {
+				return false;
+			}
+
+			if (anchorElm) {
+				var nodes = anchorElm.childNodes, i;
+
+				if (nodes.length === 0) {
+					return false;
+				}
+
+				for (i = nodes.length - 1; i >= 0; i--) {
+					if (nodes[i].nodeType != 3) {
+						return false;
+					}
+				}
+			}
+
+			return true;
+		}
+
+		function onBeforeCall(e) {
+			e.meta = win.toJSON();
+		}
+
+		selectedElm = selection.getNode();
+		anchorElm = dom.getParent(selectedElm, 'a[href]');
+		onlyText = isOnlyTextSelected();
+
+		data.text = initialText = anchorElm ? (anchorElm.innerText || anchorElm.textContent) : selection.getContent({format: 'text'});
+		data.href = anchorElm ? dom.getAttrib(anchorElm, 'href') : '';
+
+		if (anchorElm) {
+			data.target = dom.getAttrib(anchorElm, 'target');
+		} else if (editor.settings.default_link_target) {
+			data.target = editor.settings.default_link_target;
+		}
+
+		if ((value = dom.getAttrib(anchorElm, 'rel'))) {
+			data.rel = value;
+		}
+
+		if ((value = dom.getAttrib(anchorElm, 'class'))) {
+			data['class'] = value;
+		}
+
+		if ((value = dom.getAttrib(anchorElm, 'title'))) {
+			data.title = value;
+		}
+
+		if (onlyText) {
+			textListCtrl = {
+				name: 'text',
+				type: 'textbox',
+				size: 40,
+				label: 'Text to display',
+				onchange: function() {
+					data.text = this.value();
+				}
+			};
+		}
+
+		if (linkList) {
+			linkListCtrl = {
+				type: 'listbox',
+				label: 'Link list',
+				values: buildListItems(
+					linkList,
+					function(item) {
+						item.value = editor.convertURL(item.value || item.url, 'href');
+					},
+					[{text: 'None', value: ''}]
+				),
+				onselect: linkListChangeHandler,
+				value: editor.convertURL(data.href, 'href'),
+				onPostRender: function() {
+					/*eslint consistent-this:0*/
+					linkListCtrl = this;
+				}
+			};
+		}
+
+		if (editor.settings.target_list !== false) {
+			if (!editor.settings.target_list) {
+				editor.settings.target_list = [
+					{text: 'None', value: ''},
+					{text: 'New window', value: '_blank'}
+				];
+			}
+
+			targetListCtrl = {
+				name: 'target',
+				type: 'listbox',
+				label: 'Target',
+				values: buildListItems(editor.settings.target_list)
+			};
+		}
+
+		if (editor.settings.rel_list) {
+			relListCtrl = {
+				name: 'rel',
+				type: 'listbox',
+				label: 'Rel',
+				values: buildListItems(editor.settings.rel_list)
+			};
+		}
+
+		if (editor.settings.link_class_list) {
+			classListCtrl = {
+				name: 'class',
+				type: 'listbox',
+				label: 'Class',
+				values: buildListItems(
+					editor.settings.link_class_list,
+					function(item) {
+						if (item.value) {
+							item.textStyle = function() {
+								return editor.formatter.getCssText({inline: 'a', classes: [item.value]});
+							};
+						}
+					}
+				)
+			};
+		}
+
+		if (editor.settings.link_title !== false) {
+			linkTitleCtrl = {
+				name: 'title',
+				type: 'textbox',
+				label: 'Title',
+				value: data.title
+			};
+		}
+
+		win = editor.windowManager.open({
+			title: 'Insert link',
+			data: data,
+			body: [
+				{
+					name: 'href',
+					type: 'filepicker',
+					filetype: 'file',
+					size: 40,
+					autofocus: true,
+					label: 'Url',
+					onchange: urlChange,
+					onkeyup: updateText,
+					onbeforecall: onBeforeCall
+				},
+				textListCtrl,
+				linkTitleCtrl,
+				buildAnchorListControl(data.href),
+				linkListCtrl,
+				relListCtrl,
+				targetListCtrl,
+				classListCtrl
+			],
+			onSubmit: function(e) {
+				/*eslint dot-notation: 0*/
+				var href;
+
+				data = tinymce.extend(data, e.data);
+				href = data.href;
+
+				// Delay confirm since onSubmit will move focus
+				function delayedConfirm(message, callback) {
+					var rng = editor.selection.getRng();
+
+					tinymce.util.Delay.setEditorTimeout(editor, function() {
+						editor.windowManager.confirm(message, function(state) {
+							editor.selection.setRng(rng);
+							callback(state);
+						});
+					});
+				}
+
+				function toggleTargetRules(rel, isUnsafe) {
+					var rules = 'noopener noreferrer';
+
+					function addTargetRules(rel) {
+						rel = removeTargetRules(rel);
+						return rel ? [rel, rules].join(' ') : rules;
+					}
+
+					function removeTargetRules(rel) {
+						var regExp = new RegExp('(' + rules.replace(' ', '|') + ')', 'g');
+						if (rel) {
+							rel = tinymce.trim(rel.replace(regExp, ''));
+						}
+						return rel ? rel : null;
+					}
+
+					return isUnsafe ? addTargetRules(rel) : removeTargetRules(rel);
+				}
+
+				function createLink() {
+					var linkAttrs = {
+						href: href,
+						target: data.target ? data.target : null,
+						rel: data.rel ? data.rel : null,
+						"class": data["class"] ? data["class"] : null,
+						title: data.title ? data.title : null
+					};
+
+					if (!editor.settings.allow_unsafe_link_target) {
+						linkAttrs.rel = toggleTargetRules(linkAttrs.rel, linkAttrs.target == '_blank');
+					}
+
+					if (href === attachState.href) {
+						attachState.attach();
+						attachState = {};
+					}
+
+					if (anchorElm) {
+						editor.focus();
+
+						if (onlyText && data.text != initialText) {
+							if ("innerText" in anchorElm) {
+								anchorElm.innerText = data.text;
+							} else {
+								anchorElm.textContent = data.text;
+							}
+						}
+
+						dom.setAttribs(anchorElm, linkAttrs);
+
+						selection.select(anchorElm);
+						editor.undoManager.add();
+					} else {
+						if (onlyText) {
+							editor.insertContent(dom.createHTML('a', linkAttrs, dom.encode(data.text)));
+						} else {
+							editor.execCommand('mceInsertLink', false, linkAttrs);
+						}
+					}
+				}
+
+				function insertLink() {
+					editor.undoManager.transact(createLink);
+				}
+
+				if (!href) {
+					editor.execCommand('unlink');
+					return;
+				}
+
+				// Is email and not //user@domain.com
+				if (href.indexOf('@') > 0 && href.indexOf('//') == -1 && href.indexOf('mailto:') == -1) {
+					delayedConfirm(
+						'The URL you entered seems to be an email address. Do you want to add the required mailto: prefix?',
+						function(state) {
+							if (state) {
+								href = 'mailto:' + href;
+							}
+
+							insertLink();
+						}
+					);
+
+					return;
+				}
+
+				// Is not protocol prefixed
+				if ((editor.settings.link_assume_external_targets && !/^\w+:/i.test(href)) ||
+					(!editor.settings.link_assume_external_targets && /^\s*www[\.|\d\.]/i.test(href))) {
+					delayedConfirm(
+						'The URL you entered seems to be an external link. Do you want to add the required http:// prefix?',
+						function(state) {
+							if (state) {
+								href = 'http://' + href;
+							}
+
+							insertLink();
+						}
+					);
+
+					return;
+				}
+
+				insertLink();
+			}
+		});
+	}
+
+	editor.addButton('link', {
+		icon: 'link',
+		tooltip: 'Insert/edit link',
+		shortcut: 'Meta+K',
+		onclick: createLinkList(showDialog),
+		stateSelector: 'a[href]'
+	});
+
+	editor.addButton('unlink', {
+		icon: 'unlink',
+		tooltip: 'Remove link',
+		cmd: 'unlink',
+		stateSelector: 'a[href]'
+	});
+
+
+	if (editor.addContextToolbar) {
+		editor.addButton('openlink', {
+			icon: 'newtab',
+			tooltip: 'Open link',
+			onclick: gotoSelectedLink
+		});
+
+		editor.addContextToolbar(
+			leftClickedOnAHref,
+			'openlink | link unlink'
+		);
+	}
+
+
+	editor.addShortcut('Meta+K', '', createLinkList(showDialog));
+	editor.addCommand('mceLink', createLinkList(showDialog));
+
+	editor.on('click', function (e) {
+		var link = getLink(e.target);
+		if (link && tinymce.util.VK.metaKeyPressed(e)) {
+			e.preventDefault();
+			gotoLink(link);
+		}
+	});
+
+	editor.on('keydown', function (e) {
+		var link = getSelectedLink();
+		if (link && e.keyCode === 13 && hasOnlyAltModifier(e)) {
+			e.preventDefault();
+			gotoLink(link);
+		}
+	});
+
+	this.showDialog = showDialog;
+
+	editor.addMenuItem('openlink', {
+		text: 'Open link',
+		icon: 'newtab',
+		onclick: gotoSelectedLink,
+		onPostRender: toggleViewLinkState,
+		prependToContext: true
+	});
+
+	editor.addMenuItem('link', {
+		icon: 'link',
+		text: 'Link',
+		shortcut: 'Meta+K',
+		onclick: createLinkList(showDialog),
+		stateSelector: 'a[href]',
+		context: 'insert',
+		prependToContext: true
+	});
+});
+
+
+/***/ }),
+/* 42 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// Exports the "table" plugin for usage with module loaders
+// Usage:
+//   CommonJS:
+//     require('tinymce/plugins/table')
+//   ES2015:
+//     import 'tinymce/plugins/table'
+__webpack_require__(43);
+
+/***/ }),
+/* 43 */
+/***/ (function(module, exports) {
+
+/**
+ * Compiled inline version. (Library mode)
+ */
+
+/*jshint smarttabs:true, undef:true, latedef:true, curly:true, bitwise:true, camelcase:true */
+/*globals $code */
+
+(function(exports, undefined) {
+	"use strict";
+
+	var modules = {};
+
+	function require(ids, callback) {
+		var module, defs = [];
+
+		for (var i = 0; i < ids.length; ++i) {
+			module = modules[ids[i]] || resolve(ids[i]);
+			if (!module) {
+				throw 'module definition dependecy not found: ' + ids[i];
+			}
+
+			defs.push(module);
+		}
+
+		callback.apply(null, defs);
+	}
+
+	function define(id, dependencies, definition) {
+		if (typeof id !== 'string') {
+			throw 'invalid module definition, module id must be defined and be a string';
+		}
+
+		if (dependencies === undefined) {
+			throw 'invalid module definition, dependencies must be specified';
+		}
+
+		if (definition === undefined) {
+			throw 'invalid module definition, definition function must be specified';
+		}
+
+		require(dependencies, function() {
+			modules[id] = definition.apply(null, arguments);
+		});
+	}
+
+	function defined(id) {
+		return !!modules[id];
+	}
+
+	function resolve(id) {
+		var target = exports;
+		var fragments = id.split(/[.\/]/);
+
+		for (var fi = 0; fi < fragments.length; ++fi) {
+			if (!target[fragments[fi]]) {
+				return;
+			}
+
+			target = target[fragments[fi]];
+		}
+
+		return target;
+	}
+
+	function expose(ids) {
+		var i, target, id, fragments, privateModules;
+
+		for (i = 0; i < ids.length; i++) {
+			target = exports;
+			id = ids[i];
+			fragments = id.split(/[.\/]/);
+
+			for (var fi = 0; fi < fragments.length - 1; ++fi) {
+				if (target[fragments[fi]] === undefined) {
+					target[fragments[fi]] = {};
+				}
+
+				target = target[fragments[fi]];
+			}
+
+			target[fragments[fragments.length - 1]] = modules[id];
+		}
+
+		// Expose private modules for unit tests
+		if (exports.AMDLC_TESTS) {
+			privateModules = exports.privateModules || {};
+
+			for (id in modules) {
+				privateModules[id] = modules[id];
+			}
+
+			for (i = 0; i < ids.length; i++) {
+				delete privateModules[ids[i]];
+			}
+
+			exports.privateModules = privateModules;
+		}
+	}
+
+// Included from: js/tinymce/plugins/table/classes/Utils.js
+
+/**
+ * Utils.js
+ *
+ * Released under LGPL License.
+ * Copyright (c) 1999-2015 Ephox Corp. All rights reserved
+ *
+ * License: http://www.tinymce.com/license
+ * Contributing: http://www.tinymce.com/contributing
+ */
+
+/**
+ * Various utility functions.
+ *
+ * @class tinymce.tableplugin.Utils
+ * @private
+ */
+define("tinymce/tableplugin/Utils", [
+	"tinymce/Env"
+], function(Env) {
+	var setSpanVal = function (name) {
+		return function (td, val) {
+			if (td) {
+				val = parseInt(val, 10);
+
+				if (val === 1 || val === 0) {
+					td.removeAttribute(name, 1);
+				} else {
+					td.setAttribute(name, val, 1);
+				}
+			}
+		};
+	};
+
+	var getSpanVal = function (name) {
+		return function (td) {
+			return parseInt(td.getAttribute(name) || 1, 10);
+		};
+	};
+
+	function paddCell(cell) {
+		if (!Env.ie || Env.ie > 9) {
+			if (!cell.hasChildNodes()) {
+				cell.innerHTML = '<br data-mce-bogus="1" />';
+			}
+		}
+	}
+
+	return {
+		setColSpan: setSpanVal('colSpan'),
+		setRowSpan: setSpanVal('rowspan'),
+		getColSpan: getSpanVal('colSpan'),
+		getRowSpan: getSpanVal('rowSpan'),
+		setSpanVal: function (td, name, value) {
+			setSpanVal(name)(td, value);
+		},
+		getSpanVal: function (td, name) {
+			return getSpanVal(name)(td);
+		},
+		paddCell: paddCell
+	};
+});
+
+// Included from: js/tinymce/plugins/table/classes/SplitCols.js
+
+/**
+ * SplitCols.js
+ *
+ * Released under LGPL License.
+ * Copyright (c) 1999-2016 Ephox Corp. All rights reserved
+ *
+ * License: http://www.tinymce.com/license
+ * Contributing: http://www.tinymce.com/contributing
+ */
+
+/**
+ * Contains logic for handling splitting of merged rows.
+ *
+ * @class tinymce.tableplugin.SplitCols
+ * @private
+ */
+define("tinymce/tableplugin/SplitCols", [
+	"tinymce/util/Tools",
+	"tinymce/tableplugin/Utils"
+], function(Tools, Utils) {
+	var getCellAt = function (grid, x, y) {
+		return grid[y] ? grid[y][x] : null;
+	};
+
+	var getCellElmAt = function (grid, x, y) {
+		var cell = getCellAt(grid, x, y);
+		return cell ? cell.elm : null;
+	};
+
+	var countHoles = function (grid, x, y, delta) {
+		var y2, cell, count = 0, elm = getCellElmAt(grid, x, y);
+
+		for (y2 = y; delta > 0 ? y2 < grid.length : y2 >= 0; y2 += delta) {
+			cell = getCellAt(grid, x, y2);
+			if (elm !== cell.elm) {
+				break;
+			}
+
+			count++;
+		}
+
+		return count;
+	};
+
+	var findRealElm = function (grid, x, y) {
+		var cell, row = grid[y];
+
+		for (var x2 = x; x2 < row.length; x2++) {
+			cell = row[x2];
+			if (cell.real) {
+				return cell.elm;
+			}
+		}
+
+		return null;
+	};
+
+	var getRowSplitInfo = function (grid, y) {
+		var cell, result = [], row = grid[y];
+
+		for (var x = 0; x < row.length; x++) {
+			cell = row[x];
+			result.push({
+				elm: cell.elm,
+				above: countHoles(grid, x, y, -1) - 1,
+				below: countHoles(grid, x, y, 1) - 1
+			});
+
+			x += Utils.getColSpan(cell.elm) - 1;
+		}
+
+		return result;
+	};
+
+	var createCell = function (info, rowSpan) {
+		var doc = info.elm.ownerDocument;
+		var newCell = doc.createElement('td');
+
+		Utils.setColSpan(newCell, Utils.getColSpan(info.elm));
+		Utils.setRowSpan(newCell, rowSpan);
+		Utils.paddCell(newCell);
+
+		return newCell;
+	};
+
+	var insertOrAppendCell = function (grid, newCell, x, y) {
+		var realCellElm = findRealElm(grid, x + 1, y);
+
+		if (!realCellElm) {
+			realCellElm = findRealElm(grid, 0, y);
+			realCellElm.parentNode.appendChild(newCell);
+		} else {
+			realCellElm.parentNode.insertBefore(newCell, realCellElm);
+		}
+	};
+
+	var splitAbove = function (grid, info, x, y) {
+		if (info.above !== 0) {
+			Utils.setRowSpan(info.elm, info.above);
+			var cell = createCell(info, info.below + 1);
+			insertOrAppendCell(grid, cell, x, y);
+			return cell;
+		}
+
+		return null;
+	};
+
+	var splitBelow = function (grid, info, x, y) {
+		if (info.below !== 0) {
+			Utils.setRowSpan(info.elm, info.above + 1);
+			var cell = createCell(info, info.below);
+			insertOrAppendCell(grid, cell, x, y + 1);
+			return cell;
+		}
+
+		return null;
+	};
+
+	var splitAt = function (grid, x, y, before) {
+		var rowInfos = getRowSplitInfo(grid, y);
+		var rowElm = getCellElmAt(grid, x, y).parentNode;
+		var cells = [];
+
+		Tools.each(rowInfos, function (info, x) {
+			var cell = before ? splitAbove(grid, info, x, y) : splitBelow(grid, info, x, y);
+			if (cell !== null) {
+				cells.push(cells);
+			}
+		});
+
+		return {
+			cells: cells,
+			row: rowElm
+		};
+	};
+
+	return {
+		splitAt: splitAt
+	};
+});
+
+// Included from: js/tinymce/plugins/table/classes/TableGrid.js
+
+/**
+ * TableGrid.js
+ *
+ * Released under LGPL License.
+ * Copyright (c) 1999-2015 Ephox Corp. All rights reserved
+ *
+ * License: http://www.tinymce.com/license
+ * Contributing: http://www.tinymce.com/contributing
+ */
+
+/**
+ * This class creates a grid out of a table element. This
+ * makes it a whole lot easier to handle complex tables with
+ * col/row spans.
+ *
+ * @class tinymce.tableplugin.TableGrid
+ * @private
+ */
+define("tinymce/tableplugin/TableGrid", [
+	"tinymce/util/Tools",
+	"tinymce/Env",
+	"tinymce/tableplugin/Utils",
+	"tinymce/tableplugin/SplitCols"
+], function(Tools, Env, Utils, SplitCols) {
+	var each = Tools.each, getSpanVal = Utils.getSpanVal, setSpanVal = Utils.setSpanVal;
+
+	return function(editor, table, selectedCell) {
+		var grid, gridWidth, startPos, endPos, selection = editor.selection, dom = selection.dom;
+
+		function removeCellSelection() {
+			editor.$('td[data-mce-selected],th[data-mce-selected]').removeAttr('data-mce-selected');
+		}
+
+		function isEditorBody(node) {
+			return node === editor.getBody();
+		}
+
+		function getChildrenByName(node, names) {
+			if (!node) {
+				return [];
+			}
+
+			names = Tools.map(names.split(','), function(name) {
+				return name.toLowerCase();
+			});
+
+			return Tools.grep(node.childNodes, function(node) {
+				return Tools.inArray(names, node.nodeName.toLowerCase()) !== -1;
+			});
+		}
+
+		function buildGrid() {
+			var startY = 0;
+
+			grid = [];
+			gridWidth = 0;
+
+			each(['thead', 'tbody', 'tfoot'], function(part) {
+				var partElm = getChildrenByName(table, part)[0];
+				var rows = getChildrenByName(partElm, 'tr');
+
+				each(rows, function(tr, y) {
+					y += startY;
+
+					each(getChildrenByName(tr, 'td,th'), function(td, x) {
+						var x2, y2, rowspan, colspan;
+
+						// Skip over existing cells produced by rowspan
+						if (grid[y]) {
+							while (grid[y][x]) {
+								x++;
+							}
+						}
+
+						// Get col/rowspan from cell
+						rowspan = getSpanVal(td, 'rowspan');
+						colspan = getSpanVal(td, 'colspan');
+
+						// Fill out rowspan/colspan right and down
+						for (y2 = y; y2 < y + rowspan; y2++) {
+							if (!grid[y2]) {
+								grid[y2] = [];
+							}
+
+							for (x2 = x; x2 < x + colspan; x2++) {
+								grid[y2][x2] = {
+									part: part,
+									real: y2 == y && x2 == x,
+									elm: td,
+									rowspan: rowspan,
+									colspan: colspan
+								};
+							}
+						}
+
+						gridWidth = Math.max(gridWidth, x + 1);
+					});
+				});
+
+				startY += rows.length;
+			});
+		}
+
+		function fireNewRow(node) {
+			editor.fire('newrow', {
+				node: node
+			});
+
+			return node;
+		}
+
+		function fireNewCell(node) {
+			editor.fire('newcell', {
+				node: node
+			});
+
+			return node;
+		}
+
+		function cloneNode(node, children) {
+			node = node.cloneNode(children);
+			node.removeAttribute('id');
+
+			return node;
+		}
+
+		function getCell(x, y) {
+			var row;
+
+			row = grid[y];
+			if (row) {
+				return row[x];
+			}
+		}
+
+		function getRow(grid, y) {
+			return grid[y] ? grid[y] : null;
+		}
+
+		function getColumn(grid, x) {
+			var out = [];
+
+			for (var y = 0; y < grid.length; y++) {
+				out.push(getCell(x, y));
+			}
+
+			return out;
+		}
+
+		function isCellSelected(cell) {
+			return cell && (!!dom.getAttrib(cell.elm, 'data-mce-selected') || cell == selectedCell);
+		}
+
+		function getSelectedRows() {
+			var rows = [];
+
+			each(table.rows, function(row) {
+				each(row.cells, function(cell) {
+					if (dom.getAttrib(cell, 'data-mce-selected') || (selectedCell && cell == selectedCell.elm)) {
+						rows.push(row);
+						return false;
+					}
+				});
+			});
+
+			return rows;
+		}
+
+		function countSelectedCols() {
+			var cols = 0;
+
+			each(grid, function(row) {
+				each(row, function(cell) {
+					if (isCellSelected(cell)) {
+						cols++;
+					}
+				});
+				if (cols) {
+					return false;
+				}
+			});
+
+			return cols;
+		}
+
+		function deleteTable() {
+			var rng = dom.createRng();
+
+			if (isEditorBody(table)) {
+				return;
+			}
+
+			rng.setStartAfter(table);
+			rng.setEndAfter(table);
+
+			selection.setRng(rng);
+
+			dom.remove(table);
+		}
+
+		function cloneCell(cell) {
+			var formatNode, cloneFormats = {};
+
+			if (editor.settings.table_clone_elements !== false) {
+				cloneFormats = Tools.makeMap(
+					(editor.settings.table_clone_elements || 'strong em b i span font h1 h2 h3 h4 h5 h6 p div').toUpperCase(),
+					/[ ,]/
+				);
+			}
+
+			// Clone formats
+			Tools.walk(cell, function(node) {
+				var curNode;
+
+				if (node.nodeType == 3) {
+					each(dom.getParents(node.parentNode, null, cell).reverse(), function(node) {
+						if (!cloneFormats[node.nodeName]) {
+							return;
+						}
+
+						node = cloneNode(node, false);
+
+						if (!formatNode) {
+							formatNode = curNode = node;
+						} else if (curNode) {
+							curNode.appendChild(node);
+						}
+
+						curNode = node;
+					});
+
+					// Add something to the inner node
+					if (curNode) {
+						curNode.innerHTML = Env.ie && Env.ie < 10 ? '&nbsp;' : '<br data-mce-bogus="1" />';
+					}
+
+					return false;
+				}
+			}, 'childNodes');
+
+			cell = cloneNode(cell, false);
+			fireNewCell(cell);
+
+			setSpanVal(cell, 'rowSpan', 1);
+			setSpanVal(cell, 'colSpan', 1);
+
+			if (formatNode) {
+				cell.appendChild(formatNode);
+			} else {
+				Utils.paddCell(cell);
+			}
+
+			return cell;
+		}
+
+		function cleanup() {
+			var rng = dom.createRng(), row;
+
+			// Empty rows
+			each(dom.select('tr', table), function(tr) {
+				if (tr.cells.length === 0) {
+					dom.remove(tr);
+				}
+			});
+
+			// Empty table
+			if (dom.select('tr', table).length === 0) {
+				rng.setStartBefore(table);
+				rng.setEndBefore(table);
+				selection.setRng(rng);
+				dom.remove(table);
+				return;
+			}
+
+			// Empty header/body/footer
+			each(dom.select('thead,tbody,tfoot', table), function(part) {
+				if (part.rows.length === 0) {
+					dom.remove(part);
+				}
+			});
+
+			// Restore selection to start position if it still exists
+			buildGrid();
+
+			// If we have a valid startPos object
+			if (startPos) {
+				// Restore the selection to the closest table position
+				row = grid[Math.min(grid.length - 1, startPos.y)];
+				if (row) {
+					selection.select(row[Math.min(row.length - 1, startPos.x)].elm, true);
+					selection.collapse(true);
+				}
+			}
+		}
+
+		function fillLeftDown(x, y, rows, cols) {
+			var tr, x2, r, c, cell;
+
+			tr = grid[y][x].elm.parentNode;
+			for (r = 1; r <= rows; r++) {
+				tr = dom.getNext(tr, 'tr');
+
+				if (tr) {
+					// Loop left to find real cell
+					for (x2 = x; x2 >= 0; x2--) {
+						cell = grid[y + r][x2].elm;
+
+						if (cell.parentNode == tr) {
+							// Append clones after
+							for (c = 1; c <= cols; c++) {
+								dom.insertAfter(cloneCell(cell), cell);
+							}
+
+							break;
+						}
+					}
+
+					if (x2 == -1) {
+						// Insert nodes before first cell
+						for (c = 1; c <= cols; c++) {
+							tr.insertBefore(cloneCell(tr.cells[0]), tr.cells[0]);
+						}
+					}
+				}
+			}
+		}
+
+		function split() {
+			each(grid, function(row, y) {
+				each(row, function(cell, x) {
+					var colSpan, rowSpan, i;
+
+					if (isCellSelected(cell)) {
+						cell = cell.elm;
+						colSpan = getSpanVal(cell, 'colspan');
+						rowSpan = getSpanVal(cell, 'rowspan');
+
+						if (colSpan > 1 || rowSpan > 1) {
+							setSpanVal(cell, 'rowSpan', 1);
+							setSpanVal(cell, 'colSpan', 1);
+
+							// Insert cells right
+							for (i = 0; i < colSpan - 1; i++) {
+								dom.insertAfter(cloneCell(cell), cell);
+							}
+
+							fillLeftDown(x, y, rowSpan - 1, colSpan);
+						}
+					}
+				});
+			});
+		}
+
+		function findItemsOutsideOfRange(items, start, end) {
+			var out = [];
+
+			for (var i = 0; i < items.length; i++) {
+				if (i < start || i > end) {
+					out.push(items[i]);
+				}
+			}
+
+			return out;
+		}
+
+		function getFakeCells(cells) {
+			return Tools.grep(cells, function (cell) {
+				return cell.real === false;
+			});
+		}
+
+		function getUniqueElms(cells) {
+			var elms = [];
+
+			for (var i = 0; i < cells.length; i++) {
+				var elm = cells[i].elm;
+				if (elms[elms.length - 1] !== elm) {
+					elms.push(elm);
+				}
+			}
+
+			return elms;
+		}
+
+		function reduceRowSpans(grid, startX, startY, endX, endY) {
+			var count = 0;
+
+			if (endY - startY < 1) {
+				return 0;
+			}
+
+			for (var y = startY + 1; y <= endY; y++) {
+				var allCells = findItemsOutsideOfRange(getRow(grid, y), startX, endX);
+				var fakeCells = getFakeCells(allCells);
+
+				if (allCells.length === fakeCells.length) {
+					Tools.each(getUniqueElms(fakeCells), function (elm) {
+						Utils.setRowSpan(elm, Utils.getRowSpan(elm) - 1);
+					});
+
+					count++;
+				}
+			}
+
+			return count;
+		}
+
+		function reduceColSpans(grid, startX, startY, endX, endY) {
+			var count = 0;
+
+			if (endX - startX < 1) {
+				return 0;
+			}
+
+			for (var x = startX + 1; x <= endX; x++) {
+				var allCells = findItemsOutsideOfRange(getColumn(grid, x), startY, endY);
+				var fakeCells = getFakeCells(allCells);
+
+				if (allCells.length === fakeCells.length) {
+					Tools.each(getUniqueElms(fakeCells), function (elm) {
+						Utils.setColSpan(elm, Utils.getColSpan(elm) - 1);
+					});
+
+					count++;
+				}
+			}
+
+			return count;
+		}
+
+		function merge(cell, cols, rows) {
+			var pos, startX, startY, endX, endY, x, y, startCell, endCell, children, count, reducedRows, reducedCols;
+
+			// Use specified cell and cols/rows
+			if (cell) {
+				pos = getPos(cell);
+				startX = pos.x;
+				startY = pos.y;
+				endX = startX + (cols - 1);
+				endY = startY + (rows - 1);
+			} else {
+				startPos = endPos = null;
+
+				// Calculate start/end pos by checking for selected cells in grid works better with context menu
+				each(grid, function(row, y) {
+					each(row, function(cell, x) {
+						if (isCellSelected(cell)) {
+							if (!startPos) {
+								startPos = {x: x, y: y};
+							}
+
+							endPos = {x: x, y: y};
+						}
+					});
+				});
+
+				// Use selection, but make sure startPos is valid before accessing
+				if (startPos) {
+					startX = startPos.x;
+					startY = startPos.y;
+					endX = endPos.x;
+					endY = endPos.y;
+				}
+			}
+
+			// Find start/end cells
+			startCell = getCell(startX, startY);
+			endCell = getCell(endX, endY);
+
+			// Check if the cells exists and if they are of the same part for example tbody = tbody
+			if (startCell && endCell && startCell.part == endCell.part) {
+				// Split and rebuild grid
+				split();
+				buildGrid();
+
+				reducedRows = reduceRowSpans(grid, startX, startY, endX, endY);
+				reducedCols = reduceColSpans(grid, startX, startY, endX, endY);
+
+				// Set row/col span to start cell
+				startCell = getCell(startX, startY).elm;
+				var colSpan = (endX - startX - reducedCols) + 1;
+				var rowSpan = (endY - startY - reducedRows) + 1;
+
+				// All cells in table selected then just make it a table with one cell
+				if (colSpan === gridWidth && rowSpan === grid.length) {
+					colSpan = 1;
+					rowSpan = 1;
+				}
+
+				// Multiple whole rows selected then just make it one rowSpan
+				if (colSpan === gridWidth && rowSpan > 1) {
+					rowSpan = 1;
+				}
+
+				setSpanVal(startCell, 'colSpan', colSpan);
+				setSpanVal(startCell, 'rowSpan', rowSpan);
+
+				// Remove other cells and add it's contents to the start cell
+				for (y = startY; y <= endY; y++) {
+					for (x = startX; x <= endX; x++) {
+						if (!grid[y] || !grid[y][x]) {
+							continue;
+						}
+
+						cell = grid[y][x].elm;
+
+						/*jshint loopfunc:true */
+						/*eslint no-loop-func:0 */
+						if (cell != startCell) {
+							// Move children to startCell
+							children = Tools.grep(cell.childNodes);
+							each(children, function(node) {
+								startCell.appendChild(node);
+							});
+
+							// Remove bogus nodes if there is children in the target cell
+							if (children.length) {
+								children = Tools.grep(startCell.childNodes);
+								count = 0;
+								each(children, function(node) {
+									if (node.nodeName == 'BR' && count++ < children.length - 1) {
+										startCell.removeChild(node);
+									}
+								});
+							}
+
+							dom.remove(cell);
+						}
+					}
+				}
+
+				// Remove empty rows etc and restore caret location
+				cleanup();
+			}
+		}
+
+		function insertRow(before) {
+			var posY, cell, lastCell, x, rowElm, newRow, newCell, otherCell, rowSpan, spanValue;
+
+			// Find first/last row
+			each(grid, function(row, y) {
+				each(row, function(cell) {
+					if (isCellSelected(cell)) {
+						cell = cell.elm;
+						rowElm = cell.parentNode;
+						newRow = fireNewRow(cloneNode(rowElm, false));
+						posY = y;
+
+						if (before) {
+							return false;
+						}
+					}
+				});
+
+				if (before) {
+					return posY === undefined;
+				}
+			});
+
+			// If posY is undefined there is nothing for us to do here...just return to avoid crashing below
+			if (posY === undefined) {
+				return;
+			}
+
+			for (x = 0, spanValue = 0; x < grid[0].length; x += spanValue) {
+				// Cell not found could be because of an invalid table structure
+				if (!grid[posY][x]) {
+					continue;
+				}
+
+				cell = grid[posY][x].elm;
+				spanValue = getSpanVal(cell, 'colspan');
+
+				if (cell != lastCell) {
+					if (!before) {
+						rowSpan = getSpanVal(cell, 'rowspan');
+						if (rowSpan > 1) {
+							setSpanVal(cell, 'rowSpan', rowSpan + 1);
+							continue;
+						}
+					} else {
+						// Check if cell above can be expanded
+						if (posY > 0 && grid[posY - 1][x]) {
+							otherCell = grid[posY - 1][x].elm;
+							rowSpan = getSpanVal(otherCell, 'rowSpan');
+							if (rowSpan > 1) {
+								setSpanVal(otherCell, 'rowSpan', rowSpan + 1);
+								continue;
+							}
+						}
+					}
+
+					// Insert new cell into new row
+					newCell = cloneCell(cell);
+					setSpanVal(newCell, 'colSpan', cell.colSpan);
+
+					newRow.appendChild(newCell);
+
+					lastCell = cell;
+				}
+			}
+
+			if (newRow.hasChildNodes()) {
+				if (!before) {
+					dom.insertAfter(newRow, rowElm);
+				} else {
+					rowElm.parentNode.insertBefore(newRow, rowElm);
+				}
+			}
+		}
+
+		function insertRows(before, num) {
+			num = num || getSelectedRows().length || 1;
+			for (var i = 0; i < num; i++) {
+				insertRow(before);
+			}
+		}
+
+		function insertCol(before) {
+			var posX, lastCell;
+
+			// Find first/last column
+			each(grid, function(row) {
+				each(row, function(cell, x) {
+					if (isCellSelected(cell)) {
+						posX = x;
+
+						if (before) {
+							return false;
+						}
+					}
+				});
+
+				if (before) {
+					return posX === undefined;
+				}
+			});
+
+			each(grid, function(row, y) {
+				var cell, rowSpan, colSpan;
+
+				if (!row[posX]) {
+					return;
+				}
+
+				cell = row[posX].elm;
+				if (cell != lastCell) {
+					colSpan = getSpanVal(cell, 'colspan');
+					rowSpan = getSpanVal(cell, 'rowspan');
+
+					if (colSpan == 1) {
+						if (!before) {
+							dom.insertAfter(cloneCell(cell), cell);
+							fillLeftDown(posX, y, rowSpan - 1, colSpan);
+						} else {
+							cell.parentNode.insertBefore(cloneCell(cell), cell);
+							fillLeftDown(posX, y, rowSpan - 1, colSpan);
+						}
+					} else {
+						setSpanVal(cell, 'colSpan', cell.colSpan + 1);
+					}
+
+					lastCell = cell;
+				}
+			});
+		}
+
+		function insertCols(before, num) {
+			num = num || countSelectedCols() || 1;
+			for (var i = 0; i < num; i++) {
+				insertCol(before);
+			}
+		}
+
+		function getSelectedCells(grid) {
+			return Tools.grep(getAllCells(grid), isCellSelected);
+		}
+
+		function getAllCells(grid) {
+			var cells = [];
+
+			each(grid, function(row) {
+				each(row, function(cell) {
+					cells.push(cell);
+				});
+			});
+
+			return cells;
+		}
+
+		function deleteCols() {
+			var cols = [];
+
+			if (isEditorBody(table)) {
+				if (grid[0].length == 1) {
+					return;
+				}
+
+				if (getSelectedCells(grid).length == getAllCells(grid).length) {
+					return;
+				}
+			}
+
+			// Get selected column indexes
+			each(grid, function(row) {
+				each(row, function(cell, x) {
+					if (isCellSelected(cell) && Tools.inArray(cols, x) === -1) {
+						each(grid, function(row) {
+							var cell = row[x].elm, colSpan;
+
+							colSpan = getSpanVal(cell, 'colSpan');
+
+							if (colSpan > 1) {
+								setSpanVal(cell, 'colSpan', colSpan - 1);
+							} else {
+								dom.remove(cell);
+							}
+						});
+
+						cols.push(x);
+					}
+				});
+			});
+
+			cleanup();
+		}
+
+		function deleteRows() {
+			var rows;
+
+			function deleteRow(tr) {
+				var pos, lastCell;
+
+				// Move down row spanned cells
+				each(tr.cells, function(cell) {
+					var rowSpan = getSpanVal(cell, 'rowSpan');
+
+					if (rowSpan > 1) {
+						setSpanVal(cell, 'rowSpan', rowSpan - 1);
+						pos = getPos(cell);
+						fillLeftDown(pos.x, pos.y, 1, 1);
+					}
+				});
+
+				// Delete cells
+				pos = getPos(tr.cells[0]);
+				each(grid[pos.y], function(cell) {
+					var rowSpan;
+
+					cell = cell.elm;
+
+					if (cell != lastCell) {
+						rowSpan = getSpanVal(cell, 'rowSpan');
+
+						if (rowSpan <= 1) {
+							dom.remove(cell);
+						} else {
+							setSpanVal(cell, 'rowSpan', rowSpan - 1);
+						}
+
+						lastCell = cell;
+					}
+				});
+			}
+
+			// Get selected rows and move selection out of scope
+			rows = getSelectedRows();
+
+			if (isEditorBody(table) && rows.length == table.rows.length) {
+				return;
+			}
+
+			// Delete all selected rows
+			each(rows.reverse(), function(tr) {
+				deleteRow(tr);
+			});
+
+			cleanup();
+		}
+
+		function cutRows() {
+			var rows = getSelectedRows();
+
+			if (isEditorBody(table) && rows.length == table.rows.length) {
+				return;
+			}
+
+			dom.remove(rows);
+			cleanup();
+
+			return rows;
+		}
+
+		function copyRows() {
+			var rows = getSelectedRows();
+
+			each(rows, function(row, i) {
+				rows[i] = cloneNode(row, true);
+			});
+
+			return rows;
+		}
+
+		function pasteRows(rows, before) {
+			var splitResult, targetRow, newRows;
+
+			// Nothing to paste
+			if (!rows) {
+				return;
+			}
+
+			splitResult = SplitCols.splitAt(grid, startPos.x, startPos.y, before);
+			targetRow = splitResult.row;
+			Tools.each(splitResult.cells, fireNewCell);
+
+			newRows = Tools.map(rows, function (row) {
+				return row.cloneNode(true);
+			});
+
+			if (!before) {
+				newRows.reverse();
+			}
+
+			each(newRows, function(row) {
+				var i, cellCount = row.cells.length, cell;
+
+				fireNewRow(row);
+
+				// Remove col/rowspans
+				for (i = 0; i < cellCount; i++) {
+					cell = row.cells[i];
+
+					fireNewCell(cell);
+					setSpanVal(cell, 'colSpan', 1);
+					setSpanVal(cell, 'rowSpan', 1);
+				}
+
+				// Needs more cells
+				for (i = cellCount; i < gridWidth; i++) {
+					row.appendChild(fireNewCell(cloneCell(row.cells[cellCount - 1])));
+				}
+
+				// Needs less cells
+				for (i = gridWidth; i < cellCount; i++) {
+					dom.remove(row.cells[i]);
+				}
+
+				// Add before/after
+				if (before) {
+					targetRow.parentNode.insertBefore(row, targetRow);
+				} else {
+					dom.insertAfter(row, targetRow);
+				}
+			});
+
+			removeCellSelection();
+		}
+
+		function getPos(target) {
+			var pos;
+
+			each(grid, function(row, y) {
+				each(row, function(cell, x) {
+					if (cell.elm == target) {
+						pos = {x: x, y: y};
+						return false;
+					}
+				});
+
+				return !pos;
+			});
+
+			return pos;
+		}
+
+		function setStartCell(cell) {
+			startPos = getPos(cell);
+		}
+
+		function findEndPos() {
+			var maxX, maxY;
+
+			maxX = maxY = 0;
+
+			each(grid, function(row, y) {
+				each(row, function(cell, x) {
+					var colSpan, rowSpan;
+
+					if (isCellSelected(cell)) {
+						cell = grid[y][x];
+
+						if (x > maxX) {
+							maxX = x;
+						}
+
+						if (y > maxY) {
+							maxY = y;
+						}
+
+						if (cell.real) {
+							colSpan = cell.colspan - 1;
+							rowSpan = cell.rowspan - 1;
+
+							if (colSpan) {
+								if (x + colSpan > maxX) {
+									maxX = x + colSpan;
+								}
+							}
+
+							if (rowSpan) {
+								if (y + rowSpan > maxY) {
+									maxY = y + rowSpan;
+								}
+							}
+						}
+					}
+				});
+			});
+
+			return {x: maxX, y: maxY};
+		}
+
+		function setEndCell(cell) {
+			var startX, startY, endX, endY, maxX, maxY, colSpan, rowSpan, x, y;
+
+			endPos = getPos(cell);
+
+			if (startPos && endPos) {
+				// Get start/end positions
+				startX = Math.min(startPos.x, endPos.x);
+				startY = Math.min(startPos.y, endPos.y);
+				endX = Math.max(startPos.x, endPos.x);
+				endY = Math.max(startPos.y, endPos.y);
+
+				// Expand end position to include spans
+				maxX = endX;
+				maxY = endY;
+
+				// This logic tried to expand the selection to always be a rectangle
+				// Expand startX
+				/*for (y = startY; y <= maxY; y++) {
+					cell = grid[y][startX];
+
+					if (!cell.real) {
+						newX = startX - (cell.colspan - 1);
+						if (newX < startX && newX >= 0) {
+							startX = newX;
+						}
+					}
+				}
+
+				// Expand startY
+				for (x = startX; x <= maxX; x++) {
+					cell = grid[startY][x];
+
+					if (!cell.real) {
+						newY = startY - (cell.rowspan - 1);
+						if (newY < startY && newY >= 0) {
+							startY = newY;
+						}
+					}
+				}*/
+
+				// Find max X, Y
+				for (y = startY; y <= endY; y++) {
+					for (x = startX; x <= endX; x++) {
+						cell = grid[y][x];
+
+						if (cell.real) {
+							colSpan = cell.colspan - 1;
+							rowSpan = cell.rowspan - 1;
+
+							if (colSpan) {
+								if (x + colSpan > maxX) {
+									maxX = x + colSpan;
+								}
+							}
+
+							if (rowSpan) {
+								if (y + rowSpan > maxY) {
+									maxY = y + rowSpan;
+								}
+							}
+						}
+					}
+				}
+
+				removeCellSelection();
+
+				// Add new selection
+				for (y = startY; y <= maxY; y++) {
+					for (x = startX; x <= maxX; x++) {
+						if (grid[y][x]) {
+							dom.setAttrib(grid[y][x].elm, 'data-mce-selected', '1');
+						}
+					}
+				}
+			}
+		}
+
+		function moveRelIdx(cellElm, delta) {
+			var pos, index, cell;
+
+			pos = getPos(cellElm);
+			index = pos.y * gridWidth + pos.x;
+
+			do {
+				index += delta;
+				cell = getCell(index % gridWidth, Math.floor(index / gridWidth));
+
+				if (!cell) {
+					break;
+				}
+
+				if (cell.elm != cellElm) {
+					selection.select(cell.elm, true);
+
+					if (dom.isEmpty(cell.elm)) {
+						selection.collapse(true);
+					}
+
+					return true;
+				}
+			} while (cell.elm == cellElm);
+
+			return false;
+		}
+
+		function splitCols(before) {
+			if (startPos) {
+				var splitResult = SplitCols.splitAt(grid, startPos.x, startPos.y, before);
+				Tools.each(splitResult.cells, fireNewCell);
+			}
+		}
+
+		table = table || dom.getParent(selection.getStart(true), 'table');
+
+		buildGrid();
+
+		selectedCell = selectedCell || dom.getParent(selection.getStart(true), 'th,td');
+
+		if (selectedCell) {
+			startPos = getPos(selectedCell);
+			endPos = findEndPos();
+			selectedCell = getCell(startPos.x, startPos.y);
+		}
+
+		Tools.extend(this, {
+			deleteTable: deleteTable,
+			split: split,
+			merge: merge,
+			insertRow: insertRow,
+			insertRows: insertRows,
+			insertCol: insertCol,
+			insertCols: insertCols,
+			splitCols: splitCols,
+			deleteCols: deleteCols,
+			deleteRows: deleteRows,
+			cutRows: cutRows,
+			copyRows: copyRows,
+			pasteRows: pasteRows,
+			getPos: getPos,
+			setStartCell: setStartCell,
+			setEndCell: setEndCell,
+			moveRelIdx: moveRelIdx,
+			refresh: buildGrid
+		});
+	};
+});
+
+// Included from: js/tinymce/plugins/table/classes/Quirks.js
+
+/**
+ * Quirks.js
+ *
+ * Released under LGPL License.
+ * Copyright (c) 1999-2015 Ephox Corp. All rights reserved
+ *
+ * License: http://www.tinymce.com/license
+ * Contributing: http://www.tinymce.com/contributing
+ */
+
+/**
+ * This class includes fixes for various browser quirks.
+ *
+ * @class tinymce.tableplugin.Quirks
+ * @private
+ */
+define("tinymce/tableplugin/Quirks", [
+	"tinymce/util/VK",
+	"tinymce/util/Delay",
+	"tinymce/Env",
+	"tinymce/util/Tools",
+	"tinymce/tableplugin/Utils"
+], function(VK, Delay, Env, Tools, Utils) {
+	var each = Tools.each, getSpanVal = Utils.getSpanVal;
+
+	return function(editor) {
+		/**
+		 * Fixed caret movement around tables on WebKit.
+		 */
+		function moveWebKitSelection() {
+			function eventHandler(e) {
+				var key = e.keyCode;
+
+				function handle(upBool, sourceNode) {
+					var siblingDirection = upBool ? 'previousSibling' : 'nextSibling';
+					var currentRow = editor.dom.getParent(sourceNode, 'tr');
+					var siblingRow = currentRow[siblingDirection];
+
+					if (siblingRow) {
+						moveCursorToRow(editor, sourceNode, siblingRow, upBool);
+						e.preventDefault();
+						return true;
+					}
+
+					var tableNode = editor.dom.getParent(currentRow, 'table');
+					var middleNode = currentRow.parentNode;
+					var parentNodeName = middleNode.nodeName.toLowerCase();
+					if (parentNodeName === 'tbody' || parentNodeName === (upBool ? 'tfoot' : 'thead')) {
+						var targetParent = getTargetParent(upBool, tableNode, middleNode, 'tbody');
+						if (targetParent !== null) {
+							return moveToRowInTarget(upBool, targetParent, sourceNode);
+						}
+					}
+
+					return escapeTable(upBool, currentRow, siblingDirection, tableNode);
+				}
+
+				function getTargetParent(upBool, topNode, secondNode, nodeName) {
+					var tbodies = editor.dom.select('>' + nodeName, topNode);
+					var position = tbodies.indexOf(secondNode);
+					if (upBool && position === 0 || !upBool && position === tbodies.length - 1) {
+						return getFirstHeadOrFoot(upBool, topNode);
+					} else if (position === -1) {
+						var topOrBottom = secondNode.tagName.toLowerCase() === 'thead' ? 0 : tbodies.length - 1;
+						return tbodies[topOrBottom];
+					}
+
+					return tbodies[position + (upBool ? -1 : 1)];
+				}
+
+				function getFirstHeadOrFoot(upBool, parent) {
+					var tagName = upBool ? 'thead' : 'tfoot';
+					var headOrFoot = editor.dom.select('>' + tagName, parent);
+					return headOrFoot.length !== 0 ? headOrFoot[0] : null;
+				}
+
+				function moveToRowInTarget(upBool, targetParent, sourceNode) {
+					var targetRow = getChildForDirection(targetParent, upBool);
+
+					if (targetRow) {
+						moveCursorToRow(editor, sourceNode, targetRow, upBool);
+					}
+
+					e.preventDefault();
+					return true;
+				}
+
+				function escapeTable(upBool, currentRow, siblingDirection, table) {
+					var tableSibling = table[siblingDirection];
+
+					if (tableSibling) {
+						moveCursorToStartOfElement(tableSibling);
+						return true;
+					}
+
+					var parentCell = editor.dom.getParent(table, 'td,th');
+					if (parentCell) {
+						return handle(upBool, parentCell, e);
+					}
+
+					var backUpSibling = getChildForDirection(currentRow, !upBool);
+					moveCursorToStartOfElement(backUpSibling);
+					e.preventDefault();
+					return false;
+				}
+
+				function getChildForDirection(parent, up) {
+					var child = parent && parent[up ? 'lastChild' : 'firstChild'];
+					// BR is not a valid table child to return in this case we return the table cell
+					return child && child.nodeName === 'BR' ? editor.dom.getParent(child, 'td,th') : child;
+				}
+
+				function moveCursorToStartOfElement(n) {
+					editor.selection.setCursorLocation(n, 0);
+				}
+
+				function isVerticalMovement() {
+					return key == VK.UP || key == VK.DOWN;
+				}
+
+				function isInTable(editor) {
+					var node = editor.selection.getNode();
+					var currentRow = editor.dom.getParent(node, 'tr');
+					return currentRow !== null;
+				}
+
+				function columnIndex(column) {
+					var colIndex = 0;
+					var c = column;
+					while (c.previousSibling) {
+						c = c.previousSibling;
+						colIndex = colIndex + getSpanVal(c, "colspan");
+					}
+					return colIndex;
+				}
+
+				function findColumn(rowElement, columnIndex) {
+					var c = 0, r = 0;
+
+					each(rowElement.children, function(cell, i) {
+						c = c + getSpanVal(cell, "colspan");
+						r = i;
+						if (c > columnIndex) {
+							return false;
+						}
+					});
+					return r;
+				}
+
+				function moveCursorToRow(ed, node, row, upBool) {
+					var srcColumnIndex = columnIndex(editor.dom.getParent(node, 'td,th'));
+					var tgtColumnIndex = findColumn(row, srcColumnIndex);
+					var tgtNode = row.childNodes[tgtColumnIndex];
+					var rowCellTarget = getChildForDirection(tgtNode, upBool);
+					moveCursorToStartOfElement(rowCellTarget || tgtNode);
+				}
+
+				function shouldFixCaret(preBrowserNode) {
+					var newNode = editor.selection.getNode();
+					var newParent = editor.dom.getParent(newNode, 'td,th');
+					var oldParent = editor.dom.getParent(preBrowserNode, 'td,th');
+
+					return newParent && newParent !== oldParent && checkSameParentTable(newParent, oldParent);
+				}
+
+				function checkSameParentTable(nodeOne, NodeTwo) {
+					return editor.dom.getParent(nodeOne, 'TABLE') === editor.dom.getParent(NodeTwo, 'TABLE');
+				}
+
+				if (isVerticalMovement() && isInTable(editor)) {
+					var preBrowserNode = editor.selection.getNode();
+					Delay.setEditorTimeout(editor, function() {
+						if (shouldFixCaret(preBrowserNode)) {
+							handle(!e.shiftKey && key === VK.UP, preBrowserNode, e);
+						}
+					}, 0);
+				}
+			}
+
+			editor.on('KeyDown', function(e) {
+				eventHandler(e);
+			});
+		}
+
+		function fixBeforeTableCaretBug() {
+			// Checks if the selection/caret is at the start of the specified block element
+			function isAtStart(rng, par) {
+				var doc = par.ownerDocument, rng2 = doc.createRange(), elm;
+
+				rng2.setStartBefore(par);
+				rng2.setEnd(rng.endContainer, rng.endOffset);
+
+				elm = doc.createElement('body');
+				elm.appendChild(rng2.cloneContents());
+
+				// Check for text characters of other elements that should be treated as content
+				return elm.innerHTML.replace(/<(br|img|object|embed|input|textarea)[^>]*>/gi, '-').replace(/<[^>]+>/g, '').length === 0;
+			}
+
+			// Fixes an bug where it's impossible to place the caret before a table in Gecko
+			// this fix solves it by detecting when the caret is at the beginning of such a table
+			// and then manually moves the caret infront of the table
+			editor.on('KeyDown', function(e) {
+				var rng, table, dom = editor.dom;
+
+				// On gecko it's not possible to place the caret before a table
+				if (e.keyCode == 37 || e.keyCode == 38) {
+					rng = editor.selection.getRng();
+					table = dom.getParent(rng.startContainer, 'table');
+
+					if (table && editor.getBody().firstChild == table) {
+						if (isAtStart(rng, table)) {
+							rng = dom.createRng();
+
+							rng.setStartBefore(table);
+							rng.setEndBefore(table);
+
+							editor.selection.setRng(rng);
+
+							e.preventDefault();
+						}
+					}
+				}
+			});
+		}
+
+		// Fixes an issue on Gecko where it's impossible to place the caret behind a table
+		// This fix will force a paragraph element after the table but only when the forced_root_block setting is enabled
+		function fixTableCaretPos() {
+			editor.on('KeyDown SetContent VisualAid', function() {
+				var last;
+
+				// Skip empty text nodes from the end
+				for (last = editor.getBody().lastChild; last; last = last.previousSibling) {
+					if (last.nodeType == 3) {
+						if (last.nodeValue.length > 0) {
+							break;
+						}
+					} else if (last.nodeType == 1 && (last.tagName == 'BR' || !last.getAttribute('data-mce-bogus'))) {
+						break;
+					}
+				}
+
+				if (last && last.nodeName == 'TABLE') {
+					if (editor.settings.forced_root_block) {
+						editor.dom.add(
+							editor.getBody(),
+							editor.settings.forced_root_block,
+							editor.settings.forced_root_block_attrs,
+							Env.ie && Env.ie < 10 ? '&nbsp;' : '<br data-mce-bogus="1" />'
+						);
+					} else {
+						editor.dom.add(editor.getBody(), 'br', {'data-mce-bogus': '1'});
+					}
+				}
+			});
+
+			editor.on('PreProcess', function(o) {
+				var last = o.node.lastChild;
+
+				if (last && (last.nodeName == "BR" || (last.childNodes.length == 1 &&
+					(last.firstChild.nodeName == 'BR' || last.firstChild.nodeValue == '\u00a0'))) &&
+					last.previousSibling && last.previousSibling.nodeName == "TABLE") {
+					editor.dom.remove(last);
+				}
+			});
+		}
+
+		// this nasty hack is here to work around some WebKit selection bugs.
+		function fixTableCellSelection() {
+			function tableCellSelected(ed, rng, n, currentCell) {
+				// The decision of when a table cell is selected is somewhat involved.  The fact that this code is
+				// required is actually a pointer to the root cause of this bug. A cell is selected when the start
+				// and end offsets are 0, the start container is a text, and the selection node is either a TR (most cases)
+				// or the parent of the table (in the case of the selection containing the last cell of a table).
+				var TEXT_NODE = 3, table = ed.dom.getParent(rng.startContainer, 'TABLE');
+				var tableParent, allOfCellSelected, tableCellSelection;
+
+				if (table) {
+					tableParent = table.parentNode;
+				}
+
+				allOfCellSelected = rng.startContainer.nodeType == TEXT_NODE &&
+					rng.startOffset === 0 &&
+					rng.endOffset === 0 &&
+					currentCell &&
+					(n.nodeName == "TR" || n == tableParent);
+
+				tableCellSelection = (n.nodeName == "TD" || n.nodeName == "TH") && !currentCell;
+
+				return allOfCellSelected || tableCellSelection;
+			}
+
+			function fixSelection() {
+				var rng = editor.selection.getRng();
+				var n = editor.selection.getNode();
+				var currentCell = editor.dom.getParent(rng.startContainer, 'TD,TH');
+
+				if (!tableCellSelected(editor, rng, n, currentCell)) {
+					return;
+				}
+
+				if (!currentCell) {
+					currentCell = n;
+				}
+
+				// Get the very last node inside the table cell
+				var end = currentCell.lastChild;
+				while (end.lastChild) {
+					end = end.lastChild;
+				}
+
+				// Select the entire table cell. Nothing outside of the table cell should be selected.
+				if (end.nodeType == 3) {
+					rng.setEnd(end, end.data.length);
+					editor.selection.setRng(rng);
+				}
+			}
+
+			editor.on('KeyDown', function() {
+				fixSelection();
+			});
+
+			editor.on('MouseDown', function(e) {
+				if (e.button != 2) {
+					fixSelection();
+				}
+			});
+		}
+
+		/**
+		 * Delete table if all cells are selected.
+		 */
+		function deleteTable() {
+			function placeCaretInCell(cell) {
+				editor.selection.select(cell, true);
+				editor.selection.collapse(true);
+			}
+
+			function clearCell(cell) {
+				editor.$(cell).empty();
+				Utils.paddCell(cell);
+			}
+
+			editor.on('keydown', function(e) {
+				if ((e.keyCode == VK.DELETE || e.keyCode == VK.BACKSPACE) && !e.isDefaultPrevented()) {
+					var table, tableCells, selectedTableCells, cell;
+
+					table = editor.dom.getParent(editor.selection.getStart(), 'table');
+					if (table) {
+						tableCells = editor.dom.select('td,th', table);
+						selectedTableCells = Tools.grep(tableCells, function(cell) {
+							return !!editor.dom.getAttrib(cell, 'data-mce-selected');
+						});
+
+						if (selectedTableCells.length === 0) {
+							// If caret is within an empty table cell then empty it for real
+							cell = editor.dom.getParent(editor.selection.getStart(), 'td,th');
+							if (editor.selection.isCollapsed() && cell && editor.dom.isEmpty(cell)) {
+								e.preventDefault();
+								clearCell(cell);
+								placeCaretInCell(cell);
+							}
+
+							return;
+						}
+
+						e.preventDefault();
+
+						editor.undoManager.transact(function() {
+							if (tableCells.length == selectedTableCells.length) {
+								editor.execCommand('mceTableDelete');
+							} else {
+								Tools.each(selectedTableCells, clearCell);
+								placeCaretInCell(selectedTableCells[0]);
+							}
+						});
+					}
+				}
+			});
+		}
+
+		/**
+		 * When caption is empty and we continue to delete, caption gets deleted along with the contents.
+		 * So, we take over delete operation (both forward and backward) and once caption is empty, we do
+		 * prevent it from disappearing.
+		 */
+		function handleDeleteInCaption() {
+			var isTableCaptionNode = function(node) {
+				return node && node.nodeName == 'CAPTION' && node.parentNode.nodeName == 'TABLE';
+			};
+
+			var restoreCaretPlaceholder = function(node, insertCaret) {
+				var rng = editor.selection.getRng();
+				var caretNode = node.ownerDocument.createTextNode('\u00a0');
+
+				// we could always append it, but caretNode somehow gets appended before caret,
+				// rather then after it, effectively preventing backspace deletion
+				if (rng.startOffset) {
+					node.insertBefore(caretNode, node.firstChild);
+				} else {
+					node.appendChild(caretNode);
+				}
+
+				if (insertCaret) {
+					// put the caret into the placeholder
+					editor.selection.select(caretNode, true);
+					editor.selection.collapse(true);
+				}
+			};
+
+			var deleteBtnPressed = function(e) {
+				return (e.keyCode == VK.DELETE || e.keyCode == VK.BACKSPACE) && !e.isDefaultPrevented();
+			};
+
+			var getSingleChildNode = function(node) {
+				return node.firstChild === node.lastChild && node.firstChild;
+			};
+
+			var isTextNode = function(node) {
+				return node && node.nodeType === 3;
+			};
+
+			var getSingleChr = function(node) {
+				var childNode = getSingleChildNode(node);
+				return isTextNode(childNode) && childNode.data.length === 1 ? childNode.data : null;
+			};
+
+			var hasNoCaretPlaceholder = function(node) {
+				var childNode = getSingleChildNode(node);
+				var chr = getSingleChr(node);
+				return childNode && !isTextNode(childNode) || chr && !isNBSP(chr);
+			};
+
+			var isEmptyNode = function(node) {
+				return editor.dom.isEmpty(node) || isNBSP(getSingleChr(node));
+			};
+
+			var isNBSP = function(chr) {
+				return chr === '\u00a0';
+			};
+
+			editor.on('keydown', function(e) {
+				if (!deleteBtnPressed(e)) {
+					return;
+				}
+
+				var container = editor.dom.getParent(editor.selection.getStart(), 'caption');
+				if (!isTableCaptionNode(container)) {
+					return;
+				}
+
+				// in IE caption collapses if caret placeholder is deleted (and it is very much possible)
+				if (Env.ie) {
+					if (!editor.selection.isCollapsed()) {
+						// if the whole contents are selected, caret placeholder will be deleted too
+						// and we take over delete operation here to restore it if this happens
+						editor.undoManager.transact(function () {
+							editor.execCommand('Delete');
+
+							if (isEmptyNode(container)) {
+								// caret springs off from the caption (to the first td), we need to bring it back as well
+								restoreCaretPlaceholder(container, true);
+							}
+						});
+
+						e.preventDefault();
+					} else if (hasNoCaretPlaceholder(container)) {
+						// if caret placeholder got accidentally deleted and caption will collapse
+						// after this operation, we need to put placeholder back
+						restoreCaretPlaceholder(container);
+					}
+				}
+
+				// TODO:
+				// 1. in Chrome it is easily possible to select beyond the boundaries of the caption,
+				// currently this results in removal of the contents with the whole caption as well;
+				// 2. we could take over delete operation to address this, but then we will need to adjust
+				// the selection, otherwise delete operation will remove first row of the table too;
+				// 3. current behaviour is logical, so it has sense to leave it like that, until a better
+				// solution
+
+				if (isEmptyNode(container)) {
+					e.preventDefault();
+				}
+			});
+		}
+
+
+		deleteTable();
+		handleDeleteInCaption();
+
+		if (Env.webkit) {
+			moveWebKitSelection();
+			fixTableCellSelection();
+		}
+
+		if (Env.gecko) {
+			fixBeforeTableCaretBug();
+			fixTableCaretPos();
+		}
+
+		if (Env.ie > 9) {
+			fixBeforeTableCaretBug();
+			fixTableCaretPos();
+		}
+	};
+});
+
+// Included from: js/tinymce/plugins/table/classes/CellSelection.js
+
+/**
+ * CellSelection.js
+ *
+ * Released under LGPL License.
+ * Copyright (c) 1999-2015 Ephox Corp. All rights reserved
+ *
+ * License: http://www.tinymce.com/license
+ * Contributing: http://www.tinymce.com/contributing
+ */
+
+/**
+ * This class handles table cell selection by faking it using a css class that gets applied
+ * to cells when dragging the mouse from one cell to another.
+ *
+ * @class tinymce.tableplugin.CellSelection
+ * @private
+ */
+define("tinymce/tableplugin/CellSelection", [
+	"tinymce/tableplugin/TableGrid",
+	"tinymce/dom/TreeWalker",
+	"tinymce/util/Tools"
+], function(TableGrid, TreeWalker, Tools) {
+	return function(editor, selectionChange) {
+		var dom = editor.dom, tableGrid, startCell, startTable, lastMouseOverTarget, hasCellSelection = true, resizing, dragging;
+
+		function clear(force) {
+			// Restore selection possibilities
+			editor.getBody().style.webkitUserSelect = '';
+
+			if (force || hasCellSelection) {
+				editor.$('td[data-mce-selected],th[data-mce-selected]').removeAttr('data-mce-selected');
+				hasCellSelection = false;
+			}
+		}
+
+		var endSelection = function () {
+			startCell = tableGrid = startTable = lastMouseOverTarget = null;
+			selectionChange(false);
+		};
+
+		function isCellInTable(table, cell) {
+			if (!table || !cell) {
+				return false;
+			}
+
+			return table === dom.getParent(cell, 'table');
+		}
+
+		function cellSelectionHandler(e) {
+			var sel, target = e.target, currentCell;
+
+			if (resizing || dragging) {
+				return;
+			}
+
+			// Fake mouse enter by keeping track of last mouse over
+			if (target === lastMouseOverTarget) {
+				return;
+			}
+
+			lastMouseOverTarget = target;
+
+			if (startTable && startCell) {
+				currentCell = dom.getParent(target, 'td,th');
+
+				if (!isCellInTable(startTable, currentCell)) {
+					currentCell = dom.getParent(startTable, 'td,th');
+				}
+
+				// Selection inside first cell is normal until we have expanted
+				if (startCell === currentCell && !hasCellSelection) {
+					return;
+				}
+
+				selectionChange(true);
+
+				if (isCellInTable(startTable, currentCell)) {
+					e.preventDefault();
+
+					if (!tableGrid) {
+						tableGrid = new TableGrid(editor, startTable, startCell);
+						editor.getBody().style.webkitUserSelect = 'none';
+					}
+
+					tableGrid.setEndCell(currentCell);
+					hasCellSelection = true;
+
+					// Remove current selection
+					sel = editor.selection.getSel();
+
+					try {
+						if (sel.removeAllRanges) {
+							sel.removeAllRanges();
+						} else {
+							sel.empty();
+						}
+					} catch (ex) {
+						// IE9 might throw errors here
+					}
+				}
+			}
+		}
+
+		editor.on('SelectionChange', function(e) {
+			if (hasCellSelection) {
+				e.stopImmediatePropagation();
+			}
+		}, true);
+
+		// Add cell selection logic
+		editor.on('MouseDown', function(e) {
+			if (e.button != 2 && !resizing && !dragging) {
+				clear();
+
+				startCell = dom.getParent(e.target, 'td,th');
+				startTable = dom.getParent(startCell, 'table');
+			}
+		});
+
+		editor.on('mouseover', cellSelectionHandler);
+
+		editor.on('remove', function() {
+			dom.unbind(editor.getDoc(), 'mouseover', cellSelectionHandler);
+			clear();
+		});
+
+		editor.on('MouseUp', function() {
+			var rng, sel = editor.selection, selectedCells, walker, node, lastNode;
+
+			function setPoint(node, start) {
+				var walker = new TreeWalker(node, node);
+
+				do {
+					// Text node
+					if (node.nodeType == 3 && Tools.trim(node.nodeValue).length !== 0) {
+						if (start) {
+							rng.setStart(node, 0);
+						} else {
+							rng.setEnd(node, node.nodeValue.length);
+						}
+
+						return;
+					}
+
+					// BR element
+					if (node.nodeName == 'BR') {
+						if (start) {
+							rng.setStartBefore(node);
+						} else {
+							rng.setEndBefore(node);
+						}
+
+						return;
+					}
+				} while ((node = (start ? walker.next() : walker.prev())));
+			}
+
+			// Move selection to startCell
+			if (startCell) {
+				if (tableGrid) {
+					editor.getBody().style.webkitUserSelect = '';
+				}
+
+				// Try to expand text selection as much as we can only Gecko supports cell selection
+				selectedCells = dom.select('td[data-mce-selected],th[data-mce-selected]');
+				if (selectedCells.length > 0) {
+					rng = dom.createRng();
+					node = selectedCells[0];
+					rng.setStartBefore(node);
+					rng.setEndAfter(node);
+
+					setPoint(node, 1);
+					walker = new TreeWalker(node, dom.getParent(selectedCells[0], 'table'));
+
+					do {
+						if (node.nodeName == 'TD' || node.nodeName == 'TH') {
+							if (!dom.getAttrib(node, 'data-mce-selected')) {
+								break;
+							}
+
+							lastNode = node;
+						}
+					} while ((node = walker.next()));
+
+					setPoint(lastNode);
+
+					sel.setRng(rng);
+				}
+
+				editor.nodeChanged();
+				endSelection();
+			}
+		});
+
+		editor.on('KeyUp Drop SetContent', function(e) {
+			clear(e.type == 'setcontent');
+			endSelection();
+			resizing = false;
+		});
+
+		editor.on('ObjectResizeStart ObjectResized', function(e) {
+			resizing = e.type != 'objectresized';
+		});
+
+		editor.on('dragstart', function () {
+			dragging = true;
+		});
+
+		editor.on('drop dragend', function () {
+			dragging = false;
+		});
+
+		return {
+			clear: clear
+		};
+	};
+});
+
+// Included from: js/tinymce/plugins/table/classes/Dialogs.js
+
+/**
+ * Dialogs.js
+ *
+ * Released under LGPL License.
+ * Copyright (c) 1999-2015 Ephox Corp. All rights reserved
+ *
+ * License: http://www.tinymce.com/license
+ * Contributing: http://www.tinymce.com/contributing
+ */
+
+/*eslint dot-notation:0*/
+
+/**
+ * ...
+ *
+ * @class tinymce.tableplugin.Dialogs
+ * @private
+ */
+define("tinymce/tableplugin/Dialogs", [
+	"tinymce/util/Tools",
+	"tinymce/Env"
+], function(Tools, Env) {
+	var each = Tools.each;
+
+	return function(editor) {
+		var self = this;
+
+		function createColorPickAction() {
+			var colorPickerCallback = editor.settings.color_picker_callback;
+
+			if (colorPickerCallback) {
+				return function() {
+					var self = this;
+
+					colorPickerCallback.call(
+						editor,
+						function(value) {
+							self.value(value).fire('change');
+						},
+						self.value()
+					);
+				};
+			}
+		}
+
+		function createStyleForm(dom) {
+			return {
+				title: 'Advanced',
+				type: 'form',
+				defaults: {
+					onchange: function() {
+						updateStyle(dom, this.parents().reverse()[0], this.name() == "style");
+					}
+				},
+				items: [
+					{
+						label: 'Style',
+						name: 'style',
+						type: 'textbox'
+					},
+
+					{
+						type: 'form',
+						padding: 0,
+						formItemDefaults: {
+							layout: 'grid',
+							alignH: ['start', 'right']
+						},
+						defaults: {
+							size: 7
+						},
+						items: [
+							{
+								label: 'Border color',
+								type: 'colorbox',
+								name: 'borderColor',
+								onaction: createColorPickAction()
+							},
+
+							{
+								label: 'Background color',
+								type: 'colorbox',
+								name: 'backgroundColor',
+								onaction: createColorPickAction()
+							}
+						]
+					}
+				]
+			};
+		}
+
+		function removePxSuffix(size) {
+			return size ? size.replace(/px$/, '') : "";
+		}
+
+		function addSizeSuffix(size) {
+			if (/^[0-9]+$/.test(size)) {
+				size += "px";
+			}
+
+			return size;
+		}
+
+		function unApplyAlign(elm) {
+			each('left center right'.split(' '), function(name) {
+				editor.formatter.remove('align' + name, {}, elm);
+			});
+		}
+
+		function unApplyVAlign(elm) {
+			each('top middle bottom'.split(' '), function(name) {
+				editor.formatter.remove('valign' + name, {}, elm);
+			});
+		}
+
+		function buildListItems(inputList, itemCallback, startItems) {
+			function appendItems(values, output) {
+				output = output || [];
+
+				Tools.each(values, function(item) {
+					var menuItem = {text: item.text || item.title};
+
+					if (item.menu) {
+						menuItem.menu = appendItems(item.menu);
+					} else {
+						menuItem.value = item.value;
+
+						if (itemCallback) {
+							itemCallback(menuItem);
+						}
+					}
+
+					output.push(menuItem);
+				});
+
+				return output;
+			}
+
+			return appendItems(inputList, startItems || []);
+		}
+
+		function updateStyle(dom, win, isStyleCtrl) {
+			var data = win.toJSON();
+			var css = dom.parseStyle(data.style);
+
+			if (isStyleCtrl) {
+				win.find('#borderColor').value(css["border-color"] || '')[0].fire('change');
+				win.find('#backgroundColor').value(css["background-color"] || '')[0].fire('change');
+			} else {
+				css["border-color"] = data.borderColor;
+				css["background-color"] = data.backgroundColor;
+			}
+
+			win.find('#style').value(dom.serializeStyle(dom.parseStyle(dom.serializeStyle(css))));
+		}
+
+		function appendStylesToData(dom, data, elm) {
+			var css = dom.parseStyle(dom.getAttrib(elm, 'style'));
+
+			if (css["border-color"]) {
+				data.borderColor = css["border-color"];
+			}
+
+			if (css["background-color"]) {
+				data.backgroundColor = css["background-color"];
+			}
+
+			data.style = dom.serializeStyle(css);
+		}
+
+		function mergeStyles(dom, elm, styles) {
+			var css = dom.parseStyle(dom.getAttrib(elm, 'style'));
+
+			each(styles, function(style) {
+				css[style.name] = style.value;
+			});
+
+			dom.setAttrib(elm, 'style', dom.serializeStyle(dom.parseStyle(dom.serializeStyle(css))));
+		}
+
+		self.tableProps = function() {
+			self.table(true);
+		};
+
+		self.table = function(isProps) {
+			var dom = editor.dom, tableElm, colsCtrl, rowsCtrl, classListCtrl, data = {}, generalTableForm, stylesToMerge;
+
+			function onSubmitTableForm() {
+
+				//Explore the layers of the table till we find the first layer of tds or ths
+				function styleTDTH(elm, name, value) {
+					if (elm.tagName === "TD" || elm.tagName === "TH") {
+						dom.setStyle(elm, name, value);
+					} else {
+						if (elm.children) {
+							for (var i = 0; i < elm.children.length; i++) {
+								styleTDTH(elm.children[i], name, value);
+							}
+						}
+					}
+				}
+
+				var captionElm;
+
+				updateStyle(dom, this);
+				data = Tools.extend(data, this.toJSON());
+
+				if (data["class"] === false) {
+					delete data["class"];
+				}
+
+				editor.undoManager.transact(function() {
+					if (!tableElm) {
+						tableElm = editor.plugins.table.insertTable(data.cols || 1, data.rows || 1);
+					}
+
+					editor.dom.setAttribs(tableElm, {
+						style: data.style,
+						'class': data['class']
+					});
+
+					if (editor.settings.table_style_by_css) {
+						stylesToMerge = [];
+						stylesToMerge.push({name: 'border', value: data.border});
+						stylesToMerge.push({name: 'border-spacing', value: addSizeSuffix(data.cellspacing)});
+						mergeStyles(dom, tableElm, stylesToMerge);
+						dom.setAttribs(tableElm, {
+							'data-mce-border-color': data.borderColor,
+							'data-mce-cell-padding': data.cellpadding,
+							'data-mce-border': data.border
+						});
+						if (tableElm.children) {
+							for (var i = 0; i < tableElm.children.length; i++) {
+								styleTDTH(tableElm.children[i], 'border', data.border);
+								styleTDTH(tableElm.children[i], 'padding', addSizeSuffix(data.cellpadding));
+							}
+						}
+					} else {
+						editor.dom.setAttribs(tableElm, {
+							border: data.border,
+							cellpadding: data.cellpadding,
+							cellspacing: data.cellspacing
+						});
+					}
+
+					if (dom.getAttrib(tableElm, 'width') && !editor.settings.table_style_by_css) {
+						dom.setAttrib(tableElm, 'width', removePxSuffix(data.width));
+					} else {
+						dom.setStyle(tableElm, 'width', addSizeSuffix(data.width));
+					}
+
+					dom.setStyle(tableElm, 'height', addSizeSuffix(data.height));
+
+					// Toggle caption on/off
+					captionElm = dom.select('caption', tableElm)[0];
+
+					if (captionElm && !data.caption) {
+						dom.remove(captionElm);
+					}
+
+					if (!captionElm && data.caption) {
+						captionElm = dom.create('caption');
+						captionElm.innerHTML = !Env.ie ? '<br data-mce-bogus="1"/>' : '\u00a0';
+						tableElm.insertBefore(captionElm, tableElm.firstChild);
+					}
+					unApplyAlign(tableElm);
+					if (data.align) {
+						editor.formatter.apply('align' + data.align, {}, tableElm);
+					}
+
+					editor.focus();
+					editor.addVisual();
+				});
+			}
+
+			function getTDTHOverallStyle(elm, name) {
+				var cells = editor.dom.select("td,th", elm), firstChildStyle;
+
+				function checkChildren(firstChildStyle, elms) {
+
+					for (var i = 0; i < elms.length; i++) {
+						var currentStyle = dom.getStyle(elms[i], name);
+						if (typeof firstChildStyle === "undefined") {
+							firstChildStyle = currentStyle;
+						}
+						if (firstChildStyle != currentStyle) {
+							return "";
+						}
+					}
+
+					return firstChildStyle;
+
+				}
+
+				firstChildStyle = checkChildren(firstChildStyle, cells);
+
+				return firstChildStyle;
+			}
+
+			if (isProps === true) {
+				tableElm = dom.getParent(editor.selection.getStart(), 'table');
+
+				if (tableElm) {
+					data = {
+						width: removePxSuffix(dom.getStyle(tableElm, 'width') || dom.getAttrib(tableElm, 'width')),
+						height: removePxSuffix(dom.getStyle(tableElm, 'height') || dom.getAttrib(tableElm, 'height')),
+						cellspacing: removePxSuffix(dom.getStyle(tableElm, 'border-spacing') ||
+							dom.getAttrib(tableElm, 'cellspacing')),
+						cellpadding: dom.getAttrib(tableElm, 'data-mce-cell-padding') || dom.getAttrib(tableElm, 'cellpadding') ||
+							getTDTHOverallStyle(tableElm, 'padding'),
+						border: dom.getAttrib(tableElm, 'data-mce-border') || dom.getAttrib(tableElm, 'border') ||
+							getTDTHOverallStyle(tableElm, 'border'),
+						borderColor: dom.getAttrib(tableElm, 'data-mce-border-color'),
+						caption: !!dom.select('caption', tableElm)[0],
+						'class': dom.getAttrib(tableElm, 'class')
+					};
+
+					each('left center right'.split(' '), function(name) {
+						if (editor.formatter.matchNode(tableElm, 'align' + name)) {
+							data.align = name;
+						}
+					});
+				}
+			} else {
+				colsCtrl = {label: 'Cols', name: 'cols'};
+				rowsCtrl = {label: 'Rows', name: 'rows'};
+			}
+
+			if (editor.settings.table_class_list) {
+				if (data["class"]) {
+					data["class"] = data["class"].replace(/\s*mce\-item\-table\s*/g, '');
+				}
+
+				classListCtrl = {
+					name: 'class',
+					type: 'listbox',
+					label: 'Class',
+					values: buildListItems(
+						editor.settings.table_class_list,
+						function(item) {
+							if (item.value) {
+								item.textStyle = function() {
+									return editor.formatter.getCssText({block: 'table', classes: [item.value]});
+								};
+							}
+						}
+					)
+				};
+			}
+
+			generalTableForm = {
+				type: 'form',
+				layout: 'flex',
+				direction: 'column',
+				labelGapCalc: 'children',
+				padding: 0,
+				items: [
+					{
+						type: 'form',
+						labelGapCalc: false,
+						padding: 0,
+						layout: 'grid',
+						columns: 2,
+						defaults: {
+							type: 'textbox',
+							maxWidth: 50
+						},
+						items: (editor.settings.table_appearance_options !== false) ? [
+							colsCtrl,
+							rowsCtrl,
+							{label: 'Width', name: 'width'},
+							{label: 'Height', name: 'height'},
+							{label: 'Cell spacing', name: 'cellspacing'},
+							{label: 'Cell padding', name: 'cellpadding'},
+							{label: 'Border', name: 'border'},
+							{label: 'Caption', name: 'caption', type: 'checkbox'}
+						] : [
+							colsCtrl,
+							rowsCtrl,
+							{label: 'Width', name: 'width'},
+							{label: 'Height', name: 'height'}
+						]
+					},
+
+					{
+						label: 'Alignment',
+						name: 'align',
+						type: 'listbox',
+						text: 'None',
+						values: [
+							{text: 'None', value: ''},
+							{text: 'Left', value: 'left'},
+							{text: 'Center', value: 'center'},
+							{text: 'Right', value: 'right'}
+						]
+					},
+
+					classListCtrl
+				]
+			};
+
+			if (editor.settings.table_advtab !== false) {
+				appendStylesToData(dom, data, tableElm);
+
+				editor.windowManager.open({
+					title: "Table properties",
+					data: data,
+					bodyType: 'tabpanel',
+					body: [
+						{
+							title: 'General',
+							type: 'form',
+							items: generalTableForm
+						},
+						createStyleForm(dom)
+					],
+
+					onsubmit: onSubmitTableForm
+				});
+			} else {
+				editor.windowManager.open({
+					title: "Table properties",
+					data: data,
+					body: generalTableForm,
+					onsubmit: onSubmitTableForm
+				});
+			}
+		};
+
+		self.merge = function(grid, cell) {
+			editor.windowManager.open({
+				title: "Merge cells",
+				body: [
+					{label: 'Cols', name: 'cols', type: 'textbox', value: '1', size: 10},
+					{label: 'Rows', name: 'rows', type: 'textbox', value: '1', size: 10}
+				],
+				onsubmit: function() {
+					var data = this.toJSON();
+
+					editor.undoManager.transact(function() {
+						grid.merge(cell, data.cols, data.rows);
+					});
+				}
+			});
+		};
+
+		self.cell = function() {
+			var dom = editor.dom, cellElm, data, classListCtrl, cells = [];
+
+			function setAttrib(elm, name, value) {
+				if (cells.length === 1 || value) {
+					dom.setAttrib(elm, name, value);
+				}
+			}
+
+			function setStyle(elm, name, value) {
+				if (cells.length === 1 || value) {
+					dom.setStyle(elm, name, value);
+				}
+			}
+
+			function onSubmitCellForm() {
+				updateStyle(dom, this);
+				data = Tools.extend(data, this.toJSON());
+
+				editor.undoManager.transact(function() {
+					each(cells, function(cellElm) {
+						setAttrib(cellElm, 'scope', data.scope);
+						setAttrib(cellElm, 'style', data.style);
+						setAttrib(cellElm, 'class', data['class']);
+						setStyle(cellElm, 'width', addSizeSuffix(data.width));
+						setStyle(cellElm, 'height', addSizeSuffix(data.height));
+
+						// Switch cell type
+						if (data.type && cellElm.nodeName.toLowerCase() !== data.type) {
+							cellElm = dom.rename(cellElm, data.type);
+						}
+
+						// Remove alignment
+						if (cells.length === 1) {
+							unApplyAlign(cellElm);
+							unApplyVAlign(cellElm);
+						}
+
+						// Apply alignment
+						if (data.align) {
+							editor.formatter.apply('align' + data.align, {}, cellElm);
+						}
+
+						// Apply vertical alignment
+						if (data.valign) {
+							editor.formatter.apply('valign' + data.valign, {}, cellElm);
+						}
+					});
+
+					editor.focus();
+				});
+			}
+
+			// Get selected cells or the current cell
+			cells = editor.dom.select('td[data-mce-selected],th[data-mce-selected]');
+			cellElm = editor.dom.getParent(editor.selection.getStart(), 'td,th');
+			if (!cells.length && cellElm) {
+				cells.push(cellElm);
+			}
+
+			cellElm = cellElm || cells[0];
+
+			if (!cellElm) {
+				// If this element is null, return now to avoid crashing.
+				return;
+			}
+
+			if (cells.length > 1) {
+				data = {
+					width: '',
+					height: '',
+					scope: '',
+					'class': '',
+					align: '',
+					style: '',
+					type: cellElm.nodeName.toLowerCase()
+				};
+			} else {
+				data = {
+					width: removePxSuffix(dom.getStyle(cellElm, 'width') || dom.getAttrib(cellElm, 'width')),
+					height: removePxSuffix(dom.getStyle(cellElm, 'height') || dom.getAttrib(cellElm, 'height')),
+					scope: dom.getAttrib(cellElm, 'scope'),
+					'class': dom.getAttrib(cellElm, 'class')
+				};
+
+				data.type = cellElm.nodeName.toLowerCase();
+
+				each('left center right'.split(' '), function(name) {
+					if (editor.formatter.matchNode(cellElm, 'align' + name)) {
+						data.align = name;
+					}
+				});
+
+				each('top middle bottom'.split(' '), function(name) {
+					if (editor.formatter.matchNode(cellElm, 'valign' + name)) {
+						data.valign = name;
+					}
+				});
+
+				appendStylesToData(dom, data, cellElm);
+			}
+
+			if (editor.settings.table_cell_class_list) {
+				classListCtrl = {
+					name: 'class',
+					type: 'listbox',
+					label: 'Class',
+					values: buildListItems(
+						editor.settings.table_cell_class_list,
+						function(item) {
+							if (item.value) {
+								item.textStyle = function() {
+									return editor.formatter.getCssText({block: 'td', classes: [item.value]});
+								};
+							}
+						}
+					)
+				};
+			}
+
+			var generalCellForm = {
+				type: 'form',
+				layout: 'flex',
+				direction: 'column',
+				labelGapCalc: 'children',
+				padding: 0,
+				items: [
+					{
+						type: 'form',
+						layout: 'grid',
+						columns: 2,
+						labelGapCalc: false,
+						padding: 0,
+						defaults: {
+							type: 'textbox',
+							maxWidth: 50
+						},
+						items: [
+							{label: 'Width', name: 'width'},
+							{label: 'Height', name: 'height'},
+							{
+								label: 'Cell type',
+								name: 'type',
+								type: 'listbox',
+								text: 'None',
+								minWidth: 90,
+								maxWidth: null,
+								values: [
+									{text: 'Cell', value: 'td'},
+									{text: 'Header cell', value: 'th'}
+								]
+							},
+							{
+								label: 'Scope',
+								name: 'scope',
+								type: 'listbox',
+								text: 'None',
+								minWidth: 90,
+								maxWidth: null,
+								values: [
+									{text: 'None', value: ''},
+									{text: 'Row', value: 'row'},
+									{text: 'Column', value: 'col'},
+									{text: 'Row group', value: 'rowgroup'},
+									{text: 'Column group', value: 'colgroup'}
+								]
+							},
+							{
+								label: 'H Align',
+								name: 'align',
+								type: 'listbox',
+								text: 'None',
+								minWidth: 90,
+								maxWidth: null,
+								values: [
+									{text: 'None', value: ''},
+									{text: 'Left', value: 'left'},
+									{text: 'Center', value: 'center'},
+									{text: 'Right', value: 'right'}
+								]
+							},
+							{
+								label: 'V Align',
+								name: 'valign',
+								type: 'listbox',
+								text: 'None',
+								minWidth: 90,
+								maxWidth: null,
+								values: [
+									{text: 'None', value: ''},
+									{text: 'Top', value: 'top'},
+									{text: 'Middle', value: 'middle'},
+									{text: 'Bottom', value: 'bottom'}
+								]
+							}
+						]
+					},
+
+					classListCtrl
+				]
+			};
+
+			if (editor.settings.table_cell_advtab !== false) {
+				editor.windowManager.open({
+					title: "Cell properties",
+					bodyType: 'tabpanel',
+					data: data,
+					body: [
+						{
+							title: 'General',
+							type: 'form',
+							items: generalCellForm
+						},
+
+						createStyleForm(dom)
+					],
+
+					onsubmit: onSubmitCellForm
+				});
+			} else {
+				editor.windowManager.open({
+					title: "Cell properties",
+					data: data,
+					body: generalCellForm,
+					onsubmit: onSubmitCellForm
+				});
+			}
+		};
+
+		self.row = function() {
+			var dom = editor.dom, tableElm, cellElm, rowElm, classListCtrl, data, rows = [], generalRowForm;
+
+			function setAttrib(elm, name, value) {
+				if (rows.length === 1 || value) {
+					dom.setAttrib(elm, name, value);
+				}
+			}
+
+			function setStyle(elm, name, value) {
+				if (rows.length === 1 || value) {
+					dom.setStyle(elm, name, value);
+				}
+			}
+
+			function onSubmitRowForm() {
+				var tableElm, oldParentElm, parentElm;
+
+				updateStyle(dom, this);
+				data = Tools.extend(data, this.toJSON());
+
+				editor.undoManager.transact(function() {
+					var toType = data.type;
+
+					each(rows, function(rowElm) {
+						setAttrib(rowElm, 'scope', data.scope);
+						setAttrib(rowElm, 'style', data.style);
+						setAttrib(rowElm, 'class', data['class']);
+						setStyle(rowElm, 'height', addSizeSuffix(data.height));
+
+						if (toType !== rowElm.parentNode.nodeName.toLowerCase()) {
+							tableElm = dom.getParent(rowElm, 'table');
+
+							oldParentElm = rowElm.parentNode;
+							parentElm = dom.select(toType, tableElm)[0];
+							if (!parentElm) {
+								parentElm = dom.create(toType);
+								if (tableElm.firstChild) {
+									tableElm.insertBefore(parentElm, tableElm.firstChild);
+								} else {
+									tableElm.appendChild(parentElm);
+								}
+							}
+
+							parentElm.appendChild(rowElm);
+
+							if (!oldParentElm.hasChildNodes()) {
+								dom.remove(oldParentElm);
+							}
+						}
+
+						// Apply/remove alignment
+						if (rows.length === 1) {
+							unApplyAlign(rowElm);
+						}
+
+						if (data.align) {
+							editor.formatter.apply('align' + data.align, {}, rowElm);
+						}
+					});
+
+					editor.focus();
+				});
+			}
+
+			tableElm = editor.dom.getParent(editor.selection.getStart(), 'table');
+			cellElm = editor.dom.getParent(editor.selection.getStart(), 'td,th');
+
+			each(tableElm.rows, function(row) {
+				each(row.cells, function(cell) {
+					if (dom.getAttrib(cell, 'data-mce-selected') || cell == cellElm) {
+						rows.push(row);
+						return false;
+					}
+				});
+			});
+
+			rowElm = rows[0];
+			if (!rowElm) {
+				// If this element is null, return now to avoid crashing.
+				return;
+			}
+
+			if (rows.length > 1) {
+				data = {
+					height: '',
+					scope: '',
+					'class': '',
+					align: '',
+					type: rowElm.parentNode.nodeName.toLowerCase()
+				};
+			} else {
+				data = {
+					height: removePxSuffix(dom.getStyle(rowElm, 'height') || dom.getAttrib(rowElm, 'height')),
+					scope: dom.getAttrib(rowElm, 'scope'),
+					'class': dom.getAttrib(rowElm, 'class')
+				};
+
+				data.type = rowElm.parentNode.nodeName.toLowerCase();
+
+				each('left center right'.split(' '), function(name) {
+					if (editor.formatter.matchNode(rowElm, 'align' + name)) {
+						data.align = name;
+					}
+				});
+
+				appendStylesToData(dom, data, rowElm);
+			}
+
+			if (editor.settings.table_row_class_list) {
+				classListCtrl = {
+					name: 'class',
+					type: 'listbox',
+					label: 'Class',
+					values: buildListItems(
+						editor.settings.table_row_class_list,
+						function(item) {
+							if (item.value) {
+								item.textStyle = function() {
+									return editor.formatter.getCssText({block: 'tr', classes: [item.value]});
+								};
+							}
+						}
+					)
+				};
+			}
+
+			generalRowForm = {
+				type: 'form',
+				columns: 2,
+				padding: 0,
+				defaults: {
+					type: 'textbox'
+				},
+				items: [
+					{
+						type: 'listbox',
+						name: 'type',
+						label: 'Row type',
+						text: 'Header',
+						maxWidth: null,
+						values: [
+							{text: 'Header', value: 'thead'},
+							{text: 'Body', value: 'tbody'},
+							{text: 'Footer', value: 'tfoot'}
+						]
+					},
+					{
+						type: 'listbox',
+						name: 'align',
+						label: 'Alignment',
+						text: 'None',
+						maxWidth: null,
+						values: [
+							{text: 'None', value: ''},
+							{text: 'Left', value: 'left'},
+							{text: 'Center', value: 'center'},
+							{text: 'Right', value: 'right'}
+						]
+					},
+					{label: 'Height', name: 'height'},
+					classListCtrl
+				]
+			};
+
+			if (editor.settings.table_row_advtab !== false) {
+				editor.windowManager.open({
+					title: "Row properties",
+					data: data,
+					bodyType: 'tabpanel',
+					body: [
+						{
+							title: 'General',
+							type: 'form',
+							items: generalRowForm
+						},
+						createStyleForm(dom)
+					],
+
+					onsubmit: onSubmitRowForm
+				});
+			} else {
+				editor.windowManager.open({
+					title: "Row properties",
+					data: data,
+					body: generalRowForm,
+					onsubmit: onSubmitRowForm
+				});
+			}
+		};
+	};
+});
+
+// Included from: js/tinymce/plugins/table/classes/ResizeBars.js
+
+/**
+ * ResizeBars.js
+ *
+ * Released under LGPL License.
+ * Copyright (c) 1999-2015 Ephox Corp. All rights reserved
+ *
+ * License: http://www.tinymce.com/license
+ * Contributing: http://www.tinymce.com/contributing
+ */
+
+/**
+ * This class handles table column and row resizing by adding divs over the columns and rows of the table.
+ * These divs are then manipulated using mouse events to resize the underlying table.
+ *
+ * @class tinymce.tableplugin.ResizeBars
+ * @private
+ */
+define("tinymce/tableplugin/ResizeBars", [
+	"tinymce/util/Tools",
+	"tinymce/util/VK"
+], function(Tools, VK) {
+	var hoverTable;
+
+	return function(editor) {
+		var RESIZE_BAR_CLASS = 'mce-resize-bar',
+			RESIZE_BAR_ROW_CLASS = 'mce-resize-bar-row',
+			RESIZE_BAR_ROW_CURSOR_STYLE = 'row-resize',
+			RESIZE_BAR_ROW_DATA_ATTRIBUTE = 'data-row',
+			RESIZE_BAR_ROW_DATA_INITIAL_TOP_ATTRIBUTE = 'data-initial-top',
+			RESIZE_BAR_COL_CLASS = 'mce-resize-bar-col',
+			RESIZE_BAR_COL_CURSOR_STYLE = 'col-resize',
+			RESIZE_BAR_COL_DATA_ATTRIBUTE = 'data-col',
+			RESIZE_BAR_COL_DATA_INITIAL_LEFT_ATTRIBUTE = 'data-initial-left',
+			RESIZE_BAR_THICKNESS = 4,
+			RESIZE_MINIMUM_WIDTH = 10,
+			RESIZE_MINIMUM_HEIGHT = 10,
+			RESIZE_BAR_DRAGGING_CLASS = 'mce-resize-bar-dragging';
+
+		var percentageBasedSizeRegex = new RegExp(/(\d+(\.\d+)?%)/),
+			pixelBasedSizeRegex = new RegExp(/px|em/);
+
+		var delayDrop, dragging, blockerElement, dragBar, lastX, lastY;
+
+		// Get the absolute position's top edge.
+		function getTopEdge(index, row) {
+			return {
+				index: index,
+				y: editor.dom.getPos(row).y
+			};
+		}
+
+		// Get the absolute position's bottom edge.
+		function getBottomEdge(index, row) {
+			return {
+				index: index,
+				y: editor.dom.getPos(row).y + row.offsetHeight
+			};
+		}
+
+		// Get the absolute position's left edge.
+		function getLeftEdge(index, cell) {
+			return {
+				index: index,
+				x: editor.dom.getPos(cell).x
+			};
+		}
+
+		// Get the absolute position's right edge.
+		function getRightEdge(index, cell) {
+			return {
+				index: index,
+				x: editor.dom.getPos(cell).x + cell.offsetWidth
+			};
+		}
+
+		function isRtl() {
+			var dir = editor.getBody().dir;
+			return dir === 'rtl';
+		}
+
+		function isInline() {
+			return editor.inline;
+		}
+
+		function getBody() {
+			return isInline ? editor.getBody().ownerDocument.body : editor.getBody();
+		}
+
+		function getInnerEdge(index, cell) {
+			return isRtl() ? getRightEdge(index, cell) : getLeftEdge(index, cell);
+		}
+
+		function getOuterEdge(index, cell) {
+			return isRtl() ? getLeftEdge(index, cell) : getRightEdge(index, cell);
+		}
+
+		function getPercentageWidthFallback(element, table) {
+			return getComputedStyleSize(element, 'width') / getComputedStyleSize(table, 'width') * 100;
+		}
+
+		function getComputedStyleSize(element, property) {
+			var widthString = editor.dom.getStyle(element, property, true);
+			var width = parseInt(widthString, 10);
+			return width;
+		}
+
+		function getCurrentTablePercentWidth(table) {
+			var tableWidth = getComputedStyleSize(table, 'width');
+			var tableParentWidth = getComputedStyleSize(table.parentElement, 'width');
+			return tableWidth / tableParentWidth * 100;
+		}
+
+		function getCellPercentDelta(table, delta) {
+			var tableWidth = getComputedStyleSize(table, 'width');
+			return delta / tableWidth * 100;
+		}
+
+		function getTablePercentDelta(table, delta) {
+			var tableParentWidth = getComputedStyleSize(table.parentElement, 'width');
+			return delta / tableParentWidth * 100;
+		}
+
+		// Find the left/right (ltr/rtl) or top side locations of the cells to measure.
+		// This is the location of the borders we need to draw over.
+		function findPositions(getInner, getOuter, thingsToMeasure) {
+			var tablePositions = [];
+
+			// Skip the first item in the array = no left (LTR), right (RTL) or top bars
+			for (var i = 1; i < thingsToMeasure.length; i++) {
+				// Get the element from the details
+				var item = thingsToMeasure[i].element;
+
+				// We need to zero index this again
+				tablePositions.push(getInner(i - 1, item));
+			}
+
+			var lastTableLineToMake = thingsToMeasure[thingsToMeasure.length - 1];
+			tablePositions.push(getOuter(thingsToMeasure.length - 1, lastTableLineToMake.element));
+
+			return tablePositions;
+		}
+
+		// Clear the bars.
+		function clearBars() {
+			var bars = editor.dom.select('.' + RESIZE_BAR_CLASS, getBody());
+			Tools.each(bars, function(bar) {
+				editor.dom.remove(bar);
+			});
+		}
+
+		// Refresh the bars.
+		function refreshBars(tableElement) {
+			clearBars();
+			drawBars(tableElement);
+		}
+
+		// Generates a resize bar object for the editor to add.
+		function generateBar(classToAdd, cursor, left, top, height, width, indexAttr, index) {
+			var bar = {
+				'data-mce-bogus': 'all',
+				'class': RESIZE_BAR_CLASS + ' ' + classToAdd,
+				'unselectable': 'on',
+				'data-mce-resize': false,
+				style: 'cursor: ' + cursor + '; ' +
+					'margin: 0; ' +
+					'padding: 0; ' +
+					'position: absolute; ' +
+					'left: ' + left + 'px; ' +
+					'top: ' + top + 'px; ' +
+					'height: ' + height + 'px; ' +
+					'width: ' + width + 'px; '
+			};
+
+			bar[indexAttr] = index;
+
+			return bar;
+		}
+
+		// Draw the row bars over the row borders.
+		function drawRows(rowPositions, tableWidth, tablePosition) {
+			Tools.each(rowPositions, function(rowPosition) {
+				var left = tablePosition.x,
+					top = rowPosition.y - RESIZE_BAR_THICKNESS / 2,
+					height = RESIZE_BAR_THICKNESS,
+					width = tableWidth;
+
+				editor.dom.add(getBody(), 'div',
+					generateBar(RESIZE_BAR_ROW_CLASS, RESIZE_BAR_ROW_CURSOR_STYLE,
+						left, top, height, width, RESIZE_BAR_ROW_DATA_ATTRIBUTE, rowPosition.index));
+			});
+		}
+
+		// Draw the column bars over the column borders.
+		function drawCols(cellPositions, tableHeight, tablePosition) {
+			Tools.each(cellPositions, function(cellPosition) {
+				var left = cellPosition.x - RESIZE_BAR_THICKNESS / 2,
+					top = tablePosition.y,
+					height = tableHeight,
+					width = RESIZE_BAR_THICKNESS;
+
+				editor.dom.add(getBody(), 'div',
+					generateBar(RESIZE_BAR_COL_CLASS, RESIZE_BAR_COL_CURSOR_STYLE,
+						left, top, height, width, RESIZE_BAR_COL_DATA_ATTRIBUTE, cellPosition.index));
+			});
+		}
+
+		// Get a matrix of the cells in each row and the rows in the table.
+		function getTableDetails(table) {
+			return Tools.map(table.rows, function(row) {
+
+				var cells = Tools.map(row.cells, function(cell) {
+
+					var rowspan = cell.hasAttribute('rowspan') ? parseInt(cell.getAttribute('rowspan'), 10) : 1;
+					var colspan = cell.hasAttribute('colspan') ? parseInt(cell.getAttribute('colspan'), 10) : 1;
+
+					return {
+						element: cell,
+						rowspan: rowspan,
+						colspan: colspan
+					};
+				});
+
+				return {
+					element: row,
+					cells: cells
+				};
+
+			});
+
+		}
+
+		// Get a grid model of the table.
+		function getTableGrid(tableDetails) {
+			function key(rowIndex, colIndex) {
+				return rowIndex + ',' + colIndex;
+			}
+
+			function getAt(rowIndex, colIndex) {
+				return access[key(rowIndex, colIndex)];
+			}
+
+			function getAllCells() {
+				var allCells = [];
+				Tools.each(rows, function(row) {
+					allCells = allCells.concat(row.cells);
+				});
+				return allCells;
+			}
+
+			function getAllRows() {
+				return rows;
+			}
+
+			var access = {};
+			var rows = [];
+
+			var maxRows = 0;
+			var maxCols = 0;
+
+			Tools.each(tableDetails, function(row, rowIndex) {
+				var currentRow = [];
+
+				Tools.each(row.cells, function(cell) {
+
+					var start = 0;
+
+					while (access[key(rowIndex, start)] !== undefined) {
+						start++;
+					}
+
+					var current = {
+						element: cell.element,
+						colspan: cell.colspan,
+						rowspan: cell.rowspan,
+						rowIndex: rowIndex,
+						colIndex: start
+					};
+
+					for (var i = 0; i < cell.colspan; i++) {
+						for (var j = 0; j < cell.rowspan; j++) {
+							var cr = rowIndex + j;
+							var cc = start + i;
+							access[key(cr, cc)] = current;
+							maxRows = Math.max(maxRows, cr + 1);
+							maxCols = Math.max(maxCols, cc + 1);
+						}
+					}
+
+					currentRow.push(current);
+				});
+
+				rows.push({
+					element: row.element,
+					cells: currentRow
+				});
+			});
+
+			return {
+				grid: {
+					maxRows: maxRows,
+					maxCols: maxCols
+				},
+				getAt: getAt,
+				getAllCells: getAllCells,
+				getAllRows: getAllRows
+			};
+		}
+
+		function range(start, end) {
+			var r = [];
+
+			for (var i = start; i < end; i++) {
+				r.push(i);
+			}
+
+			return r;
+		}
+
+		// Attempt to get a representative single block for this column.
+		// If we can't find a single block, all blocks in this row/column are spanned
+		// and we'll need to fallback to getting the first cell in the row/column.
+		function decide(getBlock, isSingle, getFallback) {
+			var inBlock = getBlock();
+			var singleInBlock;
+
+			for (var i = 0; i < inBlock.length; i++) {
+				if (isSingle(inBlock[i])) {
+					singleInBlock = inBlock[i];
+				}
+			}
+			return singleInBlock ? singleInBlock : getFallback();
+		}
+
+		// Attempt to get representative blocks for the width of each column.
+		function getColumnBlocks(tableGrid) {
+			var cols = range(0, tableGrid.grid.maxCols);
+			var rows = range(0, tableGrid.grid.maxRows);
+
+			return Tools.map(cols, function(col) {
+				function getBlock() {
+					var details = [];
+					for (var i = 0; i < rows.length; i++) {
+						var detail = tableGrid.getAt(i, col);
+						if (detail && detail.colIndex === col) {
+							details.push(detail);
+						}
+					}
+
+					return details;
+				}
+
+				function isSingle(detail) {
+					return detail.colspan === 1;
+				}
+
+				function getFallback() {
+					var item;
+
+					for (var i = 0; i < rows.length; i++) {
+						item = tableGrid.getAt(i, col);
+						if (item) {
+							return item;
+						}
+					}
+
+					return null;
+				}
+
+				return decide(getBlock, isSingle, getFallback);
+			});
+		}
+
+		// Attempt to get representative blocks for the height of each row.
+		function getRowBlocks(tableGrid) {
+			var cols = range(0, tableGrid.grid.maxCols);
+			var rows = range(0, tableGrid.grid.maxRows);
+
+			return Tools.map(rows, function(row) {
+				function getBlock() {
+					var details = [];
+					for (var i = 0; i < cols.length; i++) {
+						var detail = tableGrid.getAt(row, i);
+						if (detail && detail.rowIndex === row) {
+							details.push(detail);
+						}
+					}
+					return details;
+				}
+
+				function isSingle(detail) {
+					return detail.rowspan === 1;
+				}
+
+				function getFallback() {
+					return tableGrid.getAt(row, 0);
+				}
+
+				return decide(getBlock, isSingle, getFallback);
+			});
+		}
+
+		// Draw resize bars over the left/right (ltr/rtl) or top side locations of the cells to measure.
+		// This is the location of the borders we need to draw over.
+		function drawBars(table) {
+			var tableDetails = getTableDetails(table);
+			var tableGrid = getTableGrid(tableDetails);
+			var rows = getRowBlocks(tableGrid);
+			var cols = getColumnBlocks(tableGrid);
+
+			var tablePosition = editor.dom.getPos(table);
+			var rowPositions = rows.length > 0 ? findPositions(getTopEdge, getBottomEdge, rows) : [];
+			var colPositions = cols.length > 0 ? findPositions(getInnerEdge, getOuterEdge, cols) : [];
+
+			drawRows(rowPositions, table.offsetWidth, tablePosition);
+			drawCols(colPositions, table.offsetHeight, tablePosition);
+		}
+
+		// Attempt to deduce the width/height of a column/row that has more than one cell spanned.
+		function deduceSize(deducables, index, isPercentageBased, table) {
+			if (index < 0 || index >= deducables.length - 1) {
+				return "";
+			}
+
+			var current = deducables[index];
+
+			if (current) {
+				current = {
+					value: current,
+					delta: 0
+				};
+			} else {
+				var reversedUpToIndex = deducables.slice(0, index).reverse();
+				for (var i = 0; i < reversedUpToIndex.length; i++) {
+					if (reversedUpToIndex[i]) {
+						current = {
+							value: reversedUpToIndex[i],
+							delta: i + 1
+						};
+					}
+				}
+			}
+
+			var next = deducables[index + 1];
+
+			if (next) {
+				next = {
+					value: next,
+					delta: 1
+				};
+			} else {
+				var rest = deducables.slice(index + 1);
+				for (var j = 0; j < rest.length; j++) {
+					if (rest[j]) {
+						next = {
+							value: rest[j],
+							delta: j + 1
+						};
+					}
+				}
+			}
+
+			var extras = next.delta - current.delta;
+			var pixelWidth = Math.abs(next.value - current.value) / extras;
+			return isPercentageBased ? pixelWidth / getComputedStyleSize(table, 'width') * 100 : pixelWidth;
+		}
+
+		function getStyleOrAttrib(element, property) {
+			var sizeString = editor.dom.getStyle(element, property);
+			if (!sizeString) {
+				sizeString = editor.dom.getAttrib(element, property);
+			}
+			if (!sizeString) {
+				sizeString = editor.dom.getStyle(element, property, true);
+			}
+			return sizeString;
+		}
+
+		function getWidth(element, isPercentageBased, table) {
+			var widthString = getStyleOrAttrib(element, 'width');
+
+			var widthNumber = parseInt(widthString, 10);
+
+			var getWidthFallback = isPercentageBased ? getPercentageWidthFallback(element, table) : getComputedStyleSize(element, 'width');
+
+			// If this is percentage based table, but this cell isn't percentage based.
+			// Or if this is a pixel based table, but this cell isn't pixel based.
+			if (isPercentageBased && !isPercentageBasedSize(widthString) ||
+			!isPercentageBased && !isPixelBasedSize(widthString)) {
+				// set the widthnumber to 0
+				widthNumber = 0;
+			}
+
+			return !isNaN(widthNumber) && widthNumber > 0 ?
+				widthNumber : getWidthFallback;
+		}
+
+		// Attempt to get the css width from column representative cells.
+		function getWidths(tableGrid, isPercentageBased, table) {
+
+			var cols = getColumnBlocks(tableGrid);
+
+			var backups = Tools.map(cols, function(col) {
+				return getInnerEdge(col.colIndex, col.element).x;
+			});
+
+			var widths = [];
+
+			for (var i = 0; i < cols.length; i++) {
+				var span = cols[i].element.hasAttribute('colspan') ? parseInt(cols[i].element.getAttribute('colspan'), 10) : 1;
+				// Deduce if the column has colspan of more than 1
+				var width = span > 1 ? deduceSize(backups, i) : getWidth(cols[i].element, isPercentageBased, table);
+				// If everything's failed and we still don't have a width
+				width = width ? width : RESIZE_MINIMUM_WIDTH;
+				widths.push(width);
+			}
+
+			return widths;
+		}
+
+		// Attempt to get the pixel height from a cell.
+		function getPixelHeight(element) {
+
+			var heightString = getStyleOrAttrib(element, 'height');
+
+			var heightNumber = parseInt(heightString, 10);
+
+			if (isPercentageBasedSize(heightString)) {
+				heightNumber = 0;
+			}
+
+			return !isNaN(heightNumber) && heightNumber > 0 ?
+							heightNumber : getComputedStyleSize(element, 'height');
+		}
+
+		// Attempt to get the css height from row representative cells.
+		function getPixelHeights(tableGrid) {
+
+			var rows = getRowBlocks(tableGrid);
+
+			var backups = Tools.map(rows, function(row) {
+				return getTopEdge(row.rowIndex, row.element).y;
+			});
+
+			var heights = [];
+
+			for (var i = 0; i < rows.length; i++) {
+				var span = rows[i].element.hasAttribute('rowspan') ? parseInt(rows[i].element.getAttribute('rowspan'), 10) : 1;
+
+				var height = span > 1 ? deduceSize(backups, i) : getPixelHeight(rows[i].element);
+
+				height = height ? height : RESIZE_MINIMUM_HEIGHT;
+				heights.push(height);
+			}
+
+			return heights;
+		}
+
+		// Determine how much each column's css width will need to change.
+		// Sizes = result = pixels widths OR percentage based widths
+		function determineDeltas(sizes, column, step, min, isPercentageBased) {
+
+			var result = sizes.slice(0);
+
+			function generateZeros(array) {
+				return Tools.map(array, function() {
+					return 0;
+				});
+			}
+
+			function onOneColumn() {
+				var deltas;
+				if (isPercentageBased) {
+					// If we have one column in a percent based table, that column should be 100% of the width of the table.
+					deltas = [100 - result[0]];
+				} else {
+					var newNext = Math.max(min, result[0] + step);
+					deltas = [newNext - result[0]];
+				}
+				return deltas;
+			}
+
+			function onLeftOrMiddle(index, next) {
+
+				var startZeros = generateZeros(result.slice(0, index));
+				var endZeros = generateZeros(result.slice(next + 1));
+				var deltas;
+
+				if (step >= 0) {
+					var newNext = Math.max(min, result[next] - step);
+					deltas = startZeros.concat([step, newNext - result[next]]).concat(endZeros);
+				} else {
+					var newThis = Math.max(min, result[index] + step);
+					var diffx = result[index] - newThis;
+					deltas = startZeros.concat([newThis - result[index], diffx]).concat(endZeros);
+				}
+
+				return deltas;
+			}
+
+			function onRight(previous, index) {
+				var startZeros = generateZeros(result.slice(0, index));
+				var deltas;
+
+				if (step >= 0) {
+					deltas = startZeros.concat([step]);
+				} else {
+					var size = Math.max(min, result[index] + step);
+					deltas = startZeros.concat([size - result[index]]);
+				}
+
+				return deltas;
+
+			}
+
+			var deltas;
+
+			if (sizes.length === 0) { // No Columns
+				deltas = [];
+			} else if (sizes.length === 1) { // One Column
+				deltas = onOneColumn();
+			} else if (column === 0) { // Left Column
+				deltas = onLeftOrMiddle(0, 1);
+			} else if (column > 0 && column < sizes.length - 1) { // Middle Column
+				deltas = onLeftOrMiddle(column, column + 1);
+			} else if (column === sizes.length - 1) { // Right Column
+				deltas = onRight(column - 1, column);
+			} else {
+				deltas = [];
+			}
+
+			return deltas;
+		}
+
+		function total(start, end, measures) {
+			var r = 0;
+			for (var i = start; i < end; i++) {
+				r += measures[i];
+			}
+			return r;
+		}
+
+		// Combine cell's css widths to determine widths of colspan'd cells.
+		function recalculateWidths(tableGrid, widths) {
+			var allCells = tableGrid.getAllCells();
+			return Tools.map(allCells, function(cell) {
+				var width = total(cell.colIndex, cell.colIndex + cell.colspan, widths);
+				return {
+					element: cell.element,
+					width: width,
+					colspan: cell.colspan
+				};
+			});
+		}
+
+		// Combine cell's css heights to determine heights of rowspan'd cells.
+		function recalculateCellHeights(tableGrid, heights) {
+			var allCells = tableGrid.getAllCells();
+			return Tools.map(allCells, function(cell) {
+				var height = total(cell.rowIndex, cell.rowIndex + cell.rowspan, heights);
+				return {
+					element: cell.element,
+					height: height,
+					rowspan: cell.rowspan
+				};
+			});
+		}
+
+		// Calculate row heights.
+		function recalculateRowHeights(tableGrid, heights) {
+			var allRows = tableGrid.getAllRows();
+			return Tools.map(allRows, function(row, i) {
+				return {
+					element: row.element,
+					height: heights[i]
+				};
+			});
+		}
+
+		function isPercentageBasedSize(size) {
+			return percentageBasedSizeRegex.test(size);
+		}
+
+		function isPixelBasedSize(size) {
+			return pixelBasedSizeRegex.test(size);
+		}
+
+		// Adjust the width of the column of table at index, with delta.
+		function adjustWidth(table, delta, index) {
+			var tableDetails = getTableDetails(table);
+			var tableGrid = getTableGrid(tableDetails);
+
+			function setSizes(newSizes, styleExtension) {
+				Tools.each(newSizes, function(cell) {
+					editor.dom.setStyle(cell.element, 'width', cell.width + styleExtension);
+					editor.dom.setAttrib(cell.element, 'width', null);
+				});
+			}
+
+			function getNewTablePercentWidth() {
+				return index < tableGrid.grid.maxCols - 1 ? getCurrentTablePercentWidth(table) :
+					getCurrentTablePercentWidth(table) + getTablePercentDelta(table, delta);
+			}
+
+			function getNewTablePixelWidth() {
+				return index < tableGrid.grid.maxCols - 1 ? getComputedStyleSize(table, 'width') :
+					getComputedStyleSize(table, 'width') + delta;
+			}
+
+			function setTableSize(newTableWidth, styleExtension, isPercentBased) {
+				if (index == tableGrid.grid.maxCols - 1 || !isPercentBased) {
+					editor.dom.setStyle(table, 'width', newTableWidth + styleExtension);
+					editor.dom.setAttrib(table, 'width', null);
+				}
+			}
+
+			var percentageBased = isPercentageBasedSize(table.width) ||
+				isPercentageBasedSize(table.style.width);
+
+			var widths = getWidths(tableGrid, percentageBased, table);
+
+			var step = percentageBased ? getCellPercentDelta(table, delta) : delta;
+			// TODO: change the min for percentage maybe?
+			var deltas = determineDeltas(widths, index, step, RESIZE_MINIMUM_WIDTH, percentageBased, table);
+			var newWidths = [];
+
+			for (var i = 0; i < deltas.length; i++) {
+				newWidths.push(deltas[i] + widths[i]);
+			}
+
+			var newSizes = recalculateWidths(tableGrid, newWidths);
+			var styleExtension = percentageBased ? '%' : 'px';
+			var newTableWidth = percentageBased ? getNewTablePercentWidth() :
+				getNewTablePixelWidth();
+
+			editor.undoManager.transact(function() {
+				setSizes(newSizes, styleExtension);
+				setTableSize(newTableWidth, styleExtension, percentageBased);
+			});
+		}
+
+		// Adjust the height of the row of table at index, with delta.
+		function adjustHeight(table, delta, index) {
+			var tableDetails = getTableDetails(table);
+			var tableGrid = getTableGrid(tableDetails);
+
+			var heights = getPixelHeights(tableGrid);
+
+			var newHeights = [], newTotalHeight = 0;
+
+			for (var i = 0; i < heights.length; i++) {
+				newHeights.push(i === index ? delta + heights[i] : heights[i]);
+				newTotalHeight += newTotalHeight[i];
+			}
+
+			var newCellSizes = recalculateCellHeights(tableGrid, newHeights);
+			var newRowSizes = recalculateRowHeights(tableGrid, newHeights);
+
+			editor.undoManager.transact(function() {
+
+				Tools.each(newRowSizes, function(row) {
+					editor.dom.setStyle(row.element, 'height', row.height + 'px');
+					editor.dom.setAttrib(row.element, 'height', null);
+				});
+
+				Tools.each(newCellSizes, function(cell) {
+					editor.dom.setStyle(cell.element, 'height', cell.height + 'px');
+					editor.dom.setAttrib(cell.element, 'height', null);
+				});
+
+				editor.dom.setStyle(table, 'height', newTotalHeight + 'px');
+				editor.dom.setAttrib(table, 'height', null);
+			});
+		}
+
+		function scheduleDelayedDropEvent() {
+			delayDrop = setTimeout(function() {
+				drop();
+			}, 200);
+		}
+
+		function cancelDelayedDropEvent() {
+			clearTimeout(delayDrop);
+		}
+
+		function getBlockerElement() {
+			var blocker = document.createElement('div');
+
+			blocker.setAttribute('style', 'margin: 0; ' +
+						'padding: 0; ' +
+						'position: fixed; ' +
+						'left: 0px; ' +
+						'top: 0px; ' +
+						'height: 100%; ' +
+						'width: 100%;');
+			blocker.setAttribute('data-mce-bogus', 'all');
+
+			return blocker;
+		}
+
+		function bindBlockerEvents(blocker, dragHandler) {
+			editor.dom.bind(blocker, 'mouseup', function() {
+				drop();
+			});
+
+			editor.dom.bind(blocker, 'mousemove', function(e) {
+				cancelDelayedDropEvent();
+
+				if (dragging) {
+					dragHandler(e);
+				}
+			});
+
+			editor.dom.bind(blocker, 'mouseout', function() {
+				scheduleDelayedDropEvent();
+			});
+
+		}
+
+		function drop() {
+			editor.dom.remove(blockerElement);
+
+			if (dragging) {
+				editor.dom.removeClass(dragBar, RESIZE_BAR_DRAGGING_CLASS);
+				dragging = false;
+
+				var index, delta;
+
+				if (isCol(dragBar)) {
+					var initialLeft = parseInt(editor.dom.getAttrib(dragBar, RESIZE_BAR_COL_DATA_INITIAL_LEFT_ATTRIBUTE), 10);
+					var newLeft = editor.dom.getPos(dragBar).x;
+					index = parseInt(editor.dom.getAttrib(dragBar, RESIZE_BAR_COL_DATA_ATTRIBUTE), 10);
+					delta = isRtl() ? initialLeft - newLeft : newLeft - initialLeft;
+					if (Math.abs(delta) >= 1) {			// simple click with no real resize (<1px) must not add CSS properties
+						adjustWidth(hoverTable, delta, index);
+					}
+				} else if (isRow(dragBar)) {
+					var initialTop = parseInt(editor.dom.getAttrib(dragBar, RESIZE_BAR_ROW_DATA_INITIAL_TOP_ATTRIBUTE), 10);
+					var newTop = editor.dom.getPos(dragBar).y;
+					index = parseInt(editor.dom.getAttrib(dragBar, RESIZE_BAR_ROW_DATA_ATTRIBUTE), 10);
+					delta = newTop - initialTop;
+					if (Math.abs(delta) >= 1) {			// simple click with no real resize (<1px) must not add CSS properties
+						adjustHeight(hoverTable, delta, index);
+					}
+				}
+				refreshBars(hoverTable);
+				editor.nodeChanged();
+			}
+		}
+
+		function setupBaseDrag(bar, dragHandler) {
+			blockerElement = blockerElement ? blockerElement : getBlockerElement();
+			dragging = true;
+			editor.dom.addClass(bar, RESIZE_BAR_DRAGGING_CLASS);
+			dragBar = bar;
+			bindBlockerEvents(blockerElement, dragHandler);
+			editor.dom.add(getBody(), blockerElement);
+		}
+
+		function isCol(target) {
+			return editor.dom.hasClass(target, RESIZE_BAR_COL_CLASS);
+		}
+
+		function isRow(target) {
+			return editor.dom.hasClass(target, RESIZE_BAR_ROW_CLASS);
+		}
+
+		function colDragHandler(event) {
+			lastX = lastX !== undefined ? lastX : event.clientX; // we need a firstX
+			var deltaX = event.clientX - lastX;
+			lastX = event.clientX;
+			var oldLeft = editor.dom.getPos(dragBar).x;
+			editor.dom.setStyle(dragBar, 'left', oldLeft + deltaX + 'px');
+		}
+
+		function rowDragHandler(event) {
+			lastY = lastY !== undefined ? lastY : event.clientY;
+			var deltaY = event.clientY - lastY;
+			lastY = event.clientY;
+			var oldTop = editor.dom.getPos(dragBar).y;
+			editor.dom.setStyle(dragBar, 'top', oldTop + deltaY + 'px');
+		}
+
+		function setupColDrag(bar) {
+			lastX = undefined;
+			setupBaseDrag(bar, colDragHandler);
+		}
+
+		function setupRowDrag(bar) {
+			lastY = undefined;
+			setupBaseDrag(bar, rowDragHandler);
+		}
+
+		function mouseDownHandler(e) {
+			var target = e.target, body = editor.getBody();
+
+			// Since this code is working on global events we need to work on a global hoverTable state
+			// and make sure that the state is correct according to the events fired
+			if (!editor.$.contains(body, hoverTable) && hoverTable !== body) {
+				return;
+			}
+
+			if (isCol(target)) {
+				e.preventDefault();
+				var initialLeft = editor.dom.getPos(target).x;
+				editor.dom.setAttrib(target, RESIZE_BAR_COL_DATA_INITIAL_LEFT_ATTRIBUTE, initialLeft);
+				setupColDrag(target);
+			} else if (isRow(target)) {
+				e.preventDefault();
+				var initialTop = editor.dom.getPos(target).y;
+				editor.dom.setAttrib(target, RESIZE_BAR_ROW_DATA_INITIAL_TOP_ATTRIBUTE, initialTop);
+				setupRowDrag(target);
+			} else {
+				clearBars();
+			}
+		}
+
+		editor.on('init', function() {
+			// Needs to be like this for inline mode, editor.on does not bind to elements in the document body otherwise
+			editor.dom.bind(getBody(), 'mousedown', mouseDownHandler);
+		});
+
+		// If we're updating the table width via the old mechanic, we need to update the constituent cells' widths/heights too.
+		editor.on('ObjectResized', function(e) {
+			var table = e.target;
+			if (table.nodeName === 'TABLE') {
+				var newCellSizes = [];
+				Tools.each(table.rows, function(row) {
+					Tools.each(row.cells, function(cell) {
+						var width = editor.dom.getStyle(cell, 'width', true);
+						newCellSizes.push({
+							cell: cell,
+							width: width
+						});
+					});
+				});
+				Tools.each(newCellSizes, function(newCellSize) {
+					editor.dom.setStyle(newCellSize.cell, 'width', newCellSize.width);
+					editor.dom.setAttrib(newCellSize.cell, 'width', null);
+				});
+			}
+		});
+
+		editor.on('mouseover', function(e) {
+			if (!dragging) {
+				var tableElement = editor.dom.getParent(e.target, 'table');
+
+				if (e.target.nodeName === 'TABLE' || tableElement) {
+					hoverTable = tableElement;
+					refreshBars(tableElement);
+				}
+			}
+		});
+
+		// Prevents the user from moving the caret inside the resize bars on Chrome
+		// Only does it on arrow keys since clearBars might be an epxensive operation
+		// since it's querying the DOM
+		editor.on('keydown', function(e) {
+			switch (e.keyCode) {
+				case VK.LEFT:
+				case VK.RIGHT:
+				case VK.UP:
+				case VK.DOWN:
+					clearBars();
+					break;
+			}
+		});
+
+		editor.on('remove', function() {
+			clearBars();
+			editor.dom.unbind(getBody(), 'mousedown', mouseDownHandler);
+		});
+
+		return {
+			adjustWidth: adjustWidth,
+			adjustHeight: adjustHeight,
+			clearBars: clearBars,
+			drawBars: drawBars,
+			determineDeltas: determineDeltas,
+			getTableGrid: getTableGrid,
+			getTableDetails: getTableDetails,
+			getWidths: getWidths,
+			getPixelHeights: getPixelHeights,
+			isPercentageBasedSize: isPercentageBasedSize,
+			isPixelBasedSize: isPixelBasedSize,
+			recalculateWidths: recalculateWidths,
+			recalculateCellHeights: recalculateCellHeights,
+			recalculateRowHeights: recalculateRowHeights
+		};
+	};
+});
+
+// Included from: js/tinymce/plugins/table/classes/Plugin.js
+
+/**
+ * Plugin.js
+ *
+ * Released under LGPL License.
+ * Copyright (c) 1999-2015 Ephox Corp. All rights reserved
+ *
+ * License: http://www.tinymce.com/license
+ * Contributing: http://www.tinymce.com/contributing
+ */
+
+/**
+ * This class contains all core logic for the table plugin.
+ *
+ * @class tinymce.tableplugin.Plugin
+ * @private
+ */
+define("tinymce/tableplugin/Plugin", [
+	"tinymce/tableplugin/TableGrid",
+	"tinymce/tableplugin/Quirks",
+	"tinymce/tableplugin/CellSelection",
+	"tinymce/tableplugin/Dialogs",
+	"tinymce/tableplugin/ResizeBars",
+	"tinymce/util/Tools",
+	"tinymce/dom/TreeWalker",
+	"tinymce/Env",
+	"tinymce/PluginManager"
+], function(TableGrid, Quirks, CellSelection, Dialogs, ResizeBars, Tools, TreeWalker, Env, PluginManager) {
+	var each = Tools.each;
+
+	function Plugin(editor) {
+		var clipboardRows, self = this, dialogs = new Dialogs(editor), resizeBars;
+
+		if (editor.settings.object_resizing && editor.settings.table_resize_bars !== false &&
+			(editor.settings.object_resizing === true || editor.settings.object_resizing === 'table')) {
+			resizeBars = ResizeBars(editor);
+		}
+
+		function cmd(command) {
+			return function() {
+				editor.execCommand(command);
+			};
+		}
+
+		function insertTable(cols, rows) {
+			var y, x, html, tableElm;
+
+			html = '<table id="__mce"><tbody>';
+
+			for (y = 0; y < rows; y++) {
+				html += '<tr>';
+
+				for (x = 0; x < cols; x++) {
+					html += '<td>' + (Env.ie && Env.ie < 10 ? '&nbsp;' : '<br>') + '</td>';
+				}
+
+				html += '</tr>';
+			}
+
+			html += '</tbody></table>';
+
+			editor.undoManager.transact(function() {
+				editor.insertContent(html);
+
+				tableElm = editor.dom.get('__mce');
+				editor.dom.setAttrib(tableElm, 'id', null);
+
+				editor.$('tr', tableElm).each(function(index, row) {
+					editor.fire('newrow', {
+						node: row
+					});
+
+					editor.$('th,td', row).each(function(index, cell) {
+						editor.fire('newcell', {
+							node: cell
+						});
+					});
+				});
+
+				editor.dom.setAttribs(tableElm, editor.settings.table_default_attributes || {});
+				editor.dom.setStyles(tableElm, editor.settings.table_default_styles || {});
+			});
+
+			return tableElm;
+		}
+
+		function handleDisabledState(ctrl, selector, sameParts) {
+			function bindStateListener() {
+				var selectedElm, selectedCells, parts = {}, sum = 0, state;
+
+				selectedCells = editor.dom.select('td[data-mce-selected],th[data-mce-selected]');
+				selectedElm = selectedCells[0];
+				if (!selectedElm) {
+					selectedElm = editor.selection.getStart();
+				}
+
+				// Make sure that we don't have a selection inside thead and tbody at the same time
+				if (sameParts && selectedCells.length > 0) {
+					each(selectedCells, function(cell) {
+						return parts[cell.parentNode.parentNode.nodeName] = 1;
+					});
+
+					each(parts, function(value) {
+						sum += value;
+					});
+
+					state = sum !== 1;
+				} else {
+					state = !editor.dom.getParent(selectedElm, selector);
+				}
+
+				ctrl.disabled(state);
+
+				editor.selection.selectorChanged(selector, function(state) {
+					ctrl.disabled(!state);
+				});
+			}
+
+			if (editor.initialized) {
+				bindStateListener();
+			} else {
+				editor.on('init', bindStateListener);
+			}
+		}
+
+		function postRender() {
+			/*jshint validthis:true*/
+			handleDisabledState(this, 'table');
+		}
+
+		function postRenderCell() {
+			/*jshint validthis:true*/
+			handleDisabledState(this, 'td,th');
+		}
+
+		function postRenderMergeCell() {
+			/*jshint validthis:true*/
+			handleDisabledState(this, 'td,th', true);
+		}
+
+		function generateTableGrid() {
+			var html = '';
+
+			html = '<table role="grid" class="mce-grid mce-grid-border" aria-readonly="true">';
+
+			for (var y = 0; y < 10; y++) {
+				html += '<tr>';
+
+				for (var x = 0; x < 10; x++) {
+					html += '<td role="gridcell" tabindex="-1"><a id="mcegrid' + (y * 10 + x) + '" href="#" ' +
+						'data-mce-x="' + x + '" data-mce-y="' + y + '"></a></td>';
+				}
+
+				html += '</tr>';
+			}
+
+			html += '</table>';
+
+			html += '<div class="mce-text-center" role="presentation">1 x 1</div>';
+
+			return html;
+		}
+
+		function selectGrid(tx, ty, control) {
+			var table = control.getEl().getElementsByTagName('table')[0];
+			var x, y, focusCell, cell, active;
+			var rtl = control.isRtl() || control.parent().rel == 'tl-tr';
+
+			table.nextSibling.innerHTML = (tx + 1) + ' x ' + (ty + 1);
+
+			if (rtl) {
+				tx = 9 - tx;
+			}
+
+			for (y = 0; y < 10; y++) {
+				for (x = 0; x < 10; x++) {
+					cell = table.rows[y].childNodes[x].firstChild;
+					active = (rtl ? x >= tx : x <= tx) && y <= ty;
+
+					editor.dom.toggleClass(cell, 'mce-active', active);
+
+					if (active) {
+						focusCell = cell;
+					}
+				}
+			}
+
+			return focusCell.parentNode;
+		}
+
+		if (editor.settings.table_grid === false) {
+			editor.addMenuItem('inserttable', {
+				text: 'Table',
+				icon: 'table',
+				context: 'table',
+				onclick: dialogs.table
+			});
+		} else {
+			editor.addMenuItem('inserttable', {
+				text: 'Table',
+				icon: 'table',
+				context: 'table',
+				ariaHideMenu: true,
+				onclick: function(e) {
+					if (e.aria) {
+						this.parent().hideAll();
+						e.stopImmediatePropagation();
+						dialogs.table();
+					}
+				},
+				onshow: function() {
+					selectGrid(0, 0, this.menu.items()[0]);
+				},
+				onhide: function() {
+					var elements = this.menu.items()[0].getEl().getElementsByTagName('a');
+					editor.dom.removeClass(elements, 'mce-active');
+					editor.dom.addClass(elements[0], 'mce-active');
+				},
+				menu: [
+					{
+						type: 'container',
+						html: generateTableGrid(),
+
+						onPostRender: function() {
+							this.lastX = this.lastY = 0;
+						},
+
+						onmousemove: function(e) {
+							var target = e.target, x, y;
+
+							if (target.tagName.toUpperCase() == 'A') {
+								x = parseInt(target.getAttribute('data-mce-x'), 10);
+								y = parseInt(target.getAttribute('data-mce-y'), 10);
+
+								if (this.isRtl() || this.parent().rel == 'tl-tr') {
+									x = 9 - x;
+								}
+
+								if (x !== this.lastX || y !== this.lastY) {
+									selectGrid(x, y, e.control);
+
+									this.lastX = x;
+									this.lastY = y;
+								}
+							}
+						},
+
+						onclick: function(e) {
+							var self = this;
+
+							if (e.target.tagName.toUpperCase() == 'A') {
+								e.preventDefault();
+								e.stopPropagation();
+								self.parent().cancel();
+
+								editor.undoManager.transact(function() {
+									insertTable(self.lastX + 1, self.lastY + 1);
+								});
+
+								editor.addVisual();
+							}
+						}
+					}
+				]
+			});
+		}
+
+		editor.addMenuItem('tableprops', {
+			text: 'Table properties',
+			context: 'table',
+			onPostRender: postRender,
+			onclick: dialogs.tableProps
+		});
+
+		editor.addMenuItem('deletetable', {
+			text: 'Delete table',
+			context: 'table',
+			onPostRender: postRender,
+			cmd: 'mceTableDelete'
+		});
+
+		editor.addMenuItem('cell', {
+			separator: 'before',
+			text: 'Cell',
+			context: 'table',
+			menu: [
+				{text: 'Cell properties', onclick: cmd('mceTableCellProps'), onPostRender: postRenderCell},
+				{text: 'Merge cells', onclick: cmd('mceTableMergeCells'), onPostRender: postRenderMergeCell},
+				{text: 'Split cell', onclick: cmd('mceTableSplitCells'), onPostRender: postRenderCell}
+			]
+		});
+
+		editor.addMenuItem('row', {
+			text: 'Row',
+			context: 'table',
+			menu: [
+				{text: 'Insert row before', onclick: cmd('mceTableInsertRowBefore'), onPostRender: postRenderCell},
+				{text: 'Insert row after', onclick: cmd('mceTableInsertRowAfter'), onPostRender: postRenderCell},
+				{text: 'Delete row', onclick: cmd('mceTableDeleteRow'), onPostRender: postRenderCell},
+				{text: 'Row properties', onclick: cmd('mceTableRowProps'), onPostRender: postRenderCell},
+				{text: '-'},
+				{text: 'Cut row', onclick: cmd('mceTableCutRow'), onPostRender: postRenderCell},
+				{text: 'Copy row', onclick: cmd('mceTableCopyRow'), onPostRender: postRenderCell},
+				{text: 'Paste row before', onclick: cmd('mceTablePasteRowBefore'), onPostRender: postRenderCell},
+				{text: 'Paste row after', onclick: cmd('mceTablePasteRowAfter'), onPostRender: postRenderCell}
+			]
+		});
+
+		editor.addMenuItem('column', {
+			text: 'Column',
+			context: 'table',
+			menu: [
+				{text: 'Insert column before', onclick: cmd('mceTableInsertColBefore'), onPostRender: postRenderCell},
+				{text: 'Insert column after', onclick: cmd('mceTableInsertColAfter'), onPostRender: postRenderCell},
+				{text: 'Delete column', onclick: cmd('mceTableDeleteCol'), onPostRender: postRenderCell}
+			]
+		});
+
+		var menuItems = [];
+		each("inserttable tableprops deletetable | cell row column".split(' '), function(name) {
+			if (name == '|') {
+				menuItems.push({text: '-'});
+			} else {
+				menuItems.push(editor.menuItems[name]);
+			}
+		});
+
+		editor.addButton("table", {
+			type: "menubutton",
+			title: "Table",
+			menu: menuItems
+		});
+
+		// Select whole table is a table border is clicked
+		if (!Env.isIE) {
+			editor.on('click', function(e) {
+				e = e.target;
+
+				if (e.nodeName === 'TABLE') {
+					editor.selection.select(e);
+					editor.nodeChanged();
+				}
+			});
+		}
+
+		self.quirks = new Quirks(editor);
+
+		editor.on('Init', function() {
+			self.cellSelection = new CellSelection(editor, function (selecting) {
+				if (selecting && resizeBars) {
+					resizeBars.clearBars();
+				}
+			});
+			self.resizeBars = resizeBars;
+		});
+
+		editor.on('PreInit', function() {
+			// Remove internal data attributes
+			editor.serializer.addAttributeFilter(
+				'data-mce-cell-padding,data-mce-border,data-mce-border-color',
+				function(nodes, name) {
+
+					var i = nodes.length;
+
+					while (i--) {
+						nodes[i].attr(name, null);
+					}
+				});
+		});
+
+		// Register action commands
+		each({
+			mceTableSplitCells: function(grid) {
+				grid.split();
+			},
+
+			mceTableMergeCells: function(grid) {
+				var cell;
+
+				cell = editor.dom.getParent(editor.selection.getStart(), 'th,td');
+
+				if (!editor.dom.select('td[data-mce-selected],th[data-mce-selected]').length) {
+					dialogs.merge(grid, cell);
+				} else {
+					grid.merge();
+				}
+			},
+
+			mceTableInsertRowBefore: function(grid) {
+				grid.insertRows(true);
+			},
+
+			mceTableInsertRowAfter: function(grid) {
+				grid.insertRows();
+			},
+
+			mceTableInsertColBefore: function(grid) {
+				grid.insertCols(true);
+			},
+
+			mceTableInsertColAfter: function(grid) {
+				grid.insertCols();
+			},
+
+			mceTableDeleteCol: function(grid) {
+				grid.deleteCols();
+			},
+
+			mceTableDeleteRow: function(grid) {
+				grid.deleteRows();
+			},
+
+			mceTableCutRow: function(grid) {
+				clipboardRows = grid.cutRows();
+			},
+
+			mceTableCopyRow: function(grid) {
+				clipboardRows = grid.copyRows();
+			},
+
+			mceTablePasteRowBefore: function(grid) {
+				grid.pasteRows(clipboardRows, true);
+			},
+
+			mceTablePasteRowAfter: function(grid) {
+				grid.pasteRows(clipboardRows);
+			},
+
+			mceSplitColsBefore: function(grid) {
+				grid.splitCols(true);
+			},
+
+			mceSplitColsAfter: function(grid) {
+				grid.splitCols(false);
+			},
+
+			mceTableDelete: function(grid) {
+				if (resizeBars) {
+					resizeBars.clearBars();
+				}
+				grid.deleteTable();
+			}
+		}, function(func, name) {
+			editor.addCommand(name, function() {
+				var grid = new TableGrid(editor);
+
+				if (grid) {
+					func(grid);
+					editor.execCommand('mceRepaint');
+					self.cellSelection.clear();
+				}
+			});
+		});
+
+		// Register dialog commands
+		each({
+			mceInsertTable: dialogs.table,
+			mceTableProps: function() {
+				dialogs.table(true);
+			},
+			mceTableRowProps: dialogs.row,
+			mceTableCellProps: dialogs.cell
+		}, function(func, name) {
+			editor.addCommand(name, function(ui, val) {
+				func(val);
+			});
+		});
+
+		function addButtons() {
+			editor.addButton('tableprops', {
+				title: 'Table properties',
+				onclick: dialogs.tableProps,
+				icon: 'table'
+			});
+
+			editor.addButton('tabledelete', {
+				title: 'Delete table',
+				onclick: cmd('mceTableDelete')
+			});
+
+			editor.addButton('tablecellprops', {
+				title: 'Cell properties',
+				onclick: cmd('mceTableCellProps')
+			});
+
+			editor.addButton('tablemergecells', {
+				title: 'Merge cells',
+				onclick: cmd('mceTableMergeCells')
+			});
+
+			editor.addButton('tablesplitcells', {
+				title: 'Split cell',
+				onclick: cmd('mceTableSplitCells')
+			});
+
+			editor.addButton('tableinsertrowbefore', {
+				title: 'Insert row before',
+				onclick: cmd('mceTableInsertRowBefore')
+			});
+
+			editor.addButton('tableinsertrowafter', {
+				title: 'Insert row after',
+				onclick: cmd('mceTableInsertRowAfter')
+			});
+
+			editor.addButton('tabledeleterow', {
+				title: 'Delete row',
+				onclick: cmd('mceTableDeleteRow')
+			});
+
+			editor.addButton('tablerowprops', {
+				title: 'Row properties',
+				onclick: cmd('mceTableRowProps')
+			});
+
+			editor.addButton('tablecutrow', {
+				title: 'Cut row',
+				onclick: cmd('mceTableCutRow')
+			});
+
+			editor.addButton('tablecopyrow', {
+				title: 'Copy row',
+				onclick: cmd('mceTableCopyRow')
+			});
+
+			editor.addButton('tablepasterowbefore', {
+				title: 'Paste row before',
+				onclick: cmd('mceTablePasteRowBefore')
+			});
+
+			editor.addButton('tablepasterowafter', {
+				title: 'Paste row after',
+				onclick: cmd('mceTablePasteRowAfter')
+			});
+
+			editor.addButton('tableinsertcolbefore', {
+				title: 'Insert column before',
+				onclick: cmd('mceTableInsertColBefore')
+			});
+
+			editor.addButton('tableinsertcolafter', {
+				title: 'Insert column after',
+				onclick: cmd('mceTableInsertColAfter')
+			});
+
+			editor.addButton('tabledeletecol', {
+				title: 'Delete column',
+				onclick: cmd('mceTableDeleteCol')
+			});
+
+		}
+
+		function isTable(table) {
+
+			var selectorMatched = editor.dom.is(table, 'table') && editor.getBody().contains(table);
+
+			return selectorMatched;
+		}
+
+		function addToolbars() {
+			var toolbarItems = editor.settings.table_toolbar;
+
+			if (toolbarItems === '' || toolbarItems === false) {
+				return;
+			}
+
+			if (!toolbarItems) {
+				toolbarItems = 'tableprops tabledelete | ' +
+					'tableinsertrowbefore tableinsertrowafter tabledeleterow | ' +
+					'tableinsertcolbefore tableinsertcolafter tabledeletecol';
+			}
+
+			editor.addContextToolbar(
+				isTable,
+				toolbarItems
+			);
+		}
+
+		function getClipboardRows() {
+			return clipboardRows;
+		}
+
+		function setClipboardRows(rows) {
+			clipboardRows = rows;
+		}
+
+		addButtons();
+		addToolbars();
+
+		// Enable tab key cell navigation
+		if (editor.settings.table_tab_navigation !== false) {
+			editor.on('keydown', function(e) {
+				var cellElm, grid, delta;
+
+				if (e.keyCode == 9) {
+					cellElm = editor.dom.getParent(editor.selection.getStart(), 'th,td');
+
+					if (cellElm) {
+						e.preventDefault();
+
+						grid = new TableGrid(editor);
+						delta = e.shiftKey ? -1 : 1;
+
+						editor.undoManager.transact(function() {
+							if (!grid.moveRelIdx(cellElm, delta) && delta > 0) {
+								grid.insertRow();
+								grid.refresh();
+								grid.moveRelIdx(cellElm, delta);
+							}
+						});
+					}
+				}
+			});
+		}
+
+		self.insertTable = insertTable;
+		self.setClipboardRows = setClipboardRows;
+		self.getClipboardRows = getClipboardRows;
+	}
+
+	PluginManager.add('table', Plugin);
+});
+})(window);
+
+/***/ }),
+/* 44 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// Exports the "wordcount" plugin for usage with module loaders
+// Usage:
+//   CommonJS:
+//     require('tinymce/plugins/wordcount')
+//   ES2015:
+//     import 'tinymce/plugins/wordcount'
+__webpack_require__(45);
+
+/***/ }),
+/* 45 */
+/***/ (function(module, exports) {
+
+(function () {
+
+var defs = {}; // id -> {dependencies, definition, instance (possibly undefined)}
+
+// Used when there is no 'main' module.
+// The name is probably (hopefully) unique so minification removes for releases.
+var register_3795 = function (id) {
+  var module = dem(id);
+  var fragments = id.split('.');
+  var target = Function('return this;')();
+  for (var i = 0; i < fragments.length - 1; ++i) {
+    if (target[fragments[i]] === undefined)
+      target[fragments[i]] = {};
+    target = target[fragments[i]];
+  }
+  target[fragments[fragments.length - 1]] = module;
+};
+
+var instantiate = function (id) {
+  var actual = defs[id];
+  var dependencies = actual.deps;
+  var definition = actual.defn;
+  var len = dependencies.length;
+  var instances = new Array(len);
+  for (var i = 0; i < len; ++i)
+    instances[i] = dem(dependencies[i]);
+  var defResult = definition.apply(null, instances);
+  if (defResult === undefined)
+     throw 'module [' + id + '] returned undefined';
+  actual.instance = defResult;
+};
+
+var def = function (id, dependencies, definition) {
+  if (typeof id !== 'string')
+    throw 'module id must be a string';
+  else if (dependencies === undefined)
+    throw 'no dependencies for ' + id;
+  else if (definition === undefined)
+    throw 'no definition function for ' + id;
+  defs[id] = {
+    deps: dependencies,
+    defn: definition,
+    instance: undefined
+  };
+};
+
+var dem = function (id) {
+  var actual = defs[id];
+  if (actual === undefined)
+    throw 'module [' + id + '] was undefined';
+  else if (actual.instance === undefined)
+    instantiate(id);
+  return actual.instance;
+};
+
+var req = function (ids, callback) {
+  var len = ids.length;
+  var instances = new Array(len);
+  for (var i = 0; i < len; ++i)
+    instances.push(dem(ids[i]));
+  callback.apply(null, callback);
+};
+
+var ephox = {};
+
+ephox.bolt = {
+  module: {
+    api: {
+      define: def,
+      require: req,
+      demand: dem
+    }
+  }
+};
+
+var define = def;
+var require = req;
+var demand = dem;
+// this helps with minificiation when using a lot of global references
+var defineGlobal = function (id, ref) {
+  define(id, [], function () { return ref; });
+};
+/*jsc
+["tinymce.wordcount.Plugin","global!tinymce.PluginManager","global!tinymce.util.Delay","tinymce.wordcount.text.WordGetter","tinymce.wordcount.text.UnicodeData","tinymce.wordcount.text.StringMapper","tinymce.wordcount.text.WordBoundary","tinymce.wordcount.alien.Arr"]
+jsc*/
+defineGlobal("global!tinymce.PluginManager", tinymce.PluginManager);
+defineGlobal("global!tinymce.util.Delay", tinymce.util.Delay);
+/**
+ * UnicodeData.js
+ *
+ * Released under LGPL License.
+ * Copyright (c) 1999-2016 Ephox Corp. All rights reserved
+ *
+ * License: http://www.tinymce.com/license
+ * Contributing: http://www.tinymce.com/contributing
+ */
+/* eslint-disable max-len */
+
+define("tinymce.wordcount.text.UnicodeData", [], function() {
+	var regExps = {
+		aletter: '[A-Za-z\u00AA\u00B5\u00BA\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02C1\u02C6-\u02D1\u02E0-\u02E4\u02EC\u02EE\u0370-\u0374\u0376\u0377\u037A-\u037D\u0386\u0388-\u038A\u038C\u038E-\u03A1\u03A3-\u03F5\u03F7-\u0481\u048A-\u0527\u0531-\u0556\u0559\u0561-\u0587\u05D0-\u05EA\u05F0-\u05F3\u0620-\u064A\u066E\u066F\u0671-\u06D3\u06D5\u06E5\u06E6\u06EE\u06EF\u06FA-\u06FC\u06FF\u0710\u0712-\u072F\u074D-\u07A5\u07B1\u07CA-\u07EA\u07F4\u07F5\u07FA\u0800-\u0815\u081A\u0824\u0828\u0840-\u0858\u0904-\u0939\u093D\u0950\u0958-\u0961\u0971-\u0977\u0979-\u097F\u0985-\u098C\u098F\u0990\u0993-\u09A8\u09AA-\u09B0\u09B2\u09B6-\u09B9\u09BD\u09CE\u09DC\u09DD\u09DF-\u09E1\u09F0\u09F1\u0A05-\u0A0A\u0A0F\u0A10\u0A13-\u0A28\u0A2A-\u0A30\u0A32\u0A33\u0A35\u0A36\u0A38\u0A39\u0A59-\u0A5C\u0A5E\u0A72-\u0A74\u0A85-\u0A8D\u0A8F-\u0A91\u0A93-\u0AA8\u0AAA-\u0AB0\u0AB2\u0AB3\u0AB5-\u0AB9\u0ABD\u0AD0\u0AE0\u0AE1\u0B05-\u0B0C\u0B0F\u0B10\u0B13-\u0B28\u0B2A-\u0B30\u0B32\u0B33\u0B35-\u0B39\u0B3D\u0B5C\u0B5D\u0B5F-\u0B61\u0B71\u0B83\u0B85-\u0B8A\u0B8E-\u0B90\u0B92-\u0B95\u0B99\u0B9A\u0B9C\u0B9E\u0B9F\u0BA3\u0BA4\u0BA8-\u0BAA\u0BAE-\u0BB9\u0BD0\u0C05-\u0C0C\u0C0E-\u0C10\u0C12-\u0C28\u0C2A-\u0C33\u0C35-\u0C39\u0C3D\u0C58\u0C59\u0C60\u0C61\u0C85-\u0C8C\u0C8E-\u0C90\u0C92-\u0CA8\u0CAA-\u0CB3\u0CB5-\u0CB9\u0CBD\u0CDE\u0CE0\u0CE1\u0CF1\u0CF2\u0D05-\u0D0C\u0D0E-\u0D10\u0D12-\u0D3A\u0D3D\u0D4E\u0D60\u0D61\u0D7A-\u0D7F\u0D85-\u0D96\u0D9A-\u0DB1\u0DB3-\u0DBB\u0DBD\u0DC0-\u0DC6\u0F00\u0F40-\u0F47\u0F49-\u0F6C\u0F88-\u0F8C\u10A0-\u10C5\u10D0-\u10FA\u10FC\u1100-\u1248\u124A-\u124D\u1250-\u1256\u1258\u125A-\u125D\u1260-\u1288\u128A-\u128D\u1290-\u12B0\u12B2-\u12B5\u12B8-\u12BE\u12C0\u12C2-\u12C5\u12C8-\u12D6\u12D8-\u1310\u1312-\u1315\u1318-\u135A\u1380-\u138F\u13A0-\u13F4\u1401-\u166C\u166F-\u167F\u1681-\u169A\u16A0-\u16EA\u16EE-\u16F0\u1700-\u170C\u170E-\u1711\u1720-\u1731\u1740-\u1751\u1760-\u176C\u176E-\u1770\u1820-\u1877\u1880-\u18A8\u18AA\u18B0-\u18F5\u1900-\u191C\u1A00-\u1A16\u1B05-\u1B33\u1B45-\u1B4B\u1B83-\u1BA0\u1BAE\u1BAF\u1BC0-\u1BE5\u1C00-\u1C23\u1C4D-\u1C4F\u1C5A-\u1C7D\u1CE9-\u1CEC\u1CEE-\u1CF1\u1D00-\u1DBF\u1E00-\u1F15\u1F18-\u1F1D\u1F20-\u1F45\u1F48-\u1F4D\u1F50-\u1F57\u1F59\u1F5B\u1F5D\u1F5F-\u1F7D\u1F80-\u1FB4\u1FB6-\u1FBC\u1FBE\u1FC2-\u1FC4\u1FC6-\u1FCC\u1FD0-\u1FD3\u1FD6-\u1FDB\u1FE0-\u1FEC\u1FF2-\u1FF4\u1FF6-\u1FFC\u2071\u207F\u2090-\u209C\u2102\u2107\u210A-\u2113\u2115\u2119-\u211D\u2124\u2126\u2128\u212A-\u212D\u212F-\u2139\u213C-\u213F\u2145-\u2149\u214E\u2160-\u2188\u24B6-\u24E9\u2C00-\u2C2E\u2C30-\u2C5E\u2C60-\u2CE4\u2CEB-\u2CEE\u2D00-\u2D25\u2D30-\u2D65\u2D6F\u2D80-\u2D96\u2DA0-\u2DA6\u2DA8-\u2DAE\u2DB0-\u2DB6\u2DB8-\u2DBE\u2DC0-\u2DC6\u2DC8-\u2DCE\u2DD0-\u2DD6\u2DD8-\u2DDE\u2E2F\u3005\u303B\u303C\u3105-\u312D\u3131-\u318E\u31A0-\u31BA\uA000-\uA48C\uA4D0-\uA4FD\uA500-\uA60C\uA610-\uA61F\uA62A\uA62B\uA640-\uA66E\uA67F-\uA697\uA6A0-\uA6EF\uA717-\uA71F\uA722-\uA788\uA78B-\uA78E\uA790\uA791\uA7A0-\uA7A9\uA7FA-\uA801\uA803-\uA805\uA807-\uA80A\uA80C-\uA822\uA840-\uA873\uA882-\uA8B3\uA8F2-\uA8F7\uA8FB\uA90A-\uA925\uA930-\uA946\uA960-\uA97C\uA984-\uA9B2\uA9CF\uAA00-\uAA28\uAA40-\uAA42\uAA44-\uAA4B\uAB01-\uAB06\uAB09-\uAB0E\uAB11-\uAB16\uAB20-\uAB26\uAB28-\uAB2E\uABC0-\uABE2\uAC00-\uD7A3\uD7B0-\uD7C6\uD7CB-\uD7FB\uFB00-\uFB06\uFB13-\uFB17\uFB1D\uFB1F-\uFB28\uFB2A-\uFB36\uFB38-\uFB3C\uFB3E\uFB40\uFB41\uFB43\uFB44\uFB46-\uFBB1\uFBD3-\uFD3D\uFD50-\uFD8F\uFD92-\uFDC7\uFDF0-\uFDFB\uFE70-\uFE74\uFE76-\uFEFC\uFF21-\uFF3A\uFF41-\uFF5A\uFFA0-\uFFBE\uFFC2-\uFFC7\uFFCA-\uFFCF\uFFD2-\uFFD7\uFFDA-\uFFDC]',
+		midnumlet: "['\\.\u2018\u2019\u2024\uFE52\uFF07\uFF0E]",
+		midletter: '[:\u00B7\u00B7\u05F4\u2027\uFE13\uFE55\uFF1A]',
+		midnum: '[,;;\u0589\u060C\u060D\u066C\u07F8\u2044\uFE10\uFE14\uFE50\uFE54\uFF0C\uFF1B]',
+		numeric: '[0-9\u0660-\u0669\u066B\u06F0-\u06F9\u07C0-\u07C9\u0966-\u096F\u09E6-\u09EF\u0A66-\u0A6F\u0AE6-\u0AEF\u0B66-\u0B6F\u0BE6-\u0BEF\u0C66-\u0C6F\u0CE6-\u0CEF\u0D66-\u0D6F\u0E50-\u0E59\u0ED0-\u0ED9\u0F20-\u0F29\u1040-\u1049\u1090-\u1099\u17E0-\u17E9\u1810-\u1819\u1946-\u194F\u19D0-\u19D9\u1A80-\u1A89\u1A90-\u1A99\u1B50-\u1B59\u1BB0-\u1BB9\u1C40-\u1C49\u1C50-\u1C59\uA620-\uA629\uA8D0-\uA8D9\uA900-\uA909\uA9D0-\uA9D9\uAA50-\uAA59\uABF0-\uABF9]',
+		cr: '\\r',
+		lf: '\\n',
+		newline: '[\u000B\u000C\u0085\u2028\u2029]',
+		extend: '[\u0300-\u036F\u0483-\u0489\u0591-\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06DC\u06DF-\u06E4\u06E7\u06E8\u06EA-\u06ED\u0711\u0730-\u074A\u07A6-\u07B0\u07EB-\u07F3\u0816-\u0819\u081B-\u0823\u0825-\u0827\u0829-\u082D\u0859-\u085B\u0900-\u0903\u093A-\u093C\u093E-\u094F\u0951-\u0957\u0962\u0963\u0981-\u0983\u09BC\u09BE-\u09C4\u09C7\u09C8\u09CB-\u09CD\u09D7\u09E2\u09E3\u0A01-\u0A03\u0A3C\u0A3E-\u0A42\u0A47\u0A48\u0A4B-\u0A4D\u0A51\u0A70\u0A71\u0A75\u0A81-\u0A83\u0ABC\u0ABE-\u0AC5\u0AC7-\u0AC9\u0ACB-\u0ACD\u0AE2\u0AE3\u0B01-\u0B03\u0B3C\u0B3E-\u0B44\u0B47\u0B48\u0B4B-\u0B4D\u0B56\u0B57\u0B62\u0B63\u0B82\u0BBE-\u0BC2\u0BC6-\u0BC8\u0BCA-\u0BCD\u0BD7\u0C01-\u0C03\u0C3E-\u0C44\u0C46-\u0C48\u0C4A-\u0C4D\u0C55\u0C56\u0C62\u0C63\u0C82\u0C83\u0CBC\u0CBE-\u0CC4\u0CC6-\u0CC8\u0CCA-\u0CCD\u0CD5\u0CD6\u0CE2\u0CE3\u0D02\u0D03\u0D3E-\u0D44\u0D46-\u0D48\u0D4A-\u0D4D\u0D57\u0D62\u0D63\u0D82\u0D83\u0DCA\u0DCF-\u0DD4\u0DD6\u0DD8-\u0DDF\u0DF2\u0DF3\u0E31\u0E34-\u0E3A\u0E47-\u0E4E\u0EB1\u0EB4-\u0EB9\u0EBB\u0EBC\u0EC8-\u0ECD\u0F18\u0F19\u0F35\u0F37\u0F39\u0F3E\u0F3F\u0F71-\u0F84\u0F86\u0F87\u0F8D-\u0F97\u0F99-\u0FBC\u0FC6\u102B-\u103E\u1056-\u1059\u105E-\u1060\u1062-\u1064\u1067-\u106D\u1071-\u1074\u1082-\u108D\u108F\u109A-\u109D\u135D-\u135F\u1712-\u1714\u1732-\u1734\u1752\u1753\u1772\u1773\u17B6-\u17D3\u17DD\u180B-\u180D\u18A9\u1920-\u192B\u1930-\u193B\u19B0-\u19C0\u19C8\u19C9\u1A17-\u1A1B\u1A55-\u1A5E\u1A60-\u1A7C\u1A7F\u1B00-\u1B04\u1B34-\u1B44\u1B6B-\u1B73\u1B80-\u1B82\u1BA1-\u1BAA\u1BE6-\u1BF3\u1C24-\u1C37\u1CD0-\u1CD2\u1CD4-\u1CE8\u1CED\u1CF2\u1DC0-\u1DE6\u1DFC-\u1DFF\u200C\u200D\u20D0-\u20F0\u2CEF-\u2CF1\u2D7F\u2DE0-\u2DFF\u302A-\u302F\u3099\u309A\uA66F-\uA672\uA67C\uA67D\uA6F0\uA6F1\uA802\uA806\uA80B\uA823-\uA827\uA880\uA881\uA8B4-\uA8C4\uA8E0-\uA8F1\uA926-\uA92D\uA947-\uA953\uA980-\uA983\uA9B3-\uA9C0\uAA29-\uAA36\uAA43\uAA4C\uAA4D\uAA7B\uAAB0\uAAB2-\uAAB4\uAAB7\uAAB8\uAABE\uAABF\uAAC1\uABE3-\uABEA\uABEC\uABED\uFB1E\uFE00-\uFE0F\uFE20-\uFE26\uFF9E\uFF9F]',
+		format: '[\u00AD\u0600-\u0603\u06DD\u070F\u17B4\u17B5\u200E\u200F\u202A-\u202E\u2060-\u2064\u206A-\u206F\uFEFF\uFFF9-\uFFFB]',
+		katakana: '[\u3031-\u3035\u309B\u309C\u30A0-\u30FA\u30FC-\u30FF\u31F0-\u31FF\u32D0-\u32FE\u3300-\u3357\uFF66-\uFF9D]',
+		extendnumlet: '[_\u203F\u2040\u2054\uFE33\uFE34\uFE4D-\uFE4F\uFF3F]',
+		punctuation: '[!-#%-*,-\\/:;?@\\[-\\]_{}\u00A1\u00AB\u00B7\u00BB\u00BF;\u00B7\u055A-\u055F\u0589\u058A\u05BE\u05C0\u05C3\u05C6\u05F3\u05F4\u0609\u060A\u060C\u060D\u061B\u061E\u061F\u066A-\u066D\u06D4\u0700-\u070D\u07F7-\u07F9\u0830-\u083E\u085E\u0964\u0965\u0970\u0DF4\u0E4F\u0E5A\u0E5B\u0F04-\u0F12\u0F3A-\u0F3D\u0F85\u0FD0-\u0FD4\u0FD9\u0FDA\u104A-\u104F\u10FB\u1361-\u1368\u1400\u166D\u166E\u169B\u169C\u16EB-\u16ED\u1735\u1736\u17D4-\u17D6\u17D8-\u17DA\u1800-\u180A\u1944\u1945\u1A1E\u1A1F\u1AA0-\u1AA6\u1AA8-\u1AAD\u1B5A-\u1B60\u1BFC-\u1BFF\u1C3B-\u1C3F\u1C7E\u1C7F\u1CD3\u2010-\u2027\u2030-\u2043\u2045-\u2051\u2053-\u205E\u207D\u207E\u208D\u208E\u3008\u3009\u2768-\u2775\u27C5\u27C6\u27E6-\u27EF\u2983-\u2998\u29D8-\u29DB\u29FC\u29FD\u2CF9-\u2CFC\u2CFE\u2CFF\u2D70\u2E00-\u2E2E\u2E30\u2E31\u3001-\u3003\u3008-\u3011\u3014-\u301F\u3030\u303D\u30A0\u30FB\uA4FE\uA4FF\uA60D-\uA60F\uA673\uA67E\uA6F2-\uA6F7\uA874-\uA877\uA8CE\uA8CF\uA8F8-\uA8FA\uA92E\uA92F\uA95F\uA9C1-\uA9CD\uA9DE\uA9DF\uAA5C-\uAA5F\uAADE\uAADF\uABEB\uFD3E\uFD3F\uFE10-\uFE19\uFE30-\uFE52\uFE54-\uFE61\uFE63\uFE68\uFE6A\uFE6B\uFF01-\uFF03\uFF05-\uFF0A\uFF0C-\uFF0F\uFF1A\uFF1B\uFF1F\uFF20\uFF3B-\uFF3D\uFF3F\uFF5B\uFF5D\uFF5F-\uFF65]'
+	};
+
+	var characterIndices = {
+		ALETTER: 0,
+		MIDNUMLET: 1,
+		MIDLETTER: 2,
+		MIDNUM: 3,
+		NUMERIC: 4,
+		CR: 5,
+		LF: 6,
+		NEWLINE: 7,
+		EXTEND: 8,
+		FORMAT: 9,
+		KATAKANA: 10,
+		EXTENDNUMLET: 11,
+		AT: 12,
+		OTHER: 13
+	};
+
+	// RegExp objects generated from code point data. Each regex matches a single
+	// character against a set of Unicode code points. The index of each item in
+	// this array must match its corresponding code point constant value defined
+	// above.
+	var SETS = [
+		new RegExp(regExps.aletter),
+		new RegExp(regExps.midnumlet),
+		new RegExp(regExps.midletter),
+		new RegExp(regExps.midnum),
+		new RegExp(regExps.numeric),
+		new RegExp(regExps.cr),
+		new RegExp(regExps.lf),
+		new RegExp(regExps.newline),
+		new RegExp(regExps.extend),
+		new RegExp(regExps.format),
+		new RegExp(regExps.katakana),
+		new RegExp(regExps.extendnumlet),
+		new RegExp('@')
+	];
+
+	var EMPTY_STRING = '';
+	var PUNCTUATION = new RegExp('^' + regExps.punctuation + '$');
+	var WHITESPACE = /\s/;
+
+	return {
+		characterIndices: characterIndices,
+		SETS: SETS,
+		EMPTY_STRING: EMPTY_STRING,
+		PUNCTUATION: PUNCTUATION,
+		WHITESPACE: WHITESPACE
+	};
+});
+/**
+ * Arr.js
+ *
+ * Released under LGPL License.
+ * Copyright (c) 1999-2016 Ephox Corp. All rights reserved
+ *
+ * License: http://www.tinymce.com/license
+ * Contributing: http://www.tinymce.com/contributing
+ */
+
+define('tinymce.wordcount.alien.Arr', [
+], function () {
+	var each = function (o, cb, s) {
+		var n, l;
+
+		if (!o) {
+			return 0;
+		}
+
+		s = s || o;
+
+		if (o.length !== undefined) {
+			// Indexed arrays, needed for Safari
+			for (n = 0, l = o.length; n < l; n++) {
+				if (cb.call(s, o[n], n, o) === false) {
+					return 0;
+				}
+			}
+		} else {
+			// Hashtables
+			for (n in o) {
+				if (o.hasOwnProperty(n)) {
+					if (cb.call(s, o[n], n, o) === false) {
+						return 0;
+					}
+				}
+			}
+		}
+
+		return 1;
+	};
+
+	var map = function (array, callback) {
+		var out = [];
+
+		each(array, function(item, index) {
+			out.push(callback(item, index, array));
+		});
+
+		return out;
+	};
+
+	return {
+		each: each,
+		map: map
+	};
+});
+
+/**
+ * StringMapper.js
+ *
+ * Released under LGPL License.
+ * Copyright (c) 1999-2016 Ephox Corp. All rights reserved
+ *
+ * License: http://www.tinymce.com/license
+ * Contributing: http://www.tinymce.com/contributing
+ */
+define('tinymce.wordcount.text.StringMapper', [
+	'tinymce.wordcount.text.UnicodeData',
+	'tinymce.wordcount.alien.Arr'
+], function(UnicodeData, Arr) {
+	var SETS = UnicodeData.SETS;
+	var OTHER = UnicodeData.characterIndices.OTHER;
+
+	var getType = function (char) {
+		var j, set, type = OTHER;
+		var setsLength = SETS.length;
+		for (j = 0; j < setsLength; ++j) {
+			set = SETS[j];
+
+			if (set && set.test(char)) {
+				type = j;
+				break;
+			}
+		}
+		return type;
+	};
+
+	var memoize = function (func) {
+		var cache = {};
+		return function(char) {
+			if (cache[char]) {
+				return cache[char];
+			} else {
+				var result = func(char);
+				cache[char] = result;
+				return result;
+			}
+		};
+	};
+
+	var classify = function (string) {
+		var memoized = memoize(getType);
+		return Arr.map(string.split(''), memoized);
+	};
+
+	return {
+		classify: classify
+	};
+});
+
+/**
+ * IsWordBoundary.js
+ *
+ * Released under LGPL License.
+ * Copyright (c) 1999-2016 Ephox Corp. All rights reserved
+ *
+ * License: http://www.tinymce.com/license
+ * Contributing: http://www.tinymce.com/contributing
+ */
+
+define("tinymce.wordcount.text.WordBoundary", [
+	"tinymce.wordcount.text.UnicodeData"
+], function(UnicodeData) {
+	var ci = UnicodeData.characterIndices;
+	var isWordBoundary = function (map, index) {
+		var prevType;
+		var type = map[index];
+		var nextType = map[index + 1];
+		var nextNextType;
+
+		if (index < 0 || (index > map.length - 1 && index !== 0)) {
+				// console.log('isWordBoundary: index out of bounds', 'warn', 'text-wordbreak');
+			return false;
+		}
+
+		// WB5. Don't break between most letters.
+		if (type === ci.ALETTER && nextType === ci.ALETTER) {
+			return false;
+		}
+
+		nextNextType = map[index + 2];
+
+		// WB6. Don't break letters across certain punctuation.
+		if (type === ci.ALETTER &&
+						(nextType === ci.MIDLETTER || nextType === ci.MIDNUMLET || nextType === ci.AT) &&
+						nextNextType === ci.ALETTER) {
+			return false;
+		}
+
+		prevType = map[index - 1];
+
+		// WB7. Don't break letters across certain punctuation.
+		if ((type === ci.MIDLETTER || type === ci.MIDNUMLET || nextType === ci.AT) &&
+						nextType === ci.ALETTER &&
+						prevType === ci.ALETTER) {
+			return false;
+		}
+
+		// WB8/WB9/WB10. Don't break inside sequences of digits or digits
+		// adjacent to letters.
+		if ((type === ci.NUMERIC || type === ci.ALETTER) &&
+						(nextType === ci.NUMERIC || nextType === ci.ALETTER)) {
+			return false;
+		}
+
+		// WB11. Don't break inside numeric sequences like "3.2" or
+		// "3,456.789".
+		if ((type === ci.MIDNUM || type === ci.MIDNUMLET) &&
+						nextType === ci.NUMERIC &&
+						prevType === ci.NUMERIC) {
+			return false;
+		}
+
+		// WB12. Don't break inside numeric sequences like "3.2" or
+		// "3,456.789".
+		if (type === ci.NUMERIC &&
+						(nextType === ci.MIDNUM || nextType === ci.MIDNUMLET) &&
+						nextNextType === ci.NUMERIC) {
+			return false;
+		}
+
+		// WB4. Ignore format and extend characters.
+		if (type === ci.EXTEND || type === ci.FORMAT ||
+						prevType === ci.EXTEND || prevType === ci.FORMAT ||
+						nextType === ci.EXTEND || nextType === ci.FORMAT) {
+			return false;
+		}
+
+		// WB3. Don't break inside CRLF.
+		if (type === ci.CR && nextType === ci.LF) {
+			return false;
+		}
+
+		// WB3a. Break before newlines (including CR and LF).
+		if (type === ci.NEWLINE || type === ci.CR || type === ci.LF) {
+			return true;
+		}
+
+		// WB3b. Break after newlines (including CR and LF).
+		if (nextType === ci.NEWLINE || nextType === ci.CR || nextType === ci.LF) {
+			return true;
+		}
+
+		// WB13. Don't break between Katakana characters.
+		if (type === ci.KATAKANA && nextType === ci.KATAKANA) {
+			return false;
+		}
+
+		// WB13a. Don't break from extenders.
+		if (nextType === ci.EXTENDNUMLET &&
+						(type === ci.ALETTER || type === ci.NUMERIC || type === ci.KATAKANA ||
+						type === ci.EXTENDNUMLET)) {
+			return false;
+		}
+
+		// WB13b. Don't break from extenders.
+		if (type === ci.EXTENDNUMLET &&
+						(nextType === ci.ALETTER || nextType === ci.NUMERIC ||
+						nextType === ci.KATAKANA)) {
+			return false;
+		}
+
+		if (type === ci.AT) {
+			return false;
+		}
+
+		// Break after any character not covered by the rules above.
+		return true;
+	};
+
+	return {
+		isWordBoundary: isWordBoundary
+	};
+});
+/**
+ * WordGetter.js
+ *
+ * Released under LGPL License.
+ * Copyright (c) 1999-2016 Ephox Corp. All rights reserved
+ *
+ * License: http://www.tinymce.com/license
+ * Contributing: http://www.tinymce.com/contributing
+ */
+
+define("tinymce.wordcount.text.WordGetter", [
+	"tinymce.wordcount.text.UnicodeData",
+	"tinymce.wordcount.text.StringMapper",
+	"tinymce.wordcount.text.WordBoundary"
+], function(UnicodeData, StringMapper, WordBoundary) {
+	var EMPTY_STRING = UnicodeData.EMPTY_STRING;
+	var WHITESPACE = UnicodeData.WHITESPACE;
+	var PUNCTUATION = UnicodeData.PUNCTUATION;
+
+	var isProtocol = function (word) {
+		return word === 'http' || word === 'https';
+	};
+
+	var findWordEnd = function (string, index) {
+		var i;
+		for (i = index; i < string.length; ++i) {
+			var chr = string.charAt(i);
+
+			if (WHITESPACE.test(chr)) {
+				break;
+			}
+		}
+		return i;
+	};
+
+	var extractUrl = function (word, string, index) {
+		var endIndex = findWordEnd(string, index + 1);
+		var peakedWord = string.substring(index + 1, endIndex);
+		if (peakedWord.substr(0, 3) === '://') {
+			return {
+				word: word + peakedWord,
+				index: endIndex
+			};
+		}
+
+		return {
+			word: word,
+			index: index
+		};
+	};
+
+	var getWords = function (string, options) {
+		var i = 0;
+		var map = StringMapper.classify(string);
+		var len = map.length;
+		var word = [];
+		var words = [];
+		var chr;
+		var includePunctuation;
+		var includeWhitespace;
+
+		if (!options) {
+			options = {};
+		}
+
+		if (options.ignoreCase) {
+			string = string.toLowerCase();
+		}
+
+		includePunctuation = options.includePunctuation;
+		includeWhitespace = options.includeWhitespace;
+
+		// Loop through each character in the classification map and determine
+		// whether it precedes a word boundary, building an array of distinct
+		// words as we go.
+		for (; i < len; ++i) {
+			chr = string.charAt(i);
+
+			// Append this character to the current word.
+			word.push(chr);
+
+			// If there's a word boundary between the current character and the
+			// next character, append the current word to the words array and
+			// start building a new word.
+			if (WordBoundary.isWordBoundary(map, i)) {
+				word = word.join(EMPTY_STRING);
+
+				if (word &&
+								(includeWhitespace || !WHITESPACE.test(word)) &&
+								(includePunctuation || !PUNCTUATION.test(word))) {
+					if (isProtocol(word)) {
+						var obj = extractUrl(word, string, i);
+						words.push(obj.word);
+						i = obj.index;
+					} else {
+						words.push(word);
+					}
+				}
+
+				word = [];
+			}
+		}
+
+		return words;
+	};
+
+	return {
+		getWords: getWords
+	};
+});
+/**
+ * Plugin.js
+ *
+ * Released under LGPL License.
+ * Copyright (c) 1999-2016 Ephox Corp. All rights reserved
+ *
+ * License: http://www.tinymce.com/license
+ * Contributing: http://www.tinymce.com/contributing
+ */
+
+define("tinymce.wordcount.Plugin", [
+	"global!tinymce.PluginManager",
+	"global!tinymce.util.Delay",
+	"tinymce.wordcount.text.WordGetter"
+], function(PluginManager, Delay, WordGetter) {
+	PluginManager.add('wordcount', function(editor) {
+		var getTextContent = function(editor) {
+			return editor.removed ? '' : editor.getBody().innerText;
+		};
+
+		var getCount = function() {
+			return WordGetter.getWords(getTextContent(editor)).length;
+		};
+
+		var update = function() {
+			editor.theme.panel.find('#wordcount').text(['Words: {0}', getCount()]);
+		};
+
+		editor.on('init', function() {
+			var statusbar = editor.theme.panel && editor.theme.panel.find('#statusbar')[0];
+			var debouncedUpdate = Delay.debounce(update, 300);
+
+			if (statusbar) {
+				Delay.setEditorTimeout(editor, function() {
+					statusbar.insert({
+						type: 'label',
+						name: 'wordcount',
+						text: ['Words: {0}', getCount()],
+						classes: 'wordcount',
+						disabled: editor.settings.readonly
+					}, 0);
+
+					editor.on('setcontent beforeaddundo undo redo keyup', debouncedUpdate);
+				}, 0);
+			}
+		});
+
+		return {
+			getCount: getCount
+		};
+	});
+
+	return function () {};
+});
+
+dem('tinymce.wordcount.Plugin')();
+})();
+
+
+/***/ }),
+/* 46 */
+/***/ (function(module, exports, __webpack_require__) {
+
 // Exports the "modern" theme for usage with module loaders
 // Usage:
 //   CommonJS:
 //     require('tinymce/themes/modern')
 //   ES2015:
 //     import 'tinymce/themes/modern'
-__webpack_require__(39);
+__webpack_require__(47);
 
 /***/ }),
-/* 39 */
+/* 47 */
 /***/ (function(module, exports) {
 
 (function () {
@@ -33183,7 +39090,7 @@ dem('tinymce.modern.Theme')();
 
 
 /***/ }),
-/* 40 */
+/* 48 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(setImmediate) {// 4.5.5 (2017-03-07)
@@ -82401,7 +88308,7 @@ expose(["tinymce/geom/Rect","tinymce/util/Promise","tinymce/util/Delay","tinymce
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(37).setImmediate))
 
 /***/ }),
-/* 41 */
+/* 49 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -85508,7 +91415,7 @@ return index;
 
 
 /***/ }),
-/* 42 */
+/* 50 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -86589,7 +92496,7 @@ var xhrClient = function (request) {
 
 var nodeClient = function (request) {
 
-    var client = __webpack_require__(47);
+    var client = __webpack_require__(55);
 
     return new PromiseObj(function (resolve) {
 
@@ -87043,7 +92950,7 @@ module.exports = plugin;
 
 
 /***/ }),
-/* 43 */
+/* 51 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -89328,8 +95235,8 @@ if (inBrowser && window.Vue) {
 /* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(3)))
 
 /***/ }),
-/* 44 */,
-/* 45 */
+/* 52 */,
+/* 53 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -98514,7 +104421,7 @@ module.exports = Vue$3;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3), __webpack_require__(5)))
 
 /***/ }),
-/* 46 */
+/* 54 */
 /***/ (function(module, exports) {
 
 module.exports = function(module) {
@@ -98542,15 +104449,15 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 47 */
+/* 55 */
 /***/ (function(module, exports) {
 
 /* (ignored) */
 
 /***/ }),
-/* 48 */,
-/* 49 */,
-/* 50 */
+/* 56 */,
+/* 57 */,
+/* 58 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(32);
@@ -98561,14 +104468,6 @@ window.app = new Vue({
 });
 
 /***/ }),
-/* 51 */,
-/* 52 */,
-/* 53 */,
-/* 54 */,
-/* 55 */,
-/* 56 */,
-/* 57 */,
-/* 58 */,
 /* 59 */,
 /* 60 */,
 /* 61 */,
@@ -98675,13 +104574,7 @@ window.app = new Vue({
 /* 162 */,
 /* 163 */,
 /* 164 */,
-/* 165 */
-/***/ (function(module, exports, __webpack_require__) {
-
-module.exports = __webpack_require__(50);
-
-
-/***/ }),
+/* 165 */,
 /* 166 */,
 /* 167 */,
 /* 168 */,
@@ -98692,5907 +104585,7 @@ module.exports = __webpack_require__(50);
 /* 173 */
 /***/ (function(module, exports, __webpack_require__) {
 
-// Exports the "link" plugin for usage with module loaders
-// Usage:
-//   CommonJS:
-//     require('tinymce/plugins/link')
-//   ES2015:
-//     import 'tinymce/plugins/link'
-__webpack_require__(174);
-
-/***/ }),
-/* 174 */
-/***/ (function(module, exports) {
-
-/**
- * plugin.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2015 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
-
-/*global tinymce:true */
-
-tinymce.PluginManager.add('link', function(editor) {
-	var attachState = {};
-
-	function isLink(elm) {
-		return elm && elm.nodeName === 'A' && elm.href;
-	}
-
-	function hasLinks(elements) {
-		return tinymce.util.Tools.grep(elements, isLink).length > 0;
-	}
-
-	function getLink(elm) {
-		return editor.dom.getParent(elm, 'a[href]');
-	}
-
-	function getSelectedLink() {
-		return getLink(editor.selection.getStart());
-	}
-
-	function getHref(elm) {
-		// Returns the real href value not the resolved a.href value
-		var href = elm.getAttribute('data-mce-href');
-		return href ? href : elm.getAttribute('href');
-	}
-
-	function isContextMenuVisible() {
-		var contextmenu = editor.plugins.contextmenu;
-		return contextmenu ? contextmenu.isContextMenuVisible() : false;
-	}
-
-	var hasOnlyAltModifier = function (e) {
-		return e.altKey === true && e.shiftKey === false && e.ctrlKey === false && e.metaKey === false;
-	};
-
-	function leftClickedOnAHref(elm) {
-		var sel, rng, node;
-		if (editor.settings.link_context_toolbar && !isContextMenuVisible() && isLink(elm)) {
-			sel = editor.selection;
-			rng = sel.getRng();
-			node = rng.startContainer;
-			// ignore cursor positions at the beginning/end (to make context toolbar less noisy)
-			if (node.nodeType == 3 && sel.isCollapsed() && rng.startOffset > 0 && rng.startOffset < node.data.length) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	function appendClickRemove(link, evt) {
-		document.body.appendChild(link);
-		link.dispatchEvent(evt);
-		document.body.removeChild(link);
-	}
-
-	function openDetachedWindow(url) {
-		// Chrome and Webkit has implemented noopener and works correctly with/without popup blocker
-		// Firefox has it implemented noopener but when the popup blocker is activated it doesn't work
-		// Edge has only implemented noreferrer and it seems to remove opener as well
-		// Older IE versions pre IE 11 falls back to a window.open approach
-		if (!tinymce.Env.ie || tinymce.Env.ie > 10) {
-			var link = document.createElement('a');
-			link.target = '_blank';
-			link.href = url;
-			link.rel = 'noreferrer noopener';
-
-			var evt = document.createEvent('MouseEvents');
-			evt.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-
-			appendClickRemove(link, evt);
-		} else {
-			var win = window.open('', '_blank');
-			if (win) {
-				win.opener = null;
-				var doc = win.document;
-				doc.open();
-				doc.write('<meta http-equiv="refresh" content="0; url=' + tinymce.DOM.encode(url) + '">');
-				doc.close();
-			}
-		}
-	}
-
-	function gotoLink(a) {
-		if (a) {
-			var href = getHref(a);
-			if (/^#/.test(href)) {
-				var targetEl = editor.$(href);
-				if (targetEl.length) {
-					editor.selection.scrollIntoView(targetEl[0], true);
-				}
-			} else {
-				openDetachedWindow(a.href);
-			}
-		}
-	}
-
-	function gotoSelectedLink() {
-		gotoLink(getSelectedLink());
-	}
-
-	function toggleViewLinkState() {
-        var self = this;
-
-		var toggleVisibility = function (e) {
-			if (hasLinks(e.parents)) {
-				self.show();
-			} else {
-				self.hide();
-			}
-		};
-
-		if (!hasLinks(editor.dom.getParents(editor.selection.getStart()))) {
-			self.hide();
-		}
-
-        editor.on('nodechange', toggleVisibility);
-
-		self.on('remove', function () {
-			editor.off('nodechange', toggleVisibility);
-		});
-	}
-
-	function createLinkList(callback) {
-		return function() {
-			var linkList = editor.settings.link_list;
-
-			if (typeof linkList == "string") {
-				tinymce.util.XHR.send({
-					url: linkList,
-					success: function(text) {
-						callback(tinymce.util.JSON.parse(text));
-					}
-				});
-			} else if (typeof linkList == "function") {
-				linkList(callback);
-			} else {
-				callback(linkList);
-			}
-		};
-	}
-
-	function buildListItems(inputList, itemCallback, startItems) {
-		function appendItems(values, output) {
-			output = output || [];
-
-			tinymce.each(values, function(item) {
-				var menuItem = {text: item.text || item.title};
-
-				if (item.menu) {
-					menuItem.menu = appendItems(item.menu);
-				} else {
-					menuItem.value = item.value;
-
-					if (itemCallback) {
-						itemCallback(menuItem);
-					}
-				}
-
-				output.push(menuItem);
-			});
-
-			return output;
-		}
-
-		return appendItems(inputList, startItems || []);
-	}
-
-	function showDialog(linkList) {
-		var data = {}, selection = editor.selection, dom = editor.dom, selectedElm, anchorElm, initialText;
-		var win, onlyText, textListCtrl, linkListCtrl, relListCtrl, targetListCtrl, classListCtrl, linkTitleCtrl, value;
-
-		function linkListChangeHandler(e) {
-			var textCtrl = win.find('#text');
-
-			if (!textCtrl.value() || (e.lastControl && textCtrl.value() == e.lastControl.text())) {
-				textCtrl.value(e.control.text());
-			}
-
-			win.find('#href').value(e.control.value());
-		}
-
-		function buildAnchorListControl(url) {
-			var anchorList = [];
-
-			tinymce.each(editor.dom.select('a:not([href])'), function(anchor) {
-				var id = anchor.name || anchor.id;
-
-				if (id) {
-					anchorList.push({
-						text: id,
-						value: '#' + id,
-						selected: url.indexOf('#' + id) != -1
-					});
-				}
-			});
-
-			if (anchorList.length) {
-				anchorList.unshift({text: 'None', value: ''});
-
-				return {
-					name: 'anchor',
-					type: 'listbox',
-					label: 'Anchors',
-					values: anchorList,
-					onselect: linkListChangeHandler
-				};
-			}
-		}
-
-		function updateText() {
-			if (!initialText && data.text.length === 0 && onlyText) {
-				this.parent().parent().find('#text')[0].value(this.value());
-			}
-		}
-
-		function urlChange(e) {
-			var meta = e.meta || {};
-
-			if (linkListCtrl) {
-				linkListCtrl.value(editor.convertURL(this.value(), 'href'));
-			}
-
-			tinymce.each(e.meta, function(value, key) {
-				var inp = win.find('#' + key);
-
-				if (key === 'text') {
-					if (initialText.length === 0) {
-						inp.value(value);
-						data.text = value;
-					}
-				} else {
-					inp.value(value);
-				}
-			});
-
-			if (meta.attach) {
-				attachState = {
-					href: this.value(),
-					attach: meta.attach
-				};
-			}
-
-			if (!meta.text) {
-				updateText.call(this);
-			}
-		}
-
-		function isOnlyTextSelected(anchorElm) {
-			var html = selection.getContent();
-
-			// Partial html and not a fully selected anchor element
-			if (/</.test(html) && (!/^<a [^>]+>[^<]+<\/a>$/.test(html) || html.indexOf('href=') == -1)) {
-				return false;
-			}
-
-			if (anchorElm) {
-				var nodes = anchorElm.childNodes, i;
-
-				if (nodes.length === 0) {
-					return false;
-				}
-
-				for (i = nodes.length - 1; i >= 0; i--) {
-					if (nodes[i].nodeType != 3) {
-						return false;
-					}
-				}
-			}
-
-			return true;
-		}
-
-		function onBeforeCall(e) {
-			e.meta = win.toJSON();
-		}
-
-		selectedElm = selection.getNode();
-		anchorElm = dom.getParent(selectedElm, 'a[href]');
-		onlyText = isOnlyTextSelected();
-
-		data.text = initialText = anchorElm ? (anchorElm.innerText || anchorElm.textContent) : selection.getContent({format: 'text'});
-		data.href = anchorElm ? dom.getAttrib(anchorElm, 'href') : '';
-
-		if (anchorElm) {
-			data.target = dom.getAttrib(anchorElm, 'target');
-		} else if (editor.settings.default_link_target) {
-			data.target = editor.settings.default_link_target;
-		}
-
-		if ((value = dom.getAttrib(anchorElm, 'rel'))) {
-			data.rel = value;
-		}
-
-		if ((value = dom.getAttrib(anchorElm, 'class'))) {
-			data['class'] = value;
-		}
-
-		if ((value = dom.getAttrib(anchorElm, 'title'))) {
-			data.title = value;
-		}
-
-		if (onlyText) {
-			textListCtrl = {
-				name: 'text',
-				type: 'textbox',
-				size: 40,
-				label: 'Text to display',
-				onchange: function() {
-					data.text = this.value();
-				}
-			};
-		}
-
-		if (linkList) {
-			linkListCtrl = {
-				type: 'listbox',
-				label: 'Link list',
-				values: buildListItems(
-					linkList,
-					function(item) {
-						item.value = editor.convertURL(item.value || item.url, 'href');
-					},
-					[{text: 'None', value: ''}]
-				),
-				onselect: linkListChangeHandler,
-				value: editor.convertURL(data.href, 'href'),
-				onPostRender: function() {
-					/*eslint consistent-this:0*/
-					linkListCtrl = this;
-				}
-			};
-		}
-
-		if (editor.settings.target_list !== false) {
-			if (!editor.settings.target_list) {
-				editor.settings.target_list = [
-					{text: 'None', value: ''},
-					{text: 'New window', value: '_blank'}
-				];
-			}
-
-			targetListCtrl = {
-				name: 'target',
-				type: 'listbox',
-				label: 'Target',
-				values: buildListItems(editor.settings.target_list)
-			};
-		}
-
-		if (editor.settings.rel_list) {
-			relListCtrl = {
-				name: 'rel',
-				type: 'listbox',
-				label: 'Rel',
-				values: buildListItems(editor.settings.rel_list)
-			};
-		}
-
-		if (editor.settings.link_class_list) {
-			classListCtrl = {
-				name: 'class',
-				type: 'listbox',
-				label: 'Class',
-				values: buildListItems(
-					editor.settings.link_class_list,
-					function(item) {
-						if (item.value) {
-							item.textStyle = function() {
-								return editor.formatter.getCssText({inline: 'a', classes: [item.value]});
-							};
-						}
-					}
-				)
-			};
-		}
-
-		if (editor.settings.link_title !== false) {
-			linkTitleCtrl = {
-				name: 'title',
-				type: 'textbox',
-				label: 'Title',
-				value: data.title
-			};
-		}
-
-		win = editor.windowManager.open({
-			title: 'Insert link',
-			data: data,
-			body: [
-				{
-					name: 'href',
-					type: 'filepicker',
-					filetype: 'file',
-					size: 40,
-					autofocus: true,
-					label: 'Url',
-					onchange: urlChange,
-					onkeyup: updateText,
-					onbeforecall: onBeforeCall
-				},
-				textListCtrl,
-				linkTitleCtrl,
-				buildAnchorListControl(data.href),
-				linkListCtrl,
-				relListCtrl,
-				targetListCtrl,
-				classListCtrl
-			],
-			onSubmit: function(e) {
-				/*eslint dot-notation: 0*/
-				var href;
-
-				data = tinymce.extend(data, e.data);
-				href = data.href;
-
-				// Delay confirm since onSubmit will move focus
-				function delayedConfirm(message, callback) {
-					var rng = editor.selection.getRng();
-
-					tinymce.util.Delay.setEditorTimeout(editor, function() {
-						editor.windowManager.confirm(message, function(state) {
-							editor.selection.setRng(rng);
-							callback(state);
-						});
-					});
-				}
-
-				function toggleTargetRules(rel, isUnsafe) {
-					var rules = 'noopener noreferrer';
-
-					function addTargetRules(rel) {
-						rel = removeTargetRules(rel);
-						return rel ? [rel, rules].join(' ') : rules;
-					}
-
-					function removeTargetRules(rel) {
-						var regExp = new RegExp('(' + rules.replace(' ', '|') + ')', 'g');
-						if (rel) {
-							rel = tinymce.trim(rel.replace(regExp, ''));
-						}
-						return rel ? rel : null;
-					}
-
-					return isUnsafe ? addTargetRules(rel) : removeTargetRules(rel);
-				}
-
-				function createLink() {
-					var linkAttrs = {
-						href: href,
-						target: data.target ? data.target : null,
-						rel: data.rel ? data.rel : null,
-						"class": data["class"] ? data["class"] : null,
-						title: data.title ? data.title : null
-					};
-
-					if (!editor.settings.allow_unsafe_link_target) {
-						linkAttrs.rel = toggleTargetRules(linkAttrs.rel, linkAttrs.target == '_blank');
-					}
-
-					if (href === attachState.href) {
-						attachState.attach();
-						attachState = {};
-					}
-
-					if (anchorElm) {
-						editor.focus();
-
-						if (onlyText && data.text != initialText) {
-							if ("innerText" in anchorElm) {
-								anchorElm.innerText = data.text;
-							} else {
-								anchorElm.textContent = data.text;
-							}
-						}
-
-						dom.setAttribs(anchorElm, linkAttrs);
-
-						selection.select(anchorElm);
-						editor.undoManager.add();
-					} else {
-						if (onlyText) {
-							editor.insertContent(dom.createHTML('a', linkAttrs, dom.encode(data.text)));
-						} else {
-							editor.execCommand('mceInsertLink', false, linkAttrs);
-						}
-					}
-				}
-
-				function insertLink() {
-					editor.undoManager.transact(createLink);
-				}
-
-				if (!href) {
-					editor.execCommand('unlink');
-					return;
-				}
-
-				// Is email and not //user@domain.com
-				if (href.indexOf('@') > 0 && href.indexOf('//') == -1 && href.indexOf('mailto:') == -1) {
-					delayedConfirm(
-						'The URL you entered seems to be an email address. Do you want to add the required mailto: prefix?',
-						function(state) {
-							if (state) {
-								href = 'mailto:' + href;
-							}
-
-							insertLink();
-						}
-					);
-
-					return;
-				}
-
-				// Is not protocol prefixed
-				if ((editor.settings.link_assume_external_targets && !/^\w+:/i.test(href)) ||
-					(!editor.settings.link_assume_external_targets && /^\s*www[\.|\d\.]/i.test(href))) {
-					delayedConfirm(
-						'The URL you entered seems to be an external link. Do you want to add the required http:// prefix?',
-						function(state) {
-							if (state) {
-								href = 'http://' + href;
-							}
-
-							insertLink();
-						}
-					);
-
-					return;
-				}
-
-				insertLink();
-			}
-		});
-	}
-
-	editor.addButton('link', {
-		icon: 'link',
-		tooltip: 'Insert/edit link',
-		shortcut: 'Meta+K',
-		onclick: createLinkList(showDialog),
-		stateSelector: 'a[href]'
-	});
-
-	editor.addButton('unlink', {
-		icon: 'unlink',
-		tooltip: 'Remove link',
-		cmd: 'unlink',
-		stateSelector: 'a[href]'
-	});
-
-
-	if (editor.addContextToolbar) {
-		editor.addButton('openlink', {
-			icon: 'newtab',
-			tooltip: 'Open link',
-			onclick: gotoSelectedLink
-		});
-
-		editor.addContextToolbar(
-			leftClickedOnAHref,
-			'openlink | link unlink'
-		);
-	}
-
-
-	editor.addShortcut('Meta+K', '', createLinkList(showDialog));
-	editor.addCommand('mceLink', createLinkList(showDialog));
-
-	editor.on('click', function (e) {
-		var link = getLink(e.target);
-		if (link && tinymce.util.VK.metaKeyPressed(e)) {
-			e.preventDefault();
-			gotoLink(link);
-		}
-	});
-
-	editor.on('keydown', function (e) {
-		var link = getSelectedLink();
-		if (link && e.keyCode === 13 && hasOnlyAltModifier(e)) {
-			e.preventDefault();
-			gotoLink(link);
-		}
-	});
-
-	this.showDialog = showDialog;
-
-	editor.addMenuItem('openlink', {
-		text: 'Open link',
-		icon: 'newtab',
-		onclick: gotoSelectedLink,
-		onPostRender: toggleViewLinkState,
-		prependToContext: true
-	});
-
-	editor.addMenuItem('link', {
-		icon: 'link',
-		text: 'Link',
-		shortcut: 'Meta+K',
-		onclick: createLinkList(showDialog),
-		stateSelector: 'a[href]',
-		context: 'insert',
-		prependToContext: true
-	});
-});
-
-
-/***/ }),
-/* 175 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// Exports the "table" plugin for usage with module loaders
-// Usage:
-//   CommonJS:
-//     require('tinymce/plugins/table')
-//   ES2015:
-//     import 'tinymce/plugins/table'
-__webpack_require__(176);
-
-/***/ }),
-/* 176 */
-/***/ (function(module, exports) {
-
-/**
- * Compiled inline version. (Library mode)
- */
-
-/*jshint smarttabs:true, undef:true, latedef:true, curly:true, bitwise:true, camelcase:true */
-/*globals $code */
-
-(function(exports, undefined) {
-	"use strict";
-
-	var modules = {};
-
-	function require(ids, callback) {
-		var module, defs = [];
-
-		for (var i = 0; i < ids.length; ++i) {
-			module = modules[ids[i]] || resolve(ids[i]);
-			if (!module) {
-				throw 'module definition dependecy not found: ' + ids[i];
-			}
-
-			defs.push(module);
-		}
-
-		callback.apply(null, defs);
-	}
-
-	function define(id, dependencies, definition) {
-		if (typeof id !== 'string') {
-			throw 'invalid module definition, module id must be defined and be a string';
-		}
-
-		if (dependencies === undefined) {
-			throw 'invalid module definition, dependencies must be specified';
-		}
-
-		if (definition === undefined) {
-			throw 'invalid module definition, definition function must be specified';
-		}
-
-		require(dependencies, function() {
-			modules[id] = definition.apply(null, arguments);
-		});
-	}
-
-	function defined(id) {
-		return !!modules[id];
-	}
-
-	function resolve(id) {
-		var target = exports;
-		var fragments = id.split(/[.\/]/);
-
-		for (var fi = 0; fi < fragments.length; ++fi) {
-			if (!target[fragments[fi]]) {
-				return;
-			}
-
-			target = target[fragments[fi]];
-		}
-
-		return target;
-	}
-
-	function expose(ids) {
-		var i, target, id, fragments, privateModules;
-
-		for (i = 0; i < ids.length; i++) {
-			target = exports;
-			id = ids[i];
-			fragments = id.split(/[.\/]/);
-
-			for (var fi = 0; fi < fragments.length - 1; ++fi) {
-				if (target[fragments[fi]] === undefined) {
-					target[fragments[fi]] = {};
-				}
-
-				target = target[fragments[fi]];
-			}
-
-			target[fragments[fragments.length - 1]] = modules[id];
-		}
-
-		// Expose private modules for unit tests
-		if (exports.AMDLC_TESTS) {
-			privateModules = exports.privateModules || {};
-
-			for (id in modules) {
-				privateModules[id] = modules[id];
-			}
-
-			for (i = 0; i < ids.length; i++) {
-				delete privateModules[ids[i]];
-			}
-
-			exports.privateModules = privateModules;
-		}
-	}
-
-// Included from: js/tinymce/plugins/table/classes/Utils.js
-
-/**
- * Utils.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2015 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
-
-/**
- * Various utility functions.
- *
- * @class tinymce.tableplugin.Utils
- * @private
- */
-define("tinymce/tableplugin/Utils", [
-	"tinymce/Env"
-], function(Env) {
-	var setSpanVal = function (name) {
-		return function (td, val) {
-			if (td) {
-				val = parseInt(val, 10);
-
-				if (val === 1 || val === 0) {
-					td.removeAttribute(name, 1);
-				} else {
-					td.setAttribute(name, val, 1);
-				}
-			}
-		};
-	};
-
-	var getSpanVal = function (name) {
-		return function (td) {
-			return parseInt(td.getAttribute(name) || 1, 10);
-		};
-	};
-
-	function paddCell(cell) {
-		if (!Env.ie || Env.ie > 9) {
-			if (!cell.hasChildNodes()) {
-				cell.innerHTML = '<br data-mce-bogus="1" />';
-			}
-		}
-	}
-
-	return {
-		setColSpan: setSpanVal('colSpan'),
-		setRowSpan: setSpanVal('rowspan'),
-		getColSpan: getSpanVal('colSpan'),
-		getRowSpan: getSpanVal('rowSpan'),
-		setSpanVal: function (td, name, value) {
-			setSpanVal(name)(td, value);
-		},
-		getSpanVal: function (td, name) {
-			return getSpanVal(name)(td);
-		},
-		paddCell: paddCell
-	};
-});
-
-// Included from: js/tinymce/plugins/table/classes/SplitCols.js
-
-/**
- * SplitCols.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2016 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
-
-/**
- * Contains logic for handling splitting of merged rows.
- *
- * @class tinymce.tableplugin.SplitCols
- * @private
- */
-define("tinymce/tableplugin/SplitCols", [
-	"tinymce/util/Tools",
-	"tinymce/tableplugin/Utils"
-], function(Tools, Utils) {
-	var getCellAt = function (grid, x, y) {
-		return grid[y] ? grid[y][x] : null;
-	};
-
-	var getCellElmAt = function (grid, x, y) {
-		var cell = getCellAt(grid, x, y);
-		return cell ? cell.elm : null;
-	};
-
-	var countHoles = function (grid, x, y, delta) {
-		var y2, cell, count = 0, elm = getCellElmAt(grid, x, y);
-
-		for (y2 = y; delta > 0 ? y2 < grid.length : y2 >= 0; y2 += delta) {
-			cell = getCellAt(grid, x, y2);
-			if (elm !== cell.elm) {
-				break;
-			}
-
-			count++;
-		}
-
-		return count;
-	};
-
-	var findRealElm = function (grid, x, y) {
-		var cell, row = grid[y];
-
-		for (var x2 = x; x2 < row.length; x2++) {
-			cell = row[x2];
-			if (cell.real) {
-				return cell.elm;
-			}
-		}
-
-		return null;
-	};
-
-	var getRowSplitInfo = function (grid, y) {
-		var cell, result = [], row = grid[y];
-
-		for (var x = 0; x < row.length; x++) {
-			cell = row[x];
-			result.push({
-				elm: cell.elm,
-				above: countHoles(grid, x, y, -1) - 1,
-				below: countHoles(grid, x, y, 1) - 1
-			});
-
-			x += Utils.getColSpan(cell.elm) - 1;
-		}
-
-		return result;
-	};
-
-	var createCell = function (info, rowSpan) {
-		var doc = info.elm.ownerDocument;
-		var newCell = doc.createElement('td');
-
-		Utils.setColSpan(newCell, Utils.getColSpan(info.elm));
-		Utils.setRowSpan(newCell, rowSpan);
-		Utils.paddCell(newCell);
-
-		return newCell;
-	};
-
-	var insertOrAppendCell = function (grid, newCell, x, y) {
-		var realCellElm = findRealElm(grid, x + 1, y);
-
-		if (!realCellElm) {
-			realCellElm = findRealElm(grid, 0, y);
-			realCellElm.parentNode.appendChild(newCell);
-		} else {
-			realCellElm.parentNode.insertBefore(newCell, realCellElm);
-		}
-	};
-
-	var splitAbove = function (grid, info, x, y) {
-		if (info.above !== 0) {
-			Utils.setRowSpan(info.elm, info.above);
-			var cell = createCell(info, info.below + 1);
-			insertOrAppendCell(grid, cell, x, y);
-			return cell;
-		}
-
-		return null;
-	};
-
-	var splitBelow = function (grid, info, x, y) {
-		if (info.below !== 0) {
-			Utils.setRowSpan(info.elm, info.above + 1);
-			var cell = createCell(info, info.below);
-			insertOrAppendCell(grid, cell, x, y + 1);
-			return cell;
-		}
-
-		return null;
-	};
-
-	var splitAt = function (grid, x, y, before) {
-		var rowInfos = getRowSplitInfo(grid, y);
-		var rowElm = getCellElmAt(grid, x, y).parentNode;
-		var cells = [];
-
-		Tools.each(rowInfos, function (info, x) {
-			var cell = before ? splitAbove(grid, info, x, y) : splitBelow(grid, info, x, y);
-			if (cell !== null) {
-				cells.push(cells);
-			}
-		});
-
-		return {
-			cells: cells,
-			row: rowElm
-		};
-	};
-
-	return {
-		splitAt: splitAt
-	};
-});
-
-// Included from: js/tinymce/plugins/table/classes/TableGrid.js
-
-/**
- * TableGrid.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2015 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
-
-/**
- * This class creates a grid out of a table element. This
- * makes it a whole lot easier to handle complex tables with
- * col/row spans.
- *
- * @class tinymce.tableplugin.TableGrid
- * @private
- */
-define("tinymce/tableplugin/TableGrid", [
-	"tinymce/util/Tools",
-	"tinymce/Env",
-	"tinymce/tableplugin/Utils",
-	"tinymce/tableplugin/SplitCols"
-], function(Tools, Env, Utils, SplitCols) {
-	var each = Tools.each, getSpanVal = Utils.getSpanVal, setSpanVal = Utils.setSpanVal;
-
-	return function(editor, table, selectedCell) {
-		var grid, gridWidth, startPos, endPos, selection = editor.selection, dom = selection.dom;
-
-		function removeCellSelection() {
-			editor.$('td[data-mce-selected],th[data-mce-selected]').removeAttr('data-mce-selected');
-		}
-
-		function isEditorBody(node) {
-			return node === editor.getBody();
-		}
-
-		function getChildrenByName(node, names) {
-			if (!node) {
-				return [];
-			}
-
-			names = Tools.map(names.split(','), function(name) {
-				return name.toLowerCase();
-			});
-
-			return Tools.grep(node.childNodes, function(node) {
-				return Tools.inArray(names, node.nodeName.toLowerCase()) !== -1;
-			});
-		}
-
-		function buildGrid() {
-			var startY = 0;
-
-			grid = [];
-			gridWidth = 0;
-
-			each(['thead', 'tbody', 'tfoot'], function(part) {
-				var partElm = getChildrenByName(table, part)[0];
-				var rows = getChildrenByName(partElm, 'tr');
-
-				each(rows, function(tr, y) {
-					y += startY;
-
-					each(getChildrenByName(tr, 'td,th'), function(td, x) {
-						var x2, y2, rowspan, colspan;
-
-						// Skip over existing cells produced by rowspan
-						if (grid[y]) {
-							while (grid[y][x]) {
-								x++;
-							}
-						}
-
-						// Get col/rowspan from cell
-						rowspan = getSpanVal(td, 'rowspan');
-						colspan = getSpanVal(td, 'colspan');
-
-						// Fill out rowspan/colspan right and down
-						for (y2 = y; y2 < y + rowspan; y2++) {
-							if (!grid[y2]) {
-								grid[y2] = [];
-							}
-
-							for (x2 = x; x2 < x + colspan; x2++) {
-								grid[y2][x2] = {
-									part: part,
-									real: y2 == y && x2 == x,
-									elm: td,
-									rowspan: rowspan,
-									colspan: colspan
-								};
-							}
-						}
-
-						gridWidth = Math.max(gridWidth, x + 1);
-					});
-				});
-
-				startY += rows.length;
-			});
-		}
-
-		function fireNewRow(node) {
-			editor.fire('newrow', {
-				node: node
-			});
-
-			return node;
-		}
-
-		function fireNewCell(node) {
-			editor.fire('newcell', {
-				node: node
-			});
-
-			return node;
-		}
-
-		function cloneNode(node, children) {
-			node = node.cloneNode(children);
-			node.removeAttribute('id');
-
-			return node;
-		}
-
-		function getCell(x, y) {
-			var row;
-
-			row = grid[y];
-			if (row) {
-				return row[x];
-			}
-		}
-
-		function getRow(grid, y) {
-			return grid[y] ? grid[y] : null;
-		}
-
-		function getColumn(grid, x) {
-			var out = [];
-
-			for (var y = 0; y < grid.length; y++) {
-				out.push(getCell(x, y));
-			}
-
-			return out;
-		}
-
-		function isCellSelected(cell) {
-			return cell && (!!dom.getAttrib(cell.elm, 'data-mce-selected') || cell == selectedCell);
-		}
-
-		function getSelectedRows() {
-			var rows = [];
-
-			each(table.rows, function(row) {
-				each(row.cells, function(cell) {
-					if (dom.getAttrib(cell, 'data-mce-selected') || (selectedCell && cell == selectedCell.elm)) {
-						rows.push(row);
-						return false;
-					}
-				});
-			});
-
-			return rows;
-		}
-
-		function countSelectedCols() {
-			var cols = 0;
-
-			each(grid, function(row) {
-				each(row, function(cell) {
-					if (isCellSelected(cell)) {
-						cols++;
-					}
-				});
-				if (cols) {
-					return false;
-				}
-			});
-
-			return cols;
-		}
-
-		function deleteTable() {
-			var rng = dom.createRng();
-
-			if (isEditorBody(table)) {
-				return;
-			}
-
-			rng.setStartAfter(table);
-			rng.setEndAfter(table);
-
-			selection.setRng(rng);
-
-			dom.remove(table);
-		}
-
-		function cloneCell(cell) {
-			var formatNode, cloneFormats = {};
-
-			if (editor.settings.table_clone_elements !== false) {
-				cloneFormats = Tools.makeMap(
-					(editor.settings.table_clone_elements || 'strong em b i span font h1 h2 h3 h4 h5 h6 p div').toUpperCase(),
-					/[ ,]/
-				);
-			}
-
-			// Clone formats
-			Tools.walk(cell, function(node) {
-				var curNode;
-
-				if (node.nodeType == 3) {
-					each(dom.getParents(node.parentNode, null, cell).reverse(), function(node) {
-						if (!cloneFormats[node.nodeName]) {
-							return;
-						}
-
-						node = cloneNode(node, false);
-
-						if (!formatNode) {
-							formatNode = curNode = node;
-						} else if (curNode) {
-							curNode.appendChild(node);
-						}
-
-						curNode = node;
-					});
-
-					// Add something to the inner node
-					if (curNode) {
-						curNode.innerHTML = Env.ie && Env.ie < 10 ? '&nbsp;' : '<br data-mce-bogus="1" />';
-					}
-
-					return false;
-				}
-			}, 'childNodes');
-
-			cell = cloneNode(cell, false);
-			fireNewCell(cell);
-
-			setSpanVal(cell, 'rowSpan', 1);
-			setSpanVal(cell, 'colSpan', 1);
-
-			if (formatNode) {
-				cell.appendChild(formatNode);
-			} else {
-				Utils.paddCell(cell);
-			}
-
-			return cell;
-		}
-
-		function cleanup() {
-			var rng = dom.createRng(), row;
-
-			// Empty rows
-			each(dom.select('tr', table), function(tr) {
-				if (tr.cells.length === 0) {
-					dom.remove(tr);
-				}
-			});
-
-			// Empty table
-			if (dom.select('tr', table).length === 0) {
-				rng.setStartBefore(table);
-				rng.setEndBefore(table);
-				selection.setRng(rng);
-				dom.remove(table);
-				return;
-			}
-
-			// Empty header/body/footer
-			each(dom.select('thead,tbody,tfoot', table), function(part) {
-				if (part.rows.length === 0) {
-					dom.remove(part);
-				}
-			});
-
-			// Restore selection to start position if it still exists
-			buildGrid();
-
-			// If we have a valid startPos object
-			if (startPos) {
-				// Restore the selection to the closest table position
-				row = grid[Math.min(grid.length - 1, startPos.y)];
-				if (row) {
-					selection.select(row[Math.min(row.length - 1, startPos.x)].elm, true);
-					selection.collapse(true);
-				}
-			}
-		}
-
-		function fillLeftDown(x, y, rows, cols) {
-			var tr, x2, r, c, cell;
-
-			tr = grid[y][x].elm.parentNode;
-			for (r = 1; r <= rows; r++) {
-				tr = dom.getNext(tr, 'tr');
-
-				if (tr) {
-					// Loop left to find real cell
-					for (x2 = x; x2 >= 0; x2--) {
-						cell = grid[y + r][x2].elm;
-
-						if (cell.parentNode == tr) {
-							// Append clones after
-							for (c = 1; c <= cols; c++) {
-								dom.insertAfter(cloneCell(cell), cell);
-							}
-
-							break;
-						}
-					}
-
-					if (x2 == -1) {
-						// Insert nodes before first cell
-						for (c = 1; c <= cols; c++) {
-							tr.insertBefore(cloneCell(tr.cells[0]), tr.cells[0]);
-						}
-					}
-				}
-			}
-		}
-
-		function split() {
-			each(grid, function(row, y) {
-				each(row, function(cell, x) {
-					var colSpan, rowSpan, i;
-
-					if (isCellSelected(cell)) {
-						cell = cell.elm;
-						colSpan = getSpanVal(cell, 'colspan');
-						rowSpan = getSpanVal(cell, 'rowspan');
-
-						if (colSpan > 1 || rowSpan > 1) {
-							setSpanVal(cell, 'rowSpan', 1);
-							setSpanVal(cell, 'colSpan', 1);
-
-							// Insert cells right
-							for (i = 0; i < colSpan - 1; i++) {
-								dom.insertAfter(cloneCell(cell), cell);
-							}
-
-							fillLeftDown(x, y, rowSpan - 1, colSpan);
-						}
-					}
-				});
-			});
-		}
-
-		function findItemsOutsideOfRange(items, start, end) {
-			var out = [];
-
-			for (var i = 0; i < items.length; i++) {
-				if (i < start || i > end) {
-					out.push(items[i]);
-				}
-			}
-
-			return out;
-		}
-
-		function getFakeCells(cells) {
-			return Tools.grep(cells, function (cell) {
-				return cell.real === false;
-			});
-		}
-
-		function getUniqueElms(cells) {
-			var elms = [];
-
-			for (var i = 0; i < cells.length; i++) {
-				var elm = cells[i].elm;
-				if (elms[elms.length - 1] !== elm) {
-					elms.push(elm);
-				}
-			}
-
-			return elms;
-		}
-
-		function reduceRowSpans(grid, startX, startY, endX, endY) {
-			var count = 0;
-
-			if (endY - startY < 1) {
-				return 0;
-			}
-
-			for (var y = startY + 1; y <= endY; y++) {
-				var allCells = findItemsOutsideOfRange(getRow(grid, y), startX, endX);
-				var fakeCells = getFakeCells(allCells);
-
-				if (allCells.length === fakeCells.length) {
-					Tools.each(getUniqueElms(fakeCells), function (elm) {
-						Utils.setRowSpan(elm, Utils.getRowSpan(elm) - 1);
-					});
-
-					count++;
-				}
-			}
-
-			return count;
-		}
-
-		function reduceColSpans(grid, startX, startY, endX, endY) {
-			var count = 0;
-
-			if (endX - startX < 1) {
-				return 0;
-			}
-
-			for (var x = startX + 1; x <= endX; x++) {
-				var allCells = findItemsOutsideOfRange(getColumn(grid, x), startY, endY);
-				var fakeCells = getFakeCells(allCells);
-
-				if (allCells.length === fakeCells.length) {
-					Tools.each(getUniqueElms(fakeCells), function (elm) {
-						Utils.setColSpan(elm, Utils.getColSpan(elm) - 1);
-					});
-
-					count++;
-				}
-			}
-
-			return count;
-		}
-
-		function merge(cell, cols, rows) {
-			var pos, startX, startY, endX, endY, x, y, startCell, endCell, children, count, reducedRows, reducedCols;
-
-			// Use specified cell and cols/rows
-			if (cell) {
-				pos = getPos(cell);
-				startX = pos.x;
-				startY = pos.y;
-				endX = startX + (cols - 1);
-				endY = startY + (rows - 1);
-			} else {
-				startPos = endPos = null;
-
-				// Calculate start/end pos by checking for selected cells in grid works better with context menu
-				each(grid, function(row, y) {
-					each(row, function(cell, x) {
-						if (isCellSelected(cell)) {
-							if (!startPos) {
-								startPos = {x: x, y: y};
-							}
-
-							endPos = {x: x, y: y};
-						}
-					});
-				});
-
-				// Use selection, but make sure startPos is valid before accessing
-				if (startPos) {
-					startX = startPos.x;
-					startY = startPos.y;
-					endX = endPos.x;
-					endY = endPos.y;
-				}
-			}
-
-			// Find start/end cells
-			startCell = getCell(startX, startY);
-			endCell = getCell(endX, endY);
-
-			// Check if the cells exists and if they are of the same part for example tbody = tbody
-			if (startCell && endCell && startCell.part == endCell.part) {
-				// Split and rebuild grid
-				split();
-				buildGrid();
-
-				reducedRows = reduceRowSpans(grid, startX, startY, endX, endY);
-				reducedCols = reduceColSpans(grid, startX, startY, endX, endY);
-
-				// Set row/col span to start cell
-				startCell = getCell(startX, startY).elm;
-				var colSpan = (endX - startX - reducedCols) + 1;
-				var rowSpan = (endY - startY - reducedRows) + 1;
-
-				// All cells in table selected then just make it a table with one cell
-				if (colSpan === gridWidth && rowSpan === grid.length) {
-					colSpan = 1;
-					rowSpan = 1;
-				}
-
-				// Multiple whole rows selected then just make it one rowSpan
-				if (colSpan === gridWidth && rowSpan > 1) {
-					rowSpan = 1;
-				}
-
-				setSpanVal(startCell, 'colSpan', colSpan);
-				setSpanVal(startCell, 'rowSpan', rowSpan);
-
-				// Remove other cells and add it's contents to the start cell
-				for (y = startY; y <= endY; y++) {
-					for (x = startX; x <= endX; x++) {
-						if (!grid[y] || !grid[y][x]) {
-							continue;
-						}
-
-						cell = grid[y][x].elm;
-
-						/*jshint loopfunc:true */
-						/*eslint no-loop-func:0 */
-						if (cell != startCell) {
-							// Move children to startCell
-							children = Tools.grep(cell.childNodes);
-							each(children, function(node) {
-								startCell.appendChild(node);
-							});
-
-							// Remove bogus nodes if there is children in the target cell
-							if (children.length) {
-								children = Tools.grep(startCell.childNodes);
-								count = 0;
-								each(children, function(node) {
-									if (node.nodeName == 'BR' && count++ < children.length - 1) {
-										startCell.removeChild(node);
-									}
-								});
-							}
-
-							dom.remove(cell);
-						}
-					}
-				}
-
-				// Remove empty rows etc and restore caret location
-				cleanup();
-			}
-		}
-
-		function insertRow(before) {
-			var posY, cell, lastCell, x, rowElm, newRow, newCell, otherCell, rowSpan, spanValue;
-
-			// Find first/last row
-			each(grid, function(row, y) {
-				each(row, function(cell) {
-					if (isCellSelected(cell)) {
-						cell = cell.elm;
-						rowElm = cell.parentNode;
-						newRow = fireNewRow(cloneNode(rowElm, false));
-						posY = y;
-
-						if (before) {
-							return false;
-						}
-					}
-				});
-
-				if (before) {
-					return posY === undefined;
-				}
-			});
-
-			// If posY is undefined there is nothing for us to do here...just return to avoid crashing below
-			if (posY === undefined) {
-				return;
-			}
-
-			for (x = 0, spanValue = 0; x < grid[0].length; x += spanValue) {
-				// Cell not found could be because of an invalid table structure
-				if (!grid[posY][x]) {
-					continue;
-				}
-
-				cell = grid[posY][x].elm;
-				spanValue = getSpanVal(cell, 'colspan');
-
-				if (cell != lastCell) {
-					if (!before) {
-						rowSpan = getSpanVal(cell, 'rowspan');
-						if (rowSpan > 1) {
-							setSpanVal(cell, 'rowSpan', rowSpan + 1);
-							continue;
-						}
-					} else {
-						// Check if cell above can be expanded
-						if (posY > 0 && grid[posY - 1][x]) {
-							otherCell = grid[posY - 1][x].elm;
-							rowSpan = getSpanVal(otherCell, 'rowSpan');
-							if (rowSpan > 1) {
-								setSpanVal(otherCell, 'rowSpan', rowSpan + 1);
-								continue;
-							}
-						}
-					}
-
-					// Insert new cell into new row
-					newCell = cloneCell(cell);
-					setSpanVal(newCell, 'colSpan', cell.colSpan);
-
-					newRow.appendChild(newCell);
-
-					lastCell = cell;
-				}
-			}
-
-			if (newRow.hasChildNodes()) {
-				if (!before) {
-					dom.insertAfter(newRow, rowElm);
-				} else {
-					rowElm.parentNode.insertBefore(newRow, rowElm);
-				}
-			}
-		}
-
-		function insertRows(before, num) {
-			num = num || getSelectedRows().length || 1;
-			for (var i = 0; i < num; i++) {
-				insertRow(before);
-			}
-		}
-
-		function insertCol(before) {
-			var posX, lastCell;
-
-			// Find first/last column
-			each(grid, function(row) {
-				each(row, function(cell, x) {
-					if (isCellSelected(cell)) {
-						posX = x;
-
-						if (before) {
-							return false;
-						}
-					}
-				});
-
-				if (before) {
-					return posX === undefined;
-				}
-			});
-
-			each(grid, function(row, y) {
-				var cell, rowSpan, colSpan;
-
-				if (!row[posX]) {
-					return;
-				}
-
-				cell = row[posX].elm;
-				if (cell != lastCell) {
-					colSpan = getSpanVal(cell, 'colspan');
-					rowSpan = getSpanVal(cell, 'rowspan');
-
-					if (colSpan == 1) {
-						if (!before) {
-							dom.insertAfter(cloneCell(cell), cell);
-							fillLeftDown(posX, y, rowSpan - 1, colSpan);
-						} else {
-							cell.parentNode.insertBefore(cloneCell(cell), cell);
-							fillLeftDown(posX, y, rowSpan - 1, colSpan);
-						}
-					} else {
-						setSpanVal(cell, 'colSpan', cell.colSpan + 1);
-					}
-
-					lastCell = cell;
-				}
-			});
-		}
-
-		function insertCols(before, num) {
-			num = num || countSelectedCols() || 1;
-			for (var i = 0; i < num; i++) {
-				insertCol(before);
-			}
-		}
-
-		function getSelectedCells(grid) {
-			return Tools.grep(getAllCells(grid), isCellSelected);
-		}
-
-		function getAllCells(grid) {
-			var cells = [];
-
-			each(grid, function(row) {
-				each(row, function(cell) {
-					cells.push(cell);
-				});
-			});
-
-			return cells;
-		}
-
-		function deleteCols() {
-			var cols = [];
-
-			if (isEditorBody(table)) {
-				if (grid[0].length == 1) {
-					return;
-				}
-
-				if (getSelectedCells(grid).length == getAllCells(grid).length) {
-					return;
-				}
-			}
-
-			// Get selected column indexes
-			each(grid, function(row) {
-				each(row, function(cell, x) {
-					if (isCellSelected(cell) && Tools.inArray(cols, x) === -1) {
-						each(grid, function(row) {
-							var cell = row[x].elm, colSpan;
-
-							colSpan = getSpanVal(cell, 'colSpan');
-
-							if (colSpan > 1) {
-								setSpanVal(cell, 'colSpan', colSpan - 1);
-							} else {
-								dom.remove(cell);
-							}
-						});
-
-						cols.push(x);
-					}
-				});
-			});
-
-			cleanup();
-		}
-
-		function deleteRows() {
-			var rows;
-
-			function deleteRow(tr) {
-				var pos, lastCell;
-
-				// Move down row spanned cells
-				each(tr.cells, function(cell) {
-					var rowSpan = getSpanVal(cell, 'rowSpan');
-
-					if (rowSpan > 1) {
-						setSpanVal(cell, 'rowSpan', rowSpan - 1);
-						pos = getPos(cell);
-						fillLeftDown(pos.x, pos.y, 1, 1);
-					}
-				});
-
-				// Delete cells
-				pos = getPos(tr.cells[0]);
-				each(grid[pos.y], function(cell) {
-					var rowSpan;
-
-					cell = cell.elm;
-
-					if (cell != lastCell) {
-						rowSpan = getSpanVal(cell, 'rowSpan');
-
-						if (rowSpan <= 1) {
-							dom.remove(cell);
-						} else {
-							setSpanVal(cell, 'rowSpan', rowSpan - 1);
-						}
-
-						lastCell = cell;
-					}
-				});
-			}
-
-			// Get selected rows and move selection out of scope
-			rows = getSelectedRows();
-
-			if (isEditorBody(table) && rows.length == table.rows.length) {
-				return;
-			}
-
-			// Delete all selected rows
-			each(rows.reverse(), function(tr) {
-				deleteRow(tr);
-			});
-
-			cleanup();
-		}
-
-		function cutRows() {
-			var rows = getSelectedRows();
-
-			if (isEditorBody(table) && rows.length == table.rows.length) {
-				return;
-			}
-
-			dom.remove(rows);
-			cleanup();
-
-			return rows;
-		}
-
-		function copyRows() {
-			var rows = getSelectedRows();
-
-			each(rows, function(row, i) {
-				rows[i] = cloneNode(row, true);
-			});
-
-			return rows;
-		}
-
-		function pasteRows(rows, before) {
-			var splitResult, targetRow, newRows;
-
-			// Nothing to paste
-			if (!rows) {
-				return;
-			}
-
-			splitResult = SplitCols.splitAt(grid, startPos.x, startPos.y, before);
-			targetRow = splitResult.row;
-			Tools.each(splitResult.cells, fireNewCell);
-
-			newRows = Tools.map(rows, function (row) {
-				return row.cloneNode(true);
-			});
-
-			if (!before) {
-				newRows.reverse();
-			}
-
-			each(newRows, function(row) {
-				var i, cellCount = row.cells.length, cell;
-
-				fireNewRow(row);
-
-				// Remove col/rowspans
-				for (i = 0; i < cellCount; i++) {
-					cell = row.cells[i];
-
-					fireNewCell(cell);
-					setSpanVal(cell, 'colSpan', 1);
-					setSpanVal(cell, 'rowSpan', 1);
-				}
-
-				// Needs more cells
-				for (i = cellCount; i < gridWidth; i++) {
-					row.appendChild(fireNewCell(cloneCell(row.cells[cellCount - 1])));
-				}
-
-				// Needs less cells
-				for (i = gridWidth; i < cellCount; i++) {
-					dom.remove(row.cells[i]);
-				}
-
-				// Add before/after
-				if (before) {
-					targetRow.parentNode.insertBefore(row, targetRow);
-				} else {
-					dom.insertAfter(row, targetRow);
-				}
-			});
-
-			removeCellSelection();
-		}
-
-		function getPos(target) {
-			var pos;
-
-			each(grid, function(row, y) {
-				each(row, function(cell, x) {
-					if (cell.elm == target) {
-						pos = {x: x, y: y};
-						return false;
-					}
-				});
-
-				return !pos;
-			});
-
-			return pos;
-		}
-
-		function setStartCell(cell) {
-			startPos = getPos(cell);
-		}
-
-		function findEndPos() {
-			var maxX, maxY;
-
-			maxX = maxY = 0;
-
-			each(grid, function(row, y) {
-				each(row, function(cell, x) {
-					var colSpan, rowSpan;
-
-					if (isCellSelected(cell)) {
-						cell = grid[y][x];
-
-						if (x > maxX) {
-							maxX = x;
-						}
-
-						if (y > maxY) {
-							maxY = y;
-						}
-
-						if (cell.real) {
-							colSpan = cell.colspan - 1;
-							rowSpan = cell.rowspan - 1;
-
-							if (colSpan) {
-								if (x + colSpan > maxX) {
-									maxX = x + colSpan;
-								}
-							}
-
-							if (rowSpan) {
-								if (y + rowSpan > maxY) {
-									maxY = y + rowSpan;
-								}
-							}
-						}
-					}
-				});
-			});
-
-			return {x: maxX, y: maxY};
-		}
-
-		function setEndCell(cell) {
-			var startX, startY, endX, endY, maxX, maxY, colSpan, rowSpan, x, y;
-
-			endPos = getPos(cell);
-
-			if (startPos && endPos) {
-				// Get start/end positions
-				startX = Math.min(startPos.x, endPos.x);
-				startY = Math.min(startPos.y, endPos.y);
-				endX = Math.max(startPos.x, endPos.x);
-				endY = Math.max(startPos.y, endPos.y);
-
-				// Expand end position to include spans
-				maxX = endX;
-				maxY = endY;
-
-				// This logic tried to expand the selection to always be a rectangle
-				// Expand startX
-				/*for (y = startY; y <= maxY; y++) {
-					cell = grid[y][startX];
-
-					if (!cell.real) {
-						newX = startX - (cell.colspan - 1);
-						if (newX < startX && newX >= 0) {
-							startX = newX;
-						}
-					}
-				}
-
-				// Expand startY
-				for (x = startX; x <= maxX; x++) {
-					cell = grid[startY][x];
-
-					if (!cell.real) {
-						newY = startY - (cell.rowspan - 1);
-						if (newY < startY && newY >= 0) {
-							startY = newY;
-						}
-					}
-				}*/
-
-				// Find max X, Y
-				for (y = startY; y <= endY; y++) {
-					for (x = startX; x <= endX; x++) {
-						cell = grid[y][x];
-
-						if (cell.real) {
-							colSpan = cell.colspan - 1;
-							rowSpan = cell.rowspan - 1;
-
-							if (colSpan) {
-								if (x + colSpan > maxX) {
-									maxX = x + colSpan;
-								}
-							}
-
-							if (rowSpan) {
-								if (y + rowSpan > maxY) {
-									maxY = y + rowSpan;
-								}
-							}
-						}
-					}
-				}
-
-				removeCellSelection();
-
-				// Add new selection
-				for (y = startY; y <= maxY; y++) {
-					for (x = startX; x <= maxX; x++) {
-						if (grid[y][x]) {
-							dom.setAttrib(grid[y][x].elm, 'data-mce-selected', '1');
-						}
-					}
-				}
-			}
-		}
-
-		function moveRelIdx(cellElm, delta) {
-			var pos, index, cell;
-
-			pos = getPos(cellElm);
-			index = pos.y * gridWidth + pos.x;
-
-			do {
-				index += delta;
-				cell = getCell(index % gridWidth, Math.floor(index / gridWidth));
-
-				if (!cell) {
-					break;
-				}
-
-				if (cell.elm != cellElm) {
-					selection.select(cell.elm, true);
-
-					if (dom.isEmpty(cell.elm)) {
-						selection.collapse(true);
-					}
-
-					return true;
-				}
-			} while (cell.elm == cellElm);
-
-			return false;
-		}
-
-		function splitCols(before) {
-			if (startPos) {
-				var splitResult = SplitCols.splitAt(grid, startPos.x, startPos.y, before);
-				Tools.each(splitResult.cells, fireNewCell);
-			}
-		}
-
-		table = table || dom.getParent(selection.getStart(true), 'table');
-
-		buildGrid();
-
-		selectedCell = selectedCell || dom.getParent(selection.getStart(true), 'th,td');
-
-		if (selectedCell) {
-			startPos = getPos(selectedCell);
-			endPos = findEndPos();
-			selectedCell = getCell(startPos.x, startPos.y);
-		}
-
-		Tools.extend(this, {
-			deleteTable: deleteTable,
-			split: split,
-			merge: merge,
-			insertRow: insertRow,
-			insertRows: insertRows,
-			insertCol: insertCol,
-			insertCols: insertCols,
-			splitCols: splitCols,
-			deleteCols: deleteCols,
-			deleteRows: deleteRows,
-			cutRows: cutRows,
-			copyRows: copyRows,
-			pasteRows: pasteRows,
-			getPos: getPos,
-			setStartCell: setStartCell,
-			setEndCell: setEndCell,
-			moveRelIdx: moveRelIdx,
-			refresh: buildGrid
-		});
-	};
-});
-
-// Included from: js/tinymce/plugins/table/classes/Quirks.js
-
-/**
- * Quirks.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2015 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
-
-/**
- * This class includes fixes for various browser quirks.
- *
- * @class tinymce.tableplugin.Quirks
- * @private
- */
-define("tinymce/tableplugin/Quirks", [
-	"tinymce/util/VK",
-	"tinymce/util/Delay",
-	"tinymce/Env",
-	"tinymce/util/Tools",
-	"tinymce/tableplugin/Utils"
-], function(VK, Delay, Env, Tools, Utils) {
-	var each = Tools.each, getSpanVal = Utils.getSpanVal;
-
-	return function(editor) {
-		/**
-		 * Fixed caret movement around tables on WebKit.
-		 */
-		function moveWebKitSelection() {
-			function eventHandler(e) {
-				var key = e.keyCode;
-
-				function handle(upBool, sourceNode) {
-					var siblingDirection = upBool ? 'previousSibling' : 'nextSibling';
-					var currentRow = editor.dom.getParent(sourceNode, 'tr');
-					var siblingRow = currentRow[siblingDirection];
-
-					if (siblingRow) {
-						moveCursorToRow(editor, sourceNode, siblingRow, upBool);
-						e.preventDefault();
-						return true;
-					}
-
-					var tableNode = editor.dom.getParent(currentRow, 'table');
-					var middleNode = currentRow.parentNode;
-					var parentNodeName = middleNode.nodeName.toLowerCase();
-					if (parentNodeName === 'tbody' || parentNodeName === (upBool ? 'tfoot' : 'thead')) {
-						var targetParent = getTargetParent(upBool, tableNode, middleNode, 'tbody');
-						if (targetParent !== null) {
-							return moveToRowInTarget(upBool, targetParent, sourceNode);
-						}
-					}
-
-					return escapeTable(upBool, currentRow, siblingDirection, tableNode);
-				}
-
-				function getTargetParent(upBool, topNode, secondNode, nodeName) {
-					var tbodies = editor.dom.select('>' + nodeName, topNode);
-					var position = tbodies.indexOf(secondNode);
-					if (upBool && position === 0 || !upBool && position === tbodies.length - 1) {
-						return getFirstHeadOrFoot(upBool, topNode);
-					} else if (position === -1) {
-						var topOrBottom = secondNode.tagName.toLowerCase() === 'thead' ? 0 : tbodies.length - 1;
-						return tbodies[topOrBottom];
-					}
-
-					return tbodies[position + (upBool ? -1 : 1)];
-				}
-
-				function getFirstHeadOrFoot(upBool, parent) {
-					var tagName = upBool ? 'thead' : 'tfoot';
-					var headOrFoot = editor.dom.select('>' + tagName, parent);
-					return headOrFoot.length !== 0 ? headOrFoot[0] : null;
-				}
-
-				function moveToRowInTarget(upBool, targetParent, sourceNode) {
-					var targetRow = getChildForDirection(targetParent, upBool);
-
-					if (targetRow) {
-						moveCursorToRow(editor, sourceNode, targetRow, upBool);
-					}
-
-					e.preventDefault();
-					return true;
-				}
-
-				function escapeTable(upBool, currentRow, siblingDirection, table) {
-					var tableSibling = table[siblingDirection];
-
-					if (tableSibling) {
-						moveCursorToStartOfElement(tableSibling);
-						return true;
-					}
-
-					var parentCell = editor.dom.getParent(table, 'td,th');
-					if (parentCell) {
-						return handle(upBool, parentCell, e);
-					}
-
-					var backUpSibling = getChildForDirection(currentRow, !upBool);
-					moveCursorToStartOfElement(backUpSibling);
-					e.preventDefault();
-					return false;
-				}
-
-				function getChildForDirection(parent, up) {
-					var child = parent && parent[up ? 'lastChild' : 'firstChild'];
-					// BR is not a valid table child to return in this case we return the table cell
-					return child && child.nodeName === 'BR' ? editor.dom.getParent(child, 'td,th') : child;
-				}
-
-				function moveCursorToStartOfElement(n) {
-					editor.selection.setCursorLocation(n, 0);
-				}
-
-				function isVerticalMovement() {
-					return key == VK.UP || key == VK.DOWN;
-				}
-
-				function isInTable(editor) {
-					var node = editor.selection.getNode();
-					var currentRow = editor.dom.getParent(node, 'tr');
-					return currentRow !== null;
-				}
-
-				function columnIndex(column) {
-					var colIndex = 0;
-					var c = column;
-					while (c.previousSibling) {
-						c = c.previousSibling;
-						colIndex = colIndex + getSpanVal(c, "colspan");
-					}
-					return colIndex;
-				}
-
-				function findColumn(rowElement, columnIndex) {
-					var c = 0, r = 0;
-
-					each(rowElement.children, function(cell, i) {
-						c = c + getSpanVal(cell, "colspan");
-						r = i;
-						if (c > columnIndex) {
-							return false;
-						}
-					});
-					return r;
-				}
-
-				function moveCursorToRow(ed, node, row, upBool) {
-					var srcColumnIndex = columnIndex(editor.dom.getParent(node, 'td,th'));
-					var tgtColumnIndex = findColumn(row, srcColumnIndex);
-					var tgtNode = row.childNodes[tgtColumnIndex];
-					var rowCellTarget = getChildForDirection(tgtNode, upBool);
-					moveCursorToStartOfElement(rowCellTarget || tgtNode);
-				}
-
-				function shouldFixCaret(preBrowserNode) {
-					var newNode = editor.selection.getNode();
-					var newParent = editor.dom.getParent(newNode, 'td,th');
-					var oldParent = editor.dom.getParent(preBrowserNode, 'td,th');
-
-					return newParent && newParent !== oldParent && checkSameParentTable(newParent, oldParent);
-				}
-
-				function checkSameParentTable(nodeOne, NodeTwo) {
-					return editor.dom.getParent(nodeOne, 'TABLE') === editor.dom.getParent(NodeTwo, 'TABLE');
-				}
-
-				if (isVerticalMovement() && isInTable(editor)) {
-					var preBrowserNode = editor.selection.getNode();
-					Delay.setEditorTimeout(editor, function() {
-						if (shouldFixCaret(preBrowserNode)) {
-							handle(!e.shiftKey && key === VK.UP, preBrowserNode, e);
-						}
-					}, 0);
-				}
-			}
-
-			editor.on('KeyDown', function(e) {
-				eventHandler(e);
-			});
-		}
-
-		function fixBeforeTableCaretBug() {
-			// Checks if the selection/caret is at the start of the specified block element
-			function isAtStart(rng, par) {
-				var doc = par.ownerDocument, rng2 = doc.createRange(), elm;
-
-				rng2.setStartBefore(par);
-				rng2.setEnd(rng.endContainer, rng.endOffset);
-
-				elm = doc.createElement('body');
-				elm.appendChild(rng2.cloneContents());
-
-				// Check for text characters of other elements that should be treated as content
-				return elm.innerHTML.replace(/<(br|img|object|embed|input|textarea)[^>]*>/gi, '-').replace(/<[^>]+>/g, '').length === 0;
-			}
-
-			// Fixes an bug where it's impossible to place the caret before a table in Gecko
-			// this fix solves it by detecting when the caret is at the beginning of such a table
-			// and then manually moves the caret infront of the table
-			editor.on('KeyDown', function(e) {
-				var rng, table, dom = editor.dom;
-
-				// On gecko it's not possible to place the caret before a table
-				if (e.keyCode == 37 || e.keyCode == 38) {
-					rng = editor.selection.getRng();
-					table = dom.getParent(rng.startContainer, 'table');
-
-					if (table && editor.getBody().firstChild == table) {
-						if (isAtStart(rng, table)) {
-							rng = dom.createRng();
-
-							rng.setStartBefore(table);
-							rng.setEndBefore(table);
-
-							editor.selection.setRng(rng);
-
-							e.preventDefault();
-						}
-					}
-				}
-			});
-		}
-
-		// Fixes an issue on Gecko where it's impossible to place the caret behind a table
-		// This fix will force a paragraph element after the table but only when the forced_root_block setting is enabled
-		function fixTableCaretPos() {
-			editor.on('KeyDown SetContent VisualAid', function() {
-				var last;
-
-				// Skip empty text nodes from the end
-				for (last = editor.getBody().lastChild; last; last = last.previousSibling) {
-					if (last.nodeType == 3) {
-						if (last.nodeValue.length > 0) {
-							break;
-						}
-					} else if (last.nodeType == 1 && (last.tagName == 'BR' || !last.getAttribute('data-mce-bogus'))) {
-						break;
-					}
-				}
-
-				if (last && last.nodeName == 'TABLE') {
-					if (editor.settings.forced_root_block) {
-						editor.dom.add(
-							editor.getBody(),
-							editor.settings.forced_root_block,
-							editor.settings.forced_root_block_attrs,
-							Env.ie && Env.ie < 10 ? '&nbsp;' : '<br data-mce-bogus="1" />'
-						);
-					} else {
-						editor.dom.add(editor.getBody(), 'br', {'data-mce-bogus': '1'});
-					}
-				}
-			});
-
-			editor.on('PreProcess', function(o) {
-				var last = o.node.lastChild;
-
-				if (last && (last.nodeName == "BR" || (last.childNodes.length == 1 &&
-					(last.firstChild.nodeName == 'BR' || last.firstChild.nodeValue == '\u00a0'))) &&
-					last.previousSibling && last.previousSibling.nodeName == "TABLE") {
-					editor.dom.remove(last);
-				}
-			});
-		}
-
-		// this nasty hack is here to work around some WebKit selection bugs.
-		function fixTableCellSelection() {
-			function tableCellSelected(ed, rng, n, currentCell) {
-				// The decision of when a table cell is selected is somewhat involved.  The fact that this code is
-				// required is actually a pointer to the root cause of this bug. A cell is selected when the start
-				// and end offsets are 0, the start container is a text, and the selection node is either a TR (most cases)
-				// or the parent of the table (in the case of the selection containing the last cell of a table).
-				var TEXT_NODE = 3, table = ed.dom.getParent(rng.startContainer, 'TABLE');
-				var tableParent, allOfCellSelected, tableCellSelection;
-
-				if (table) {
-					tableParent = table.parentNode;
-				}
-
-				allOfCellSelected = rng.startContainer.nodeType == TEXT_NODE &&
-					rng.startOffset === 0 &&
-					rng.endOffset === 0 &&
-					currentCell &&
-					(n.nodeName == "TR" || n == tableParent);
-
-				tableCellSelection = (n.nodeName == "TD" || n.nodeName == "TH") && !currentCell;
-
-				return allOfCellSelected || tableCellSelection;
-			}
-
-			function fixSelection() {
-				var rng = editor.selection.getRng();
-				var n = editor.selection.getNode();
-				var currentCell = editor.dom.getParent(rng.startContainer, 'TD,TH');
-
-				if (!tableCellSelected(editor, rng, n, currentCell)) {
-					return;
-				}
-
-				if (!currentCell) {
-					currentCell = n;
-				}
-
-				// Get the very last node inside the table cell
-				var end = currentCell.lastChild;
-				while (end.lastChild) {
-					end = end.lastChild;
-				}
-
-				// Select the entire table cell. Nothing outside of the table cell should be selected.
-				if (end.nodeType == 3) {
-					rng.setEnd(end, end.data.length);
-					editor.selection.setRng(rng);
-				}
-			}
-
-			editor.on('KeyDown', function() {
-				fixSelection();
-			});
-
-			editor.on('MouseDown', function(e) {
-				if (e.button != 2) {
-					fixSelection();
-				}
-			});
-		}
-
-		/**
-		 * Delete table if all cells are selected.
-		 */
-		function deleteTable() {
-			function placeCaretInCell(cell) {
-				editor.selection.select(cell, true);
-				editor.selection.collapse(true);
-			}
-
-			function clearCell(cell) {
-				editor.$(cell).empty();
-				Utils.paddCell(cell);
-			}
-
-			editor.on('keydown', function(e) {
-				if ((e.keyCode == VK.DELETE || e.keyCode == VK.BACKSPACE) && !e.isDefaultPrevented()) {
-					var table, tableCells, selectedTableCells, cell;
-
-					table = editor.dom.getParent(editor.selection.getStart(), 'table');
-					if (table) {
-						tableCells = editor.dom.select('td,th', table);
-						selectedTableCells = Tools.grep(tableCells, function(cell) {
-							return !!editor.dom.getAttrib(cell, 'data-mce-selected');
-						});
-
-						if (selectedTableCells.length === 0) {
-							// If caret is within an empty table cell then empty it for real
-							cell = editor.dom.getParent(editor.selection.getStart(), 'td,th');
-							if (editor.selection.isCollapsed() && cell && editor.dom.isEmpty(cell)) {
-								e.preventDefault();
-								clearCell(cell);
-								placeCaretInCell(cell);
-							}
-
-							return;
-						}
-
-						e.preventDefault();
-
-						editor.undoManager.transact(function() {
-							if (tableCells.length == selectedTableCells.length) {
-								editor.execCommand('mceTableDelete');
-							} else {
-								Tools.each(selectedTableCells, clearCell);
-								placeCaretInCell(selectedTableCells[0]);
-							}
-						});
-					}
-				}
-			});
-		}
-
-		/**
-		 * When caption is empty and we continue to delete, caption gets deleted along with the contents.
-		 * So, we take over delete operation (both forward and backward) and once caption is empty, we do
-		 * prevent it from disappearing.
-		 */
-		function handleDeleteInCaption() {
-			var isTableCaptionNode = function(node) {
-				return node && node.nodeName == 'CAPTION' && node.parentNode.nodeName == 'TABLE';
-			};
-
-			var restoreCaretPlaceholder = function(node, insertCaret) {
-				var rng = editor.selection.getRng();
-				var caretNode = node.ownerDocument.createTextNode('\u00a0');
-
-				// we could always append it, but caretNode somehow gets appended before caret,
-				// rather then after it, effectively preventing backspace deletion
-				if (rng.startOffset) {
-					node.insertBefore(caretNode, node.firstChild);
-				} else {
-					node.appendChild(caretNode);
-				}
-
-				if (insertCaret) {
-					// put the caret into the placeholder
-					editor.selection.select(caretNode, true);
-					editor.selection.collapse(true);
-				}
-			};
-
-			var deleteBtnPressed = function(e) {
-				return (e.keyCode == VK.DELETE || e.keyCode == VK.BACKSPACE) && !e.isDefaultPrevented();
-			};
-
-			var getSingleChildNode = function(node) {
-				return node.firstChild === node.lastChild && node.firstChild;
-			};
-
-			var isTextNode = function(node) {
-				return node && node.nodeType === 3;
-			};
-
-			var getSingleChr = function(node) {
-				var childNode = getSingleChildNode(node);
-				return isTextNode(childNode) && childNode.data.length === 1 ? childNode.data : null;
-			};
-
-			var hasNoCaretPlaceholder = function(node) {
-				var childNode = getSingleChildNode(node);
-				var chr = getSingleChr(node);
-				return childNode && !isTextNode(childNode) || chr && !isNBSP(chr);
-			};
-
-			var isEmptyNode = function(node) {
-				return editor.dom.isEmpty(node) || isNBSP(getSingleChr(node));
-			};
-
-			var isNBSP = function(chr) {
-				return chr === '\u00a0';
-			};
-
-			editor.on('keydown', function(e) {
-				if (!deleteBtnPressed(e)) {
-					return;
-				}
-
-				var container = editor.dom.getParent(editor.selection.getStart(), 'caption');
-				if (!isTableCaptionNode(container)) {
-					return;
-				}
-
-				// in IE caption collapses if caret placeholder is deleted (and it is very much possible)
-				if (Env.ie) {
-					if (!editor.selection.isCollapsed()) {
-						// if the whole contents are selected, caret placeholder will be deleted too
-						// and we take over delete operation here to restore it if this happens
-						editor.undoManager.transact(function () {
-							editor.execCommand('Delete');
-
-							if (isEmptyNode(container)) {
-								// caret springs off from the caption (to the first td), we need to bring it back as well
-								restoreCaretPlaceholder(container, true);
-							}
-						});
-
-						e.preventDefault();
-					} else if (hasNoCaretPlaceholder(container)) {
-						// if caret placeholder got accidentally deleted and caption will collapse
-						// after this operation, we need to put placeholder back
-						restoreCaretPlaceholder(container);
-					}
-				}
-
-				// TODO:
-				// 1. in Chrome it is easily possible to select beyond the boundaries of the caption,
-				// currently this results in removal of the contents with the whole caption as well;
-				// 2. we could take over delete operation to address this, but then we will need to adjust
-				// the selection, otherwise delete operation will remove first row of the table too;
-				// 3. current behaviour is logical, so it has sense to leave it like that, until a better
-				// solution
-
-				if (isEmptyNode(container)) {
-					e.preventDefault();
-				}
-			});
-		}
-
-
-		deleteTable();
-		handleDeleteInCaption();
-
-		if (Env.webkit) {
-			moveWebKitSelection();
-			fixTableCellSelection();
-		}
-
-		if (Env.gecko) {
-			fixBeforeTableCaretBug();
-			fixTableCaretPos();
-		}
-
-		if (Env.ie > 9) {
-			fixBeforeTableCaretBug();
-			fixTableCaretPos();
-		}
-	};
-});
-
-// Included from: js/tinymce/plugins/table/classes/CellSelection.js
-
-/**
- * CellSelection.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2015 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
-
-/**
- * This class handles table cell selection by faking it using a css class that gets applied
- * to cells when dragging the mouse from one cell to another.
- *
- * @class tinymce.tableplugin.CellSelection
- * @private
- */
-define("tinymce/tableplugin/CellSelection", [
-	"tinymce/tableplugin/TableGrid",
-	"tinymce/dom/TreeWalker",
-	"tinymce/util/Tools"
-], function(TableGrid, TreeWalker, Tools) {
-	return function(editor, selectionChange) {
-		var dom = editor.dom, tableGrid, startCell, startTable, lastMouseOverTarget, hasCellSelection = true, resizing, dragging;
-
-		function clear(force) {
-			// Restore selection possibilities
-			editor.getBody().style.webkitUserSelect = '';
-
-			if (force || hasCellSelection) {
-				editor.$('td[data-mce-selected],th[data-mce-selected]').removeAttr('data-mce-selected');
-				hasCellSelection = false;
-			}
-		}
-
-		var endSelection = function () {
-			startCell = tableGrid = startTable = lastMouseOverTarget = null;
-			selectionChange(false);
-		};
-
-		function isCellInTable(table, cell) {
-			if (!table || !cell) {
-				return false;
-			}
-
-			return table === dom.getParent(cell, 'table');
-		}
-
-		function cellSelectionHandler(e) {
-			var sel, target = e.target, currentCell;
-
-			if (resizing || dragging) {
-				return;
-			}
-
-			// Fake mouse enter by keeping track of last mouse over
-			if (target === lastMouseOverTarget) {
-				return;
-			}
-
-			lastMouseOverTarget = target;
-
-			if (startTable && startCell) {
-				currentCell = dom.getParent(target, 'td,th');
-
-				if (!isCellInTable(startTable, currentCell)) {
-					currentCell = dom.getParent(startTable, 'td,th');
-				}
-
-				// Selection inside first cell is normal until we have expanted
-				if (startCell === currentCell && !hasCellSelection) {
-					return;
-				}
-
-				selectionChange(true);
-
-				if (isCellInTable(startTable, currentCell)) {
-					e.preventDefault();
-
-					if (!tableGrid) {
-						tableGrid = new TableGrid(editor, startTable, startCell);
-						editor.getBody().style.webkitUserSelect = 'none';
-					}
-
-					tableGrid.setEndCell(currentCell);
-					hasCellSelection = true;
-
-					// Remove current selection
-					sel = editor.selection.getSel();
-
-					try {
-						if (sel.removeAllRanges) {
-							sel.removeAllRanges();
-						} else {
-							sel.empty();
-						}
-					} catch (ex) {
-						// IE9 might throw errors here
-					}
-				}
-			}
-		}
-
-		editor.on('SelectionChange', function(e) {
-			if (hasCellSelection) {
-				e.stopImmediatePropagation();
-			}
-		}, true);
-
-		// Add cell selection logic
-		editor.on('MouseDown', function(e) {
-			if (e.button != 2 && !resizing && !dragging) {
-				clear();
-
-				startCell = dom.getParent(e.target, 'td,th');
-				startTable = dom.getParent(startCell, 'table');
-			}
-		});
-
-		editor.on('mouseover', cellSelectionHandler);
-
-		editor.on('remove', function() {
-			dom.unbind(editor.getDoc(), 'mouseover', cellSelectionHandler);
-			clear();
-		});
-
-		editor.on('MouseUp', function() {
-			var rng, sel = editor.selection, selectedCells, walker, node, lastNode;
-
-			function setPoint(node, start) {
-				var walker = new TreeWalker(node, node);
-
-				do {
-					// Text node
-					if (node.nodeType == 3 && Tools.trim(node.nodeValue).length !== 0) {
-						if (start) {
-							rng.setStart(node, 0);
-						} else {
-							rng.setEnd(node, node.nodeValue.length);
-						}
-
-						return;
-					}
-
-					// BR element
-					if (node.nodeName == 'BR') {
-						if (start) {
-							rng.setStartBefore(node);
-						} else {
-							rng.setEndBefore(node);
-						}
-
-						return;
-					}
-				} while ((node = (start ? walker.next() : walker.prev())));
-			}
-
-			// Move selection to startCell
-			if (startCell) {
-				if (tableGrid) {
-					editor.getBody().style.webkitUserSelect = '';
-				}
-
-				// Try to expand text selection as much as we can only Gecko supports cell selection
-				selectedCells = dom.select('td[data-mce-selected],th[data-mce-selected]');
-				if (selectedCells.length > 0) {
-					rng = dom.createRng();
-					node = selectedCells[0];
-					rng.setStartBefore(node);
-					rng.setEndAfter(node);
-
-					setPoint(node, 1);
-					walker = new TreeWalker(node, dom.getParent(selectedCells[0], 'table'));
-
-					do {
-						if (node.nodeName == 'TD' || node.nodeName == 'TH') {
-							if (!dom.getAttrib(node, 'data-mce-selected')) {
-								break;
-							}
-
-							lastNode = node;
-						}
-					} while ((node = walker.next()));
-
-					setPoint(lastNode);
-
-					sel.setRng(rng);
-				}
-
-				editor.nodeChanged();
-				endSelection();
-			}
-		});
-
-		editor.on('KeyUp Drop SetContent', function(e) {
-			clear(e.type == 'setcontent');
-			endSelection();
-			resizing = false;
-		});
-
-		editor.on('ObjectResizeStart ObjectResized', function(e) {
-			resizing = e.type != 'objectresized';
-		});
-
-		editor.on('dragstart', function () {
-			dragging = true;
-		});
-
-		editor.on('drop dragend', function () {
-			dragging = false;
-		});
-
-		return {
-			clear: clear
-		};
-	};
-});
-
-// Included from: js/tinymce/plugins/table/classes/Dialogs.js
-
-/**
- * Dialogs.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2015 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
-
-/*eslint dot-notation:0*/
-
-/**
- * ...
- *
- * @class tinymce.tableplugin.Dialogs
- * @private
- */
-define("tinymce/tableplugin/Dialogs", [
-	"tinymce/util/Tools",
-	"tinymce/Env"
-], function(Tools, Env) {
-	var each = Tools.each;
-
-	return function(editor) {
-		var self = this;
-
-		function createColorPickAction() {
-			var colorPickerCallback = editor.settings.color_picker_callback;
-
-			if (colorPickerCallback) {
-				return function() {
-					var self = this;
-
-					colorPickerCallback.call(
-						editor,
-						function(value) {
-							self.value(value).fire('change');
-						},
-						self.value()
-					);
-				};
-			}
-		}
-
-		function createStyleForm(dom) {
-			return {
-				title: 'Advanced',
-				type: 'form',
-				defaults: {
-					onchange: function() {
-						updateStyle(dom, this.parents().reverse()[0], this.name() == "style");
-					}
-				},
-				items: [
-					{
-						label: 'Style',
-						name: 'style',
-						type: 'textbox'
-					},
-
-					{
-						type: 'form',
-						padding: 0,
-						formItemDefaults: {
-							layout: 'grid',
-							alignH: ['start', 'right']
-						},
-						defaults: {
-							size: 7
-						},
-						items: [
-							{
-								label: 'Border color',
-								type: 'colorbox',
-								name: 'borderColor',
-								onaction: createColorPickAction()
-							},
-
-							{
-								label: 'Background color',
-								type: 'colorbox',
-								name: 'backgroundColor',
-								onaction: createColorPickAction()
-							}
-						]
-					}
-				]
-			};
-		}
-
-		function removePxSuffix(size) {
-			return size ? size.replace(/px$/, '') : "";
-		}
-
-		function addSizeSuffix(size) {
-			if (/^[0-9]+$/.test(size)) {
-				size += "px";
-			}
-
-			return size;
-		}
-
-		function unApplyAlign(elm) {
-			each('left center right'.split(' '), function(name) {
-				editor.formatter.remove('align' + name, {}, elm);
-			});
-		}
-
-		function unApplyVAlign(elm) {
-			each('top middle bottom'.split(' '), function(name) {
-				editor.formatter.remove('valign' + name, {}, elm);
-			});
-		}
-
-		function buildListItems(inputList, itemCallback, startItems) {
-			function appendItems(values, output) {
-				output = output || [];
-
-				Tools.each(values, function(item) {
-					var menuItem = {text: item.text || item.title};
-
-					if (item.menu) {
-						menuItem.menu = appendItems(item.menu);
-					} else {
-						menuItem.value = item.value;
-
-						if (itemCallback) {
-							itemCallback(menuItem);
-						}
-					}
-
-					output.push(menuItem);
-				});
-
-				return output;
-			}
-
-			return appendItems(inputList, startItems || []);
-		}
-
-		function updateStyle(dom, win, isStyleCtrl) {
-			var data = win.toJSON();
-			var css = dom.parseStyle(data.style);
-
-			if (isStyleCtrl) {
-				win.find('#borderColor').value(css["border-color"] || '')[0].fire('change');
-				win.find('#backgroundColor').value(css["background-color"] || '')[0].fire('change');
-			} else {
-				css["border-color"] = data.borderColor;
-				css["background-color"] = data.backgroundColor;
-			}
-
-			win.find('#style').value(dom.serializeStyle(dom.parseStyle(dom.serializeStyle(css))));
-		}
-
-		function appendStylesToData(dom, data, elm) {
-			var css = dom.parseStyle(dom.getAttrib(elm, 'style'));
-
-			if (css["border-color"]) {
-				data.borderColor = css["border-color"];
-			}
-
-			if (css["background-color"]) {
-				data.backgroundColor = css["background-color"];
-			}
-
-			data.style = dom.serializeStyle(css);
-		}
-
-		function mergeStyles(dom, elm, styles) {
-			var css = dom.parseStyle(dom.getAttrib(elm, 'style'));
-
-			each(styles, function(style) {
-				css[style.name] = style.value;
-			});
-
-			dom.setAttrib(elm, 'style', dom.serializeStyle(dom.parseStyle(dom.serializeStyle(css))));
-		}
-
-		self.tableProps = function() {
-			self.table(true);
-		};
-
-		self.table = function(isProps) {
-			var dom = editor.dom, tableElm, colsCtrl, rowsCtrl, classListCtrl, data = {}, generalTableForm, stylesToMerge;
-
-			function onSubmitTableForm() {
-
-				//Explore the layers of the table till we find the first layer of tds or ths
-				function styleTDTH(elm, name, value) {
-					if (elm.tagName === "TD" || elm.tagName === "TH") {
-						dom.setStyle(elm, name, value);
-					} else {
-						if (elm.children) {
-							for (var i = 0; i < elm.children.length; i++) {
-								styleTDTH(elm.children[i], name, value);
-							}
-						}
-					}
-				}
-
-				var captionElm;
-
-				updateStyle(dom, this);
-				data = Tools.extend(data, this.toJSON());
-
-				if (data["class"] === false) {
-					delete data["class"];
-				}
-
-				editor.undoManager.transact(function() {
-					if (!tableElm) {
-						tableElm = editor.plugins.table.insertTable(data.cols || 1, data.rows || 1);
-					}
-
-					editor.dom.setAttribs(tableElm, {
-						style: data.style,
-						'class': data['class']
-					});
-
-					if (editor.settings.table_style_by_css) {
-						stylesToMerge = [];
-						stylesToMerge.push({name: 'border', value: data.border});
-						stylesToMerge.push({name: 'border-spacing', value: addSizeSuffix(data.cellspacing)});
-						mergeStyles(dom, tableElm, stylesToMerge);
-						dom.setAttribs(tableElm, {
-							'data-mce-border-color': data.borderColor,
-							'data-mce-cell-padding': data.cellpadding,
-							'data-mce-border': data.border
-						});
-						if (tableElm.children) {
-							for (var i = 0; i < tableElm.children.length; i++) {
-								styleTDTH(tableElm.children[i], 'border', data.border);
-								styleTDTH(tableElm.children[i], 'padding', addSizeSuffix(data.cellpadding));
-							}
-						}
-					} else {
-						editor.dom.setAttribs(tableElm, {
-							border: data.border,
-							cellpadding: data.cellpadding,
-							cellspacing: data.cellspacing
-						});
-					}
-
-					if (dom.getAttrib(tableElm, 'width') && !editor.settings.table_style_by_css) {
-						dom.setAttrib(tableElm, 'width', removePxSuffix(data.width));
-					} else {
-						dom.setStyle(tableElm, 'width', addSizeSuffix(data.width));
-					}
-
-					dom.setStyle(tableElm, 'height', addSizeSuffix(data.height));
-
-					// Toggle caption on/off
-					captionElm = dom.select('caption', tableElm)[0];
-
-					if (captionElm && !data.caption) {
-						dom.remove(captionElm);
-					}
-
-					if (!captionElm && data.caption) {
-						captionElm = dom.create('caption');
-						captionElm.innerHTML = !Env.ie ? '<br data-mce-bogus="1"/>' : '\u00a0';
-						tableElm.insertBefore(captionElm, tableElm.firstChild);
-					}
-					unApplyAlign(tableElm);
-					if (data.align) {
-						editor.formatter.apply('align' + data.align, {}, tableElm);
-					}
-
-					editor.focus();
-					editor.addVisual();
-				});
-			}
-
-			function getTDTHOverallStyle(elm, name) {
-				var cells = editor.dom.select("td,th", elm), firstChildStyle;
-
-				function checkChildren(firstChildStyle, elms) {
-
-					for (var i = 0; i < elms.length; i++) {
-						var currentStyle = dom.getStyle(elms[i], name);
-						if (typeof firstChildStyle === "undefined") {
-							firstChildStyle = currentStyle;
-						}
-						if (firstChildStyle != currentStyle) {
-							return "";
-						}
-					}
-
-					return firstChildStyle;
-
-				}
-
-				firstChildStyle = checkChildren(firstChildStyle, cells);
-
-				return firstChildStyle;
-			}
-
-			if (isProps === true) {
-				tableElm = dom.getParent(editor.selection.getStart(), 'table');
-
-				if (tableElm) {
-					data = {
-						width: removePxSuffix(dom.getStyle(tableElm, 'width') || dom.getAttrib(tableElm, 'width')),
-						height: removePxSuffix(dom.getStyle(tableElm, 'height') || dom.getAttrib(tableElm, 'height')),
-						cellspacing: removePxSuffix(dom.getStyle(tableElm, 'border-spacing') ||
-							dom.getAttrib(tableElm, 'cellspacing')),
-						cellpadding: dom.getAttrib(tableElm, 'data-mce-cell-padding') || dom.getAttrib(tableElm, 'cellpadding') ||
-							getTDTHOverallStyle(tableElm, 'padding'),
-						border: dom.getAttrib(tableElm, 'data-mce-border') || dom.getAttrib(tableElm, 'border') ||
-							getTDTHOverallStyle(tableElm, 'border'),
-						borderColor: dom.getAttrib(tableElm, 'data-mce-border-color'),
-						caption: !!dom.select('caption', tableElm)[0],
-						'class': dom.getAttrib(tableElm, 'class')
-					};
-
-					each('left center right'.split(' '), function(name) {
-						if (editor.formatter.matchNode(tableElm, 'align' + name)) {
-							data.align = name;
-						}
-					});
-				}
-			} else {
-				colsCtrl = {label: 'Cols', name: 'cols'};
-				rowsCtrl = {label: 'Rows', name: 'rows'};
-			}
-
-			if (editor.settings.table_class_list) {
-				if (data["class"]) {
-					data["class"] = data["class"].replace(/\s*mce\-item\-table\s*/g, '');
-				}
-
-				classListCtrl = {
-					name: 'class',
-					type: 'listbox',
-					label: 'Class',
-					values: buildListItems(
-						editor.settings.table_class_list,
-						function(item) {
-							if (item.value) {
-								item.textStyle = function() {
-									return editor.formatter.getCssText({block: 'table', classes: [item.value]});
-								};
-							}
-						}
-					)
-				};
-			}
-
-			generalTableForm = {
-				type: 'form',
-				layout: 'flex',
-				direction: 'column',
-				labelGapCalc: 'children',
-				padding: 0,
-				items: [
-					{
-						type: 'form',
-						labelGapCalc: false,
-						padding: 0,
-						layout: 'grid',
-						columns: 2,
-						defaults: {
-							type: 'textbox',
-							maxWidth: 50
-						},
-						items: (editor.settings.table_appearance_options !== false) ? [
-							colsCtrl,
-							rowsCtrl,
-							{label: 'Width', name: 'width'},
-							{label: 'Height', name: 'height'},
-							{label: 'Cell spacing', name: 'cellspacing'},
-							{label: 'Cell padding', name: 'cellpadding'},
-							{label: 'Border', name: 'border'},
-							{label: 'Caption', name: 'caption', type: 'checkbox'}
-						] : [
-							colsCtrl,
-							rowsCtrl,
-							{label: 'Width', name: 'width'},
-							{label: 'Height', name: 'height'}
-						]
-					},
-
-					{
-						label: 'Alignment',
-						name: 'align',
-						type: 'listbox',
-						text: 'None',
-						values: [
-							{text: 'None', value: ''},
-							{text: 'Left', value: 'left'},
-							{text: 'Center', value: 'center'},
-							{text: 'Right', value: 'right'}
-						]
-					},
-
-					classListCtrl
-				]
-			};
-
-			if (editor.settings.table_advtab !== false) {
-				appendStylesToData(dom, data, tableElm);
-
-				editor.windowManager.open({
-					title: "Table properties",
-					data: data,
-					bodyType: 'tabpanel',
-					body: [
-						{
-							title: 'General',
-							type: 'form',
-							items: generalTableForm
-						},
-						createStyleForm(dom)
-					],
-
-					onsubmit: onSubmitTableForm
-				});
-			} else {
-				editor.windowManager.open({
-					title: "Table properties",
-					data: data,
-					body: generalTableForm,
-					onsubmit: onSubmitTableForm
-				});
-			}
-		};
-
-		self.merge = function(grid, cell) {
-			editor.windowManager.open({
-				title: "Merge cells",
-				body: [
-					{label: 'Cols', name: 'cols', type: 'textbox', value: '1', size: 10},
-					{label: 'Rows', name: 'rows', type: 'textbox', value: '1', size: 10}
-				],
-				onsubmit: function() {
-					var data = this.toJSON();
-
-					editor.undoManager.transact(function() {
-						grid.merge(cell, data.cols, data.rows);
-					});
-				}
-			});
-		};
-
-		self.cell = function() {
-			var dom = editor.dom, cellElm, data, classListCtrl, cells = [];
-
-			function setAttrib(elm, name, value) {
-				if (cells.length === 1 || value) {
-					dom.setAttrib(elm, name, value);
-				}
-			}
-
-			function setStyle(elm, name, value) {
-				if (cells.length === 1 || value) {
-					dom.setStyle(elm, name, value);
-				}
-			}
-
-			function onSubmitCellForm() {
-				updateStyle(dom, this);
-				data = Tools.extend(data, this.toJSON());
-
-				editor.undoManager.transact(function() {
-					each(cells, function(cellElm) {
-						setAttrib(cellElm, 'scope', data.scope);
-						setAttrib(cellElm, 'style', data.style);
-						setAttrib(cellElm, 'class', data['class']);
-						setStyle(cellElm, 'width', addSizeSuffix(data.width));
-						setStyle(cellElm, 'height', addSizeSuffix(data.height));
-
-						// Switch cell type
-						if (data.type && cellElm.nodeName.toLowerCase() !== data.type) {
-							cellElm = dom.rename(cellElm, data.type);
-						}
-
-						// Remove alignment
-						if (cells.length === 1) {
-							unApplyAlign(cellElm);
-							unApplyVAlign(cellElm);
-						}
-
-						// Apply alignment
-						if (data.align) {
-							editor.formatter.apply('align' + data.align, {}, cellElm);
-						}
-
-						// Apply vertical alignment
-						if (data.valign) {
-							editor.formatter.apply('valign' + data.valign, {}, cellElm);
-						}
-					});
-
-					editor.focus();
-				});
-			}
-
-			// Get selected cells or the current cell
-			cells = editor.dom.select('td[data-mce-selected],th[data-mce-selected]');
-			cellElm = editor.dom.getParent(editor.selection.getStart(), 'td,th');
-			if (!cells.length && cellElm) {
-				cells.push(cellElm);
-			}
-
-			cellElm = cellElm || cells[0];
-
-			if (!cellElm) {
-				// If this element is null, return now to avoid crashing.
-				return;
-			}
-
-			if (cells.length > 1) {
-				data = {
-					width: '',
-					height: '',
-					scope: '',
-					'class': '',
-					align: '',
-					style: '',
-					type: cellElm.nodeName.toLowerCase()
-				};
-			} else {
-				data = {
-					width: removePxSuffix(dom.getStyle(cellElm, 'width') || dom.getAttrib(cellElm, 'width')),
-					height: removePxSuffix(dom.getStyle(cellElm, 'height') || dom.getAttrib(cellElm, 'height')),
-					scope: dom.getAttrib(cellElm, 'scope'),
-					'class': dom.getAttrib(cellElm, 'class')
-				};
-
-				data.type = cellElm.nodeName.toLowerCase();
-
-				each('left center right'.split(' '), function(name) {
-					if (editor.formatter.matchNode(cellElm, 'align' + name)) {
-						data.align = name;
-					}
-				});
-
-				each('top middle bottom'.split(' '), function(name) {
-					if (editor.formatter.matchNode(cellElm, 'valign' + name)) {
-						data.valign = name;
-					}
-				});
-
-				appendStylesToData(dom, data, cellElm);
-			}
-
-			if (editor.settings.table_cell_class_list) {
-				classListCtrl = {
-					name: 'class',
-					type: 'listbox',
-					label: 'Class',
-					values: buildListItems(
-						editor.settings.table_cell_class_list,
-						function(item) {
-							if (item.value) {
-								item.textStyle = function() {
-									return editor.formatter.getCssText({block: 'td', classes: [item.value]});
-								};
-							}
-						}
-					)
-				};
-			}
-
-			var generalCellForm = {
-				type: 'form',
-				layout: 'flex',
-				direction: 'column',
-				labelGapCalc: 'children',
-				padding: 0,
-				items: [
-					{
-						type: 'form',
-						layout: 'grid',
-						columns: 2,
-						labelGapCalc: false,
-						padding: 0,
-						defaults: {
-							type: 'textbox',
-							maxWidth: 50
-						},
-						items: [
-							{label: 'Width', name: 'width'},
-							{label: 'Height', name: 'height'},
-							{
-								label: 'Cell type',
-								name: 'type',
-								type: 'listbox',
-								text: 'None',
-								minWidth: 90,
-								maxWidth: null,
-								values: [
-									{text: 'Cell', value: 'td'},
-									{text: 'Header cell', value: 'th'}
-								]
-							},
-							{
-								label: 'Scope',
-								name: 'scope',
-								type: 'listbox',
-								text: 'None',
-								minWidth: 90,
-								maxWidth: null,
-								values: [
-									{text: 'None', value: ''},
-									{text: 'Row', value: 'row'},
-									{text: 'Column', value: 'col'},
-									{text: 'Row group', value: 'rowgroup'},
-									{text: 'Column group', value: 'colgroup'}
-								]
-							},
-							{
-								label: 'H Align',
-								name: 'align',
-								type: 'listbox',
-								text: 'None',
-								minWidth: 90,
-								maxWidth: null,
-								values: [
-									{text: 'None', value: ''},
-									{text: 'Left', value: 'left'},
-									{text: 'Center', value: 'center'},
-									{text: 'Right', value: 'right'}
-								]
-							},
-							{
-								label: 'V Align',
-								name: 'valign',
-								type: 'listbox',
-								text: 'None',
-								minWidth: 90,
-								maxWidth: null,
-								values: [
-									{text: 'None', value: ''},
-									{text: 'Top', value: 'top'},
-									{text: 'Middle', value: 'middle'},
-									{text: 'Bottom', value: 'bottom'}
-								]
-							}
-						]
-					},
-
-					classListCtrl
-				]
-			};
-
-			if (editor.settings.table_cell_advtab !== false) {
-				editor.windowManager.open({
-					title: "Cell properties",
-					bodyType: 'tabpanel',
-					data: data,
-					body: [
-						{
-							title: 'General',
-							type: 'form',
-							items: generalCellForm
-						},
-
-						createStyleForm(dom)
-					],
-
-					onsubmit: onSubmitCellForm
-				});
-			} else {
-				editor.windowManager.open({
-					title: "Cell properties",
-					data: data,
-					body: generalCellForm,
-					onsubmit: onSubmitCellForm
-				});
-			}
-		};
-
-		self.row = function() {
-			var dom = editor.dom, tableElm, cellElm, rowElm, classListCtrl, data, rows = [], generalRowForm;
-
-			function setAttrib(elm, name, value) {
-				if (rows.length === 1 || value) {
-					dom.setAttrib(elm, name, value);
-				}
-			}
-
-			function setStyle(elm, name, value) {
-				if (rows.length === 1 || value) {
-					dom.setStyle(elm, name, value);
-				}
-			}
-
-			function onSubmitRowForm() {
-				var tableElm, oldParentElm, parentElm;
-
-				updateStyle(dom, this);
-				data = Tools.extend(data, this.toJSON());
-
-				editor.undoManager.transact(function() {
-					var toType = data.type;
-
-					each(rows, function(rowElm) {
-						setAttrib(rowElm, 'scope', data.scope);
-						setAttrib(rowElm, 'style', data.style);
-						setAttrib(rowElm, 'class', data['class']);
-						setStyle(rowElm, 'height', addSizeSuffix(data.height));
-
-						if (toType !== rowElm.parentNode.nodeName.toLowerCase()) {
-							tableElm = dom.getParent(rowElm, 'table');
-
-							oldParentElm = rowElm.parentNode;
-							parentElm = dom.select(toType, tableElm)[0];
-							if (!parentElm) {
-								parentElm = dom.create(toType);
-								if (tableElm.firstChild) {
-									tableElm.insertBefore(parentElm, tableElm.firstChild);
-								} else {
-									tableElm.appendChild(parentElm);
-								}
-							}
-
-							parentElm.appendChild(rowElm);
-
-							if (!oldParentElm.hasChildNodes()) {
-								dom.remove(oldParentElm);
-							}
-						}
-
-						// Apply/remove alignment
-						if (rows.length === 1) {
-							unApplyAlign(rowElm);
-						}
-
-						if (data.align) {
-							editor.formatter.apply('align' + data.align, {}, rowElm);
-						}
-					});
-
-					editor.focus();
-				});
-			}
-
-			tableElm = editor.dom.getParent(editor.selection.getStart(), 'table');
-			cellElm = editor.dom.getParent(editor.selection.getStart(), 'td,th');
-
-			each(tableElm.rows, function(row) {
-				each(row.cells, function(cell) {
-					if (dom.getAttrib(cell, 'data-mce-selected') || cell == cellElm) {
-						rows.push(row);
-						return false;
-					}
-				});
-			});
-
-			rowElm = rows[0];
-			if (!rowElm) {
-				// If this element is null, return now to avoid crashing.
-				return;
-			}
-
-			if (rows.length > 1) {
-				data = {
-					height: '',
-					scope: '',
-					'class': '',
-					align: '',
-					type: rowElm.parentNode.nodeName.toLowerCase()
-				};
-			} else {
-				data = {
-					height: removePxSuffix(dom.getStyle(rowElm, 'height') || dom.getAttrib(rowElm, 'height')),
-					scope: dom.getAttrib(rowElm, 'scope'),
-					'class': dom.getAttrib(rowElm, 'class')
-				};
-
-				data.type = rowElm.parentNode.nodeName.toLowerCase();
-
-				each('left center right'.split(' '), function(name) {
-					if (editor.formatter.matchNode(rowElm, 'align' + name)) {
-						data.align = name;
-					}
-				});
-
-				appendStylesToData(dom, data, rowElm);
-			}
-
-			if (editor.settings.table_row_class_list) {
-				classListCtrl = {
-					name: 'class',
-					type: 'listbox',
-					label: 'Class',
-					values: buildListItems(
-						editor.settings.table_row_class_list,
-						function(item) {
-							if (item.value) {
-								item.textStyle = function() {
-									return editor.formatter.getCssText({block: 'tr', classes: [item.value]});
-								};
-							}
-						}
-					)
-				};
-			}
-
-			generalRowForm = {
-				type: 'form',
-				columns: 2,
-				padding: 0,
-				defaults: {
-					type: 'textbox'
-				},
-				items: [
-					{
-						type: 'listbox',
-						name: 'type',
-						label: 'Row type',
-						text: 'Header',
-						maxWidth: null,
-						values: [
-							{text: 'Header', value: 'thead'},
-							{text: 'Body', value: 'tbody'},
-							{text: 'Footer', value: 'tfoot'}
-						]
-					},
-					{
-						type: 'listbox',
-						name: 'align',
-						label: 'Alignment',
-						text: 'None',
-						maxWidth: null,
-						values: [
-							{text: 'None', value: ''},
-							{text: 'Left', value: 'left'},
-							{text: 'Center', value: 'center'},
-							{text: 'Right', value: 'right'}
-						]
-					},
-					{label: 'Height', name: 'height'},
-					classListCtrl
-				]
-			};
-
-			if (editor.settings.table_row_advtab !== false) {
-				editor.windowManager.open({
-					title: "Row properties",
-					data: data,
-					bodyType: 'tabpanel',
-					body: [
-						{
-							title: 'General',
-							type: 'form',
-							items: generalRowForm
-						},
-						createStyleForm(dom)
-					],
-
-					onsubmit: onSubmitRowForm
-				});
-			} else {
-				editor.windowManager.open({
-					title: "Row properties",
-					data: data,
-					body: generalRowForm,
-					onsubmit: onSubmitRowForm
-				});
-			}
-		};
-	};
-});
-
-// Included from: js/tinymce/plugins/table/classes/ResizeBars.js
-
-/**
- * ResizeBars.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2015 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
-
-/**
- * This class handles table column and row resizing by adding divs over the columns and rows of the table.
- * These divs are then manipulated using mouse events to resize the underlying table.
- *
- * @class tinymce.tableplugin.ResizeBars
- * @private
- */
-define("tinymce/tableplugin/ResizeBars", [
-	"tinymce/util/Tools",
-	"tinymce/util/VK"
-], function(Tools, VK) {
-	var hoverTable;
-
-	return function(editor) {
-		var RESIZE_BAR_CLASS = 'mce-resize-bar',
-			RESIZE_BAR_ROW_CLASS = 'mce-resize-bar-row',
-			RESIZE_BAR_ROW_CURSOR_STYLE = 'row-resize',
-			RESIZE_BAR_ROW_DATA_ATTRIBUTE = 'data-row',
-			RESIZE_BAR_ROW_DATA_INITIAL_TOP_ATTRIBUTE = 'data-initial-top',
-			RESIZE_BAR_COL_CLASS = 'mce-resize-bar-col',
-			RESIZE_BAR_COL_CURSOR_STYLE = 'col-resize',
-			RESIZE_BAR_COL_DATA_ATTRIBUTE = 'data-col',
-			RESIZE_BAR_COL_DATA_INITIAL_LEFT_ATTRIBUTE = 'data-initial-left',
-			RESIZE_BAR_THICKNESS = 4,
-			RESIZE_MINIMUM_WIDTH = 10,
-			RESIZE_MINIMUM_HEIGHT = 10,
-			RESIZE_BAR_DRAGGING_CLASS = 'mce-resize-bar-dragging';
-
-		var percentageBasedSizeRegex = new RegExp(/(\d+(\.\d+)?%)/),
-			pixelBasedSizeRegex = new RegExp(/px|em/);
-
-		var delayDrop, dragging, blockerElement, dragBar, lastX, lastY;
-
-		// Get the absolute position's top edge.
-		function getTopEdge(index, row) {
-			return {
-				index: index,
-				y: editor.dom.getPos(row).y
-			};
-		}
-
-		// Get the absolute position's bottom edge.
-		function getBottomEdge(index, row) {
-			return {
-				index: index,
-				y: editor.dom.getPos(row).y + row.offsetHeight
-			};
-		}
-
-		// Get the absolute position's left edge.
-		function getLeftEdge(index, cell) {
-			return {
-				index: index,
-				x: editor.dom.getPos(cell).x
-			};
-		}
-
-		// Get the absolute position's right edge.
-		function getRightEdge(index, cell) {
-			return {
-				index: index,
-				x: editor.dom.getPos(cell).x + cell.offsetWidth
-			};
-		}
-
-		function isRtl() {
-			var dir = editor.getBody().dir;
-			return dir === 'rtl';
-		}
-
-		function isInline() {
-			return editor.inline;
-		}
-
-		function getBody() {
-			return isInline ? editor.getBody().ownerDocument.body : editor.getBody();
-		}
-
-		function getInnerEdge(index, cell) {
-			return isRtl() ? getRightEdge(index, cell) : getLeftEdge(index, cell);
-		}
-
-		function getOuterEdge(index, cell) {
-			return isRtl() ? getLeftEdge(index, cell) : getRightEdge(index, cell);
-		}
-
-		function getPercentageWidthFallback(element, table) {
-			return getComputedStyleSize(element, 'width') / getComputedStyleSize(table, 'width') * 100;
-		}
-
-		function getComputedStyleSize(element, property) {
-			var widthString = editor.dom.getStyle(element, property, true);
-			var width = parseInt(widthString, 10);
-			return width;
-		}
-
-		function getCurrentTablePercentWidth(table) {
-			var tableWidth = getComputedStyleSize(table, 'width');
-			var tableParentWidth = getComputedStyleSize(table.parentElement, 'width');
-			return tableWidth / tableParentWidth * 100;
-		}
-
-		function getCellPercentDelta(table, delta) {
-			var tableWidth = getComputedStyleSize(table, 'width');
-			return delta / tableWidth * 100;
-		}
-
-		function getTablePercentDelta(table, delta) {
-			var tableParentWidth = getComputedStyleSize(table.parentElement, 'width');
-			return delta / tableParentWidth * 100;
-		}
-
-		// Find the left/right (ltr/rtl) or top side locations of the cells to measure.
-		// This is the location of the borders we need to draw over.
-		function findPositions(getInner, getOuter, thingsToMeasure) {
-			var tablePositions = [];
-
-			// Skip the first item in the array = no left (LTR), right (RTL) or top bars
-			for (var i = 1; i < thingsToMeasure.length; i++) {
-				// Get the element from the details
-				var item = thingsToMeasure[i].element;
-
-				// We need to zero index this again
-				tablePositions.push(getInner(i - 1, item));
-			}
-
-			var lastTableLineToMake = thingsToMeasure[thingsToMeasure.length - 1];
-			tablePositions.push(getOuter(thingsToMeasure.length - 1, lastTableLineToMake.element));
-
-			return tablePositions;
-		}
-
-		// Clear the bars.
-		function clearBars() {
-			var bars = editor.dom.select('.' + RESIZE_BAR_CLASS, getBody());
-			Tools.each(bars, function(bar) {
-				editor.dom.remove(bar);
-			});
-		}
-
-		// Refresh the bars.
-		function refreshBars(tableElement) {
-			clearBars();
-			drawBars(tableElement);
-		}
-
-		// Generates a resize bar object for the editor to add.
-		function generateBar(classToAdd, cursor, left, top, height, width, indexAttr, index) {
-			var bar = {
-				'data-mce-bogus': 'all',
-				'class': RESIZE_BAR_CLASS + ' ' + classToAdd,
-				'unselectable': 'on',
-				'data-mce-resize': false,
-				style: 'cursor: ' + cursor + '; ' +
-					'margin: 0; ' +
-					'padding: 0; ' +
-					'position: absolute; ' +
-					'left: ' + left + 'px; ' +
-					'top: ' + top + 'px; ' +
-					'height: ' + height + 'px; ' +
-					'width: ' + width + 'px; '
-			};
-
-			bar[indexAttr] = index;
-
-			return bar;
-		}
-
-		// Draw the row bars over the row borders.
-		function drawRows(rowPositions, tableWidth, tablePosition) {
-			Tools.each(rowPositions, function(rowPosition) {
-				var left = tablePosition.x,
-					top = rowPosition.y - RESIZE_BAR_THICKNESS / 2,
-					height = RESIZE_BAR_THICKNESS,
-					width = tableWidth;
-
-				editor.dom.add(getBody(), 'div',
-					generateBar(RESIZE_BAR_ROW_CLASS, RESIZE_BAR_ROW_CURSOR_STYLE,
-						left, top, height, width, RESIZE_BAR_ROW_DATA_ATTRIBUTE, rowPosition.index));
-			});
-		}
-
-		// Draw the column bars over the column borders.
-		function drawCols(cellPositions, tableHeight, tablePosition) {
-			Tools.each(cellPositions, function(cellPosition) {
-				var left = cellPosition.x - RESIZE_BAR_THICKNESS / 2,
-					top = tablePosition.y,
-					height = tableHeight,
-					width = RESIZE_BAR_THICKNESS;
-
-				editor.dom.add(getBody(), 'div',
-					generateBar(RESIZE_BAR_COL_CLASS, RESIZE_BAR_COL_CURSOR_STYLE,
-						left, top, height, width, RESIZE_BAR_COL_DATA_ATTRIBUTE, cellPosition.index));
-			});
-		}
-
-		// Get a matrix of the cells in each row and the rows in the table.
-		function getTableDetails(table) {
-			return Tools.map(table.rows, function(row) {
-
-				var cells = Tools.map(row.cells, function(cell) {
-
-					var rowspan = cell.hasAttribute('rowspan') ? parseInt(cell.getAttribute('rowspan'), 10) : 1;
-					var colspan = cell.hasAttribute('colspan') ? parseInt(cell.getAttribute('colspan'), 10) : 1;
-
-					return {
-						element: cell,
-						rowspan: rowspan,
-						colspan: colspan
-					};
-				});
-
-				return {
-					element: row,
-					cells: cells
-				};
-
-			});
-
-		}
-
-		// Get a grid model of the table.
-		function getTableGrid(tableDetails) {
-			function key(rowIndex, colIndex) {
-				return rowIndex + ',' + colIndex;
-			}
-
-			function getAt(rowIndex, colIndex) {
-				return access[key(rowIndex, colIndex)];
-			}
-
-			function getAllCells() {
-				var allCells = [];
-				Tools.each(rows, function(row) {
-					allCells = allCells.concat(row.cells);
-				});
-				return allCells;
-			}
-
-			function getAllRows() {
-				return rows;
-			}
-
-			var access = {};
-			var rows = [];
-
-			var maxRows = 0;
-			var maxCols = 0;
-
-			Tools.each(tableDetails, function(row, rowIndex) {
-				var currentRow = [];
-
-				Tools.each(row.cells, function(cell) {
-
-					var start = 0;
-
-					while (access[key(rowIndex, start)] !== undefined) {
-						start++;
-					}
-
-					var current = {
-						element: cell.element,
-						colspan: cell.colspan,
-						rowspan: cell.rowspan,
-						rowIndex: rowIndex,
-						colIndex: start
-					};
-
-					for (var i = 0; i < cell.colspan; i++) {
-						for (var j = 0; j < cell.rowspan; j++) {
-							var cr = rowIndex + j;
-							var cc = start + i;
-							access[key(cr, cc)] = current;
-							maxRows = Math.max(maxRows, cr + 1);
-							maxCols = Math.max(maxCols, cc + 1);
-						}
-					}
-
-					currentRow.push(current);
-				});
-
-				rows.push({
-					element: row.element,
-					cells: currentRow
-				});
-			});
-
-			return {
-				grid: {
-					maxRows: maxRows,
-					maxCols: maxCols
-				},
-				getAt: getAt,
-				getAllCells: getAllCells,
-				getAllRows: getAllRows
-			};
-		}
-
-		function range(start, end) {
-			var r = [];
-
-			for (var i = start; i < end; i++) {
-				r.push(i);
-			}
-
-			return r;
-		}
-
-		// Attempt to get a representative single block for this column.
-		// If we can't find a single block, all blocks in this row/column are spanned
-		// and we'll need to fallback to getting the first cell in the row/column.
-		function decide(getBlock, isSingle, getFallback) {
-			var inBlock = getBlock();
-			var singleInBlock;
-
-			for (var i = 0; i < inBlock.length; i++) {
-				if (isSingle(inBlock[i])) {
-					singleInBlock = inBlock[i];
-				}
-			}
-			return singleInBlock ? singleInBlock : getFallback();
-		}
-
-		// Attempt to get representative blocks for the width of each column.
-		function getColumnBlocks(tableGrid) {
-			var cols = range(0, tableGrid.grid.maxCols);
-			var rows = range(0, tableGrid.grid.maxRows);
-
-			return Tools.map(cols, function(col) {
-				function getBlock() {
-					var details = [];
-					for (var i = 0; i < rows.length; i++) {
-						var detail = tableGrid.getAt(i, col);
-						if (detail && detail.colIndex === col) {
-							details.push(detail);
-						}
-					}
-
-					return details;
-				}
-
-				function isSingle(detail) {
-					return detail.colspan === 1;
-				}
-
-				function getFallback() {
-					var item;
-
-					for (var i = 0; i < rows.length; i++) {
-						item = tableGrid.getAt(i, col);
-						if (item) {
-							return item;
-						}
-					}
-
-					return null;
-				}
-
-				return decide(getBlock, isSingle, getFallback);
-			});
-		}
-
-		// Attempt to get representative blocks for the height of each row.
-		function getRowBlocks(tableGrid) {
-			var cols = range(0, tableGrid.grid.maxCols);
-			var rows = range(0, tableGrid.grid.maxRows);
-
-			return Tools.map(rows, function(row) {
-				function getBlock() {
-					var details = [];
-					for (var i = 0; i < cols.length; i++) {
-						var detail = tableGrid.getAt(row, i);
-						if (detail && detail.rowIndex === row) {
-							details.push(detail);
-						}
-					}
-					return details;
-				}
-
-				function isSingle(detail) {
-					return detail.rowspan === 1;
-				}
-
-				function getFallback() {
-					return tableGrid.getAt(row, 0);
-				}
-
-				return decide(getBlock, isSingle, getFallback);
-			});
-		}
-
-		// Draw resize bars over the left/right (ltr/rtl) or top side locations of the cells to measure.
-		// This is the location of the borders we need to draw over.
-		function drawBars(table) {
-			var tableDetails = getTableDetails(table);
-			var tableGrid = getTableGrid(tableDetails);
-			var rows = getRowBlocks(tableGrid);
-			var cols = getColumnBlocks(tableGrid);
-
-			var tablePosition = editor.dom.getPos(table);
-			var rowPositions = rows.length > 0 ? findPositions(getTopEdge, getBottomEdge, rows) : [];
-			var colPositions = cols.length > 0 ? findPositions(getInnerEdge, getOuterEdge, cols) : [];
-
-			drawRows(rowPositions, table.offsetWidth, tablePosition);
-			drawCols(colPositions, table.offsetHeight, tablePosition);
-		}
-
-		// Attempt to deduce the width/height of a column/row that has more than one cell spanned.
-		function deduceSize(deducables, index, isPercentageBased, table) {
-			if (index < 0 || index >= deducables.length - 1) {
-				return "";
-			}
-
-			var current = deducables[index];
-
-			if (current) {
-				current = {
-					value: current,
-					delta: 0
-				};
-			} else {
-				var reversedUpToIndex = deducables.slice(0, index).reverse();
-				for (var i = 0; i < reversedUpToIndex.length; i++) {
-					if (reversedUpToIndex[i]) {
-						current = {
-							value: reversedUpToIndex[i],
-							delta: i + 1
-						};
-					}
-				}
-			}
-
-			var next = deducables[index + 1];
-
-			if (next) {
-				next = {
-					value: next,
-					delta: 1
-				};
-			} else {
-				var rest = deducables.slice(index + 1);
-				for (var j = 0; j < rest.length; j++) {
-					if (rest[j]) {
-						next = {
-							value: rest[j],
-							delta: j + 1
-						};
-					}
-				}
-			}
-
-			var extras = next.delta - current.delta;
-			var pixelWidth = Math.abs(next.value - current.value) / extras;
-			return isPercentageBased ? pixelWidth / getComputedStyleSize(table, 'width') * 100 : pixelWidth;
-		}
-
-		function getStyleOrAttrib(element, property) {
-			var sizeString = editor.dom.getStyle(element, property);
-			if (!sizeString) {
-				sizeString = editor.dom.getAttrib(element, property);
-			}
-			if (!sizeString) {
-				sizeString = editor.dom.getStyle(element, property, true);
-			}
-			return sizeString;
-		}
-
-		function getWidth(element, isPercentageBased, table) {
-			var widthString = getStyleOrAttrib(element, 'width');
-
-			var widthNumber = parseInt(widthString, 10);
-
-			var getWidthFallback = isPercentageBased ? getPercentageWidthFallback(element, table) : getComputedStyleSize(element, 'width');
-
-			// If this is percentage based table, but this cell isn't percentage based.
-			// Or if this is a pixel based table, but this cell isn't pixel based.
-			if (isPercentageBased && !isPercentageBasedSize(widthString) ||
-			!isPercentageBased && !isPixelBasedSize(widthString)) {
-				// set the widthnumber to 0
-				widthNumber = 0;
-			}
-
-			return !isNaN(widthNumber) && widthNumber > 0 ?
-				widthNumber : getWidthFallback;
-		}
-
-		// Attempt to get the css width from column representative cells.
-		function getWidths(tableGrid, isPercentageBased, table) {
-
-			var cols = getColumnBlocks(tableGrid);
-
-			var backups = Tools.map(cols, function(col) {
-				return getInnerEdge(col.colIndex, col.element).x;
-			});
-
-			var widths = [];
-
-			for (var i = 0; i < cols.length; i++) {
-				var span = cols[i].element.hasAttribute('colspan') ? parseInt(cols[i].element.getAttribute('colspan'), 10) : 1;
-				// Deduce if the column has colspan of more than 1
-				var width = span > 1 ? deduceSize(backups, i) : getWidth(cols[i].element, isPercentageBased, table);
-				// If everything's failed and we still don't have a width
-				width = width ? width : RESIZE_MINIMUM_WIDTH;
-				widths.push(width);
-			}
-
-			return widths;
-		}
-
-		// Attempt to get the pixel height from a cell.
-		function getPixelHeight(element) {
-
-			var heightString = getStyleOrAttrib(element, 'height');
-
-			var heightNumber = parseInt(heightString, 10);
-
-			if (isPercentageBasedSize(heightString)) {
-				heightNumber = 0;
-			}
-
-			return !isNaN(heightNumber) && heightNumber > 0 ?
-							heightNumber : getComputedStyleSize(element, 'height');
-		}
-
-		// Attempt to get the css height from row representative cells.
-		function getPixelHeights(tableGrid) {
-
-			var rows = getRowBlocks(tableGrid);
-
-			var backups = Tools.map(rows, function(row) {
-				return getTopEdge(row.rowIndex, row.element).y;
-			});
-
-			var heights = [];
-
-			for (var i = 0; i < rows.length; i++) {
-				var span = rows[i].element.hasAttribute('rowspan') ? parseInt(rows[i].element.getAttribute('rowspan'), 10) : 1;
-
-				var height = span > 1 ? deduceSize(backups, i) : getPixelHeight(rows[i].element);
-
-				height = height ? height : RESIZE_MINIMUM_HEIGHT;
-				heights.push(height);
-			}
-
-			return heights;
-		}
-
-		// Determine how much each column's css width will need to change.
-		// Sizes = result = pixels widths OR percentage based widths
-		function determineDeltas(sizes, column, step, min, isPercentageBased) {
-
-			var result = sizes.slice(0);
-
-			function generateZeros(array) {
-				return Tools.map(array, function() {
-					return 0;
-				});
-			}
-
-			function onOneColumn() {
-				var deltas;
-				if (isPercentageBased) {
-					// If we have one column in a percent based table, that column should be 100% of the width of the table.
-					deltas = [100 - result[0]];
-				} else {
-					var newNext = Math.max(min, result[0] + step);
-					deltas = [newNext - result[0]];
-				}
-				return deltas;
-			}
-
-			function onLeftOrMiddle(index, next) {
-
-				var startZeros = generateZeros(result.slice(0, index));
-				var endZeros = generateZeros(result.slice(next + 1));
-				var deltas;
-
-				if (step >= 0) {
-					var newNext = Math.max(min, result[next] - step);
-					deltas = startZeros.concat([step, newNext - result[next]]).concat(endZeros);
-				} else {
-					var newThis = Math.max(min, result[index] + step);
-					var diffx = result[index] - newThis;
-					deltas = startZeros.concat([newThis - result[index], diffx]).concat(endZeros);
-				}
-
-				return deltas;
-			}
-
-			function onRight(previous, index) {
-				var startZeros = generateZeros(result.slice(0, index));
-				var deltas;
-
-				if (step >= 0) {
-					deltas = startZeros.concat([step]);
-				} else {
-					var size = Math.max(min, result[index] + step);
-					deltas = startZeros.concat([size - result[index]]);
-				}
-
-				return deltas;
-
-			}
-
-			var deltas;
-
-			if (sizes.length === 0) { // No Columns
-				deltas = [];
-			} else if (sizes.length === 1) { // One Column
-				deltas = onOneColumn();
-			} else if (column === 0) { // Left Column
-				deltas = onLeftOrMiddle(0, 1);
-			} else if (column > 0 && column < sizes.length - 1) { // Middle Column
-				deltas = onLeftOrMiddle(column, column + 1);
-			} else if (column === sizes.length - 1) { // Right Column
-				deltas = onRight(column - 1, column);
-			} else {
-				deltas = [];
-			}
-
-			return deltas;
-		}
-
-		function total(start, end, measures) {
-			var r = 0;
-			for (var i = start; i < end; i++) {
-				r += measures[i];
-			}
-			return r;
-		}
-
-		// Combine cell's css widths to determine widths of colspan'd cells.
-		function recalculateWidths(tableGrid, widths) {
-			var allCells = tableGrid.getAllCells();
-			return Tools.map(allCells, function(cell) {
-				var width = total(cell.colIndex, cell.colIndex + cell.colspan, widths);
-				return {
-					element: cell.element,
-					width: width,
-					colspan: cell.colspan
-				};
-			});
-		}
-
-		// Combine cell's css heights to determine heights of rowspan'd cells.
-		function recalculateCellHeights(tableGrid, heights) {
-			var allCells = tableGrid.getAllCells();
-			return Tools.map(allCells, function(cell) {
-				var height = total(cell.rowIndex, cell.rowIndex + cell.rowspan, heights);
-				return {
-					element: cell.element,
-					height: height,
-					rowspan: cell.rowspan
-				};
-			});
-		}
-
-		// Calculate row heights.
-		function recalculateRowHeights(tableGrid, heights) {
-			var allRows = tableGrid.getAllRows();
-			return Tools.map(allRows, function(row, i) {
-				return {
-					element: row.element,
-					height: heights[i]
-				};
-			});
-		}
-
-		function isPercentageBasedSize(size) {
-			return percentageBasedSizeRegex.test(size);
-		}
-
-		function isPixelBasedSize(size) {
-			return pixelBasedSizeRegex.test(size);
-		}
-
-		// Adjust the width of the column of table at index, with delta.
-		function adjustWidth(table, delta, index) {
-			var tableDetails = getTableDetails(table);
-			var tableGrid = getTableGrid(tableDetails);
-
-			function setSizes(newSizes, styleExtension) {
-				Tools.each(newSizes, function(cell) {
-					editor.dom.setStyle(cell.element, 'width', cell.width + styleExtension);
-					editor.dom.setAttrib(cell.element, 'width', null);
-				});
-			}
-
-			function getNewTablePercentWidth() {
-				return index < tableGrid.grid.maxCols - 1 ? getCurrentTablePercentWidth(table) :
-					getCurrentTablePercentWidth(table) + getTablePercentDelta(table, delta);
-			}
-
-			function getNewTablePixelWidth() {
-				return index < tableGrid.grid.maxCols - 1 ? getComputedStyleSize(table, 'width') :
-					getComputedStyleSize(table, 'width') + delta;
-			}
-
-			function setTableSize(newTableWidth, styleExtension, isPercentBased) {
-				if (index == tableGrid.grid.maxCols - 1 || !isPercentBased) {
-					editor.dom.setStyle(table, 'width', newTableWidth + styleExtension);
-					editor.dom.setAttrib(table, 'width', null);
-				}
-			}
-
-			var percentageBased = isPercentageBasedSize(table.width) ||
-				isPercentageBasedSize(table.style.width);
-
-			var widths = getWidths(tableGrid, percentageBased, table);
-
-			var step = percentageBased ? getCellPercentDelta(table, delta) : delta;
-			// TODO: change the min for percentage maybe?
-			var deltas = determineDeltas(widths, index, step, RESIZE_MINIMUM_WIDTH, percentageBased, table);
-			var newWidths = [];
-
-			for (var i = 0; i < deltas.length; i++) {
-				newWidths.push(deltas[i] + widths[i]);
-			}
-
-			var newSizes = recalculateWidths(tableGrid, newWidths);
-			var styleExtension = percentageBased ? '%' : 'px';
-			var newTableWidth = percentageBased ? getNewTablePercentWidth() :
-				getNewTablePixelWidth();
-
-			editor.undoManager.transact(function() {
-				setSizes(newSizes, styleExtension);
-				setTableSize(newTableWidth, styleExtension, percentageBased);
-			});
-		}
-
-		// Adjust the height of the row of table at index, with delta.
-		function adjustHeight(table, delta, index) {
-			var tableDetails = getTableDetails(table);
-			var tableGrid = getTableGrid(tableDetails);
-
-			var heights = getPixelHeights(tableGrid);
-
-			var newHeights = [], newTotalHeight = 0;
-
-			for (var i = 0; i < heights.length; i++) {
-				newHeights.push(i === index ? delta + heights[i] : heights[i]);
-				newTotalHeight += newTotalHeight[i];
-			}
-
-			var newCellSizes = recalculateCellHeights(tableGrid, newHeights);
-			var newRowSizes = recalculateRowHeights(tableGrid, newHeights);
-
-			editor.undoManager.transact(function() {
-
-				Tools.each(newRowSizes, function(row) {
-					editor.dom.setStyle(row.element, 'height', row.height + 'px');
-					editor.dom.setAttrib(row.element, 'height', null);
-				});
-
-				Tools.each(newCellSizes, function(cell) {
-					editor.dom.setStyle(cell.element, 'height', cell.height + 'px');
-					editor.dom.setAttrib(cell.element, 'height', null);
-				});
-
-				editor.dom.setStyle(table, 'height', newTotalHeight + 'px');
-				editor.dom.setAttrib(table, 'height', null);
-			});
-		}
-
-		function scheduleDelayedDropEvent() {
-			delayDrop = setTimeout(function() {
-				drop();
-			}, 200);
-		}
-
-		function cancelDelayedDropEvent() {
-			clearTimeout(delayDrop);
-		}
-
-		function getBlockerElement() {
-			var blocker = document.createElement('div');
-
-			blocker.setAttribute('style', 'margin: 0; ' +
-						'padding: 0; ' +
-						'position: fixed; ' +
-						'left: 0px; ' +
-						'top: 0px; ' +
-						'height: 100%; ' +
-						'width: 100%;');
-			blocker.setAttribute('data-mce-bogus', 'all');
-
-			return blocker;
-		}
-
-		function bindBlockerEvents(blocker, dragHandler) {
-			editor.dom.bind(blocker, 'mouseup', function() {
-				drop();
-			});
-
-			editor.dom.bind(blocker, 'mousemove', function(e) {
-				cancelDelayedDropEvent();
-
-				if (dragging) {
-					dragHandler(e);
-				}
-			});
-
-			editor.dom.bind(blocker, 'mouseout', function() {
-				scheduleDelayedDropEvent();
-			});
-
-		}
-
-		function drop() {
-			editor.dom.remove(blockerElement);
-
-			if (dragging) {
-				editor.dom.removeClass(dragBar, RESIZE_BAR_DRAGGING_CLASS);
-				dragging = false;
-
-				var index, delta;
-
-				if (isCol(dragBar)) {
-					var initialLeft = parseInt(editor.dom.getAttrib(dragBar, RESIZE_BAR_COL_DATA_INITIAL_LEFT_ATTRIBUTE), 10);
-					var newLeft = editor.dom.getPos(dragBar).x;
-					index = parseInt(editor.dom.getAttrib(dragBar, RESIZE_BAR_COL_DATA_ATTRIBUTE), 10);
-					delta = isRtl() ? initialLeft - newLeft : newLeft - initialLeft;
-					if (Math.abs(delta) >= 1) {			// simple click with no real resize (<1px) must not add CSS properties
-						adjustWidth(hoverTable, delta, index);
-					}
-				} else if (isRow(dragBar)) {
-					var initialTop = parseInt(editor.dom.getAttrib(dragBar, RESIZE_BAR_ROW_DATA_INITIAL_TOP_ATTRIBUTE), 10);
-					var newTop = editor.dom.getPos(dragBar).y;
-					index = parseInt(editor.dom.getAttrib(dragBar, RESIZE_BAR_ROW_DATA_ATTRIBUTE), 10);
-					delta = newTop - initialTop;
-					if (Math.abs(delta) >= 1) {			// simple click with no real resize (<1px) must not add CSS properties
-						adjustHeight(hoverTable, delta, index);
-					}
-				}
-				refreshBars(hoverTable);
-				editor.nodeChanged();
-			}
-		}
-
-		function setupBaseDrag(bar, dragHandler) {
-			blockerElement = blockerElement ? blockerElement : getBlockerElement();
-			dragging = true;
-			editor.dom.addClass(bar, RESIZE_BAR_DRAGGING_CLASS);
-			dragBar = bar;
-			bindBlockerEvents(blockerElement, dragHandler);
-			editor.dom.add(getBody(), blockerElement);
-		}
-
-		function isCol(target) {
-			return editor.dom.hasClass(target, RESIZE_BAR_COL_CLASS);
-		}
-
-		function isRow(target) {
-			return editor.dom.hasClass(target, RESIZE_BAR_ROW_CLASS);
-		}
-
-		function colDragHandler(event) {
-			lastX = lastX !== undefined ? lastX : event.clientX; // we need a firstX
-			var deltaX = event.clientX - lastX;
-			lastX = event.clientX;
-			var oldLeft = editor.dom.getPos(dragBar).x;
-			editor.dom.setStyle(dragBar, 'left', oldLeft + deltaX + 'px');
-		}
-
-		function rowDragHandler(event) {
-			lastY = lastY !== undefined ? lastY : event.clientY;
-			var deltaY = event.clientY - lastY;
-			lastY = event.clientY;
-			var oldTop = editor.dom.getPos(dragBar).y;
-			editor.dom.setStyle(dragBar, 'top', oldTop + deltaY + 'px');
-		}
-
-		function setupColDrag(bar) {
-			lastX = undefined;
-			setupBaseDrag(bar, colDragHandler);
-		}
-
-		function setupRowDrag(bar) {
-			lastY = undefined;
-			setupBaseDrag(bar, rowDragHandler);
-		}
-
-		function mouseDownHandler(e) {
-			var target = e.target, body = editor.getBody();
-
-			// Since this code is working on global events we need to work on a global hoverTable state
-			// and make sure that the state is correct according to the events fired
-			if (!editor.$.contains(body, hoverTable) && hoverTable !== body) {
-				return;
-			}
-
-			if (isCol(target)) {
-				e.preventDefault();
-				var initialLeft = editor.dom.getPos(target).x;
-				editor.dom.setAttrib(target, RESIZE_BAR_COL_DATA_INITIAL_LEFT_ATTRIBUTE, initialLeft);
-				setupColDrag(target);
-			} else if (isRow(target)) {
-				e.preventDefault();
-				var initialTop = editor.dom.getPos(target).y;
-				editor.dom.setAttrib(target, RESIZE_BAR_ROW_DATA_INITIAL_TOP_ATTRIBUTE, initialTop);
-				setupRowDrag(target);
-			} else {
-				clearBars();
-			}
-		}
-
-		editor.on('init', function() {
-			// Needs to be like this for inline mode, editor.on does not bind to elements in the document body otherwise
-			editor.dom.bind(getBody(), 'mousedown', mouseDownHandler);
-		});
-
-		// If we're updating the table width via the old mechanic, we need to update the constituent cells' widths/heights too.
-		editor.on('ObjectResized', function(e) {
-			var table = e.target;
-			if (table.nodeName === 'TABLE') {
-				var newCellSizes = [];
-				Tools.each(table.rows, function(row) {
-					Tools.each(row.cells, function(cell) {
-						var width = editor.dom.getStyle(cell, 'width', true);
-						newCellSizes.push({
-							cell: cell,
-							width: width
-						});
-					});
-				});
-				Tools.each(newCellSizes, function(newCellSize) {
-					editor.dom.setStyle(newCellSize.cell, 'width', newCellSize.width);
-					editor.dom.setAttrib(newCellSize.cell, 'width', null);
-				});
-			}
-		});
-
-		editor.on('mouseover', function(e) {
-			if (!dragging) {
-				var tableElement = editor.dom.getParent(e.target, 'table');
-
-				if (e.target.nodeName === 'TABLE' || tableElement) {
-					hoverTable = tableElement;
-					refreshBars(tableElement);
-				}
-			}
-		});
-
-		// Prevents the user from moving the caret inside the resize bars on Chrome
-		// Only does it on arrow keys since clearBars might be an epxensive operation
-		// since it's querying the DOM
-		editor.on('keydown', function(e) {
-			switch (e.keyCode) {
-				case VK.LEFT:
-				case VK.RIGHT:
-				case VK.UP:
-				case VK.DOWN:
-					clearBars();
-					break;
-			}
-		});
-
-		editor.on('remove', function() {
-			clearBars();
-			editor.dom.unbind(getBody(), 'mousedown', mouseDownHandler);
-		});
-
-		return {
-			adjustWidth: adjustWidth,
-			adjustHeight: adjustHeight,
-			clearBars: clearBars,
-			drawBars: drawBars,
-			determineDeltas: determineDeltas,
-			getTableGrid: getTableGrid,
-			getTableDetails: getTableDetails,
-			getWidths: getWidths,
-			getPixelHeights: getPixelHeights,
-			isPercentageBasedSize: isPercentageBasedSize,
-			isPixelBasedSize: isPixelBasedSize,
-			recalculateWidths: recalculateWidths,
-			recalculateCellHeights: recalculateCellHeights,
-			recalculateRowHeights: recalculateRowHeights
-		};
-	};
-});
-
-// Included from: js/tinymce/plugins/table/classes/Plugin.js
-
-/**
- * Plugin.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2015 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
-
-/**
- * This class contains all core logic for the table plugin.
- *
- * @class tinymce.tableplugin.Plugin
- * @private
- */
-define("tinymce/tableplugin/Plugin", [
-	"tinymce/tableplugin/TableGrid",
-	"tinymce/tableplugin/Quirks",
-	"tinymce/tableplugin/CellSelection",
-	"tinymce/tableplugin/Dialogs",
-	"tinymce/tableplugin/ResizeBars",
-	"tinymce/util/Tools",
-	"tinymce/dom/TreeWalker",
-	"tinymce/Env",
-	"tinymce/PluginManager"
-], function(TableGrid, Quirks, CellSelection, Dialogs, ResizeBars, Tools, TreeWalker, Env, PluginManager) {
-	var each = Tools.each;
-
-	function Plugin(editor) {
-		var clipboardRows, self = this, dialogs = new Dialogs(editor), resizeBars;
-
-		if (editor.settings.object_resizing && editor.settings.table_resize_bars !== false &&
-			(editor.settings.object_resizing === true || editor.settings.object_resizing === 'table')) {
-			resizeBars = ResizeBars(editor);
-		}
-
-		function cmd(command) {
-			return function() {
-				editor.execCommand(command);
-			};
-		}
-
-		function insertTable(cols, rows) {
-			var y, x, html, tableElm;
-
-			html = '<table id="__mce"><tbody>';
-
-			for (y = 0; y < rows; y++) {
-				html += '<tr>';
-
-				for (x = 0; x < cols; x++) {
-					html += '<td>' + (Env.ie && Env.ie < 10 ? '&nbsp;' : '<br>') + '</td>';
-				}
-
-				html += '</tr>';
-			}
-
-			html += '</tbody></table>';
-
-			editor.undoManager.transact(function() {
-				editor.insertContent(html);
-
-				tableElm = editor.dom.get('__mce');
-				editor.dom.setAttrib(tableElm, 'id', null);
-
-				editor.$('tr', tableElm).each(function(index, row) {
-					editor.fire('newrow', {
-						node: row
-					});
-
-					editor.$('th,td', row).each(function(index, cell) {
-						editor.fire('newcell', {
-							node: cell
-						});
-					});
-				});
-
-				editor.dom.setAttribs(tableElm, editor.settings.table_default_attributes || {});
-				editor.dom.setStyles(tableElm, editor.settings.table_default_styles || {});
-			});
-
-			return tableElm;
-		}
-
-		function handleDisabledState(ctrl, selector, sameParts) {
-			function bindStateListener() {
-				var selectedElm, selectedCells, parts = {}, sum = 0, state;
-
-				selectedCells = editor.dom.select('td[data-mce-selected],th[data-mce-selected]');
-				selectedElm = selectedCells[0];
-				if (!selectedElm) {
-					selectedElm = editor.selection.getStart();
-				}
-
-				// Make sure that we don't have a selection inside thead and tbody at the same time
-				if (sameParts && selectedCells.length > 0) {
-					each(selectedCells, function(cell) {
-						return parts[cell.parentNode.parentNode.nodeName] = 1;
-					});
-
-					each(parts, function(value) {
-						sum += value;
-					});
-
-					state = sum !== 1;
-				} else {
-					state = !editor.dom.getParent(selectedElm, selector);
-				}
-
-				ctrl.disabled(state);
-
-				editor.selection.selectorChanged(selector, function(state) {
-					ctrl.disabled(!state);
-				});
-			}
-
-			if (editor.initialized) {
-				bindStateListener();
-			} else {
-				editor.on('init', bindStateListener);
-			}
-		}
-
-		function postRender() {
-			/*jshint validthis:true*/
-			handleDisabledState(this, 'table');
-		}
-
-		function postRenderCell() {
-			/*jshint validthis:true*/
-			handleDisabledState(this, 'td,th');
-		}
-
-		function postRenderMergeCell() {
-			/*jshint validthis:true*/
-			handleDisabledState(this, 'td,th', true);
-		}
-
-		function generateTableGrid() {
-			var html = '';
-
-			html = '<table role="grid" class="mce-grid mce-grid-border" aria-readonly="true">';
-
-			for (var y = 0; y < 10; y++) {
-				html += '<tr>';
-
-				for (var x = 0; x < 10; x++) {
-					html += '<td role="gridcell" tabindex="-1"><a id="mcegrid' + (y * 10 + x) + '" href="#" ' +
-						'data-mce-x="' + x + '" data-mce-y="' + y + '"></a></td>';
-				}
-
-				html += '</tr>';
-			}
-
-			html += '</table>';
-
-			html += '<div class="mce-text-center" role="presentation">1 x 1</div>';
-
-			return html;
-		}
-
-		function selectGrid(tx, ty, control) {
-			var table = control.getEl().getElementsByTagName('table')[0];
-			var x, y, focusCell, cell, active;
-			var rtl = control.isRtl() || control.parent().rel == 'tl-tr';
-
-			table.nextSibling.innerHTML = (tx + 1) + ' x ' + (ty + 1);
-
-			if (rtl) {
-				tx = 9 - tx;
-			}
-
-			for (y = 0; y < 10; y++) {
-				for (x = 0; x < 10; x++) {
-					cell = table.rows[y].childNodes[x].firstChild;
-					active = (rtl ? x >= tx : x <= tx) && y <= ty;
-
-					editor.dom.toggleClass(cell, 'mce-active', active);
-
-					if (active) {
-						focusCell = cell;
-					}
-				}
-			}
-
-			return focusCell.parentNode;
-		}
-
-		if (editor.settings.table_grid === false) {
-			editor.addMenuItem('inserttable', {
-				text: 'Table',
-				icon: 'table',
-				context: 'table',
-				onclick: dialogs.table
-			});
-		} else {
-			editor.addMenuItem('inserttable', {
-				text: 'Table',
-				icon: 'table',
-				context: 'table',
-				ariaHideMenu: true,
-				onclick: function(e) {
-					if (e.aria) {
-						this.parent().hideAll();
-						e.stopImmediatePropagation();
-						dialogs.table();
-					}
-				},
-				onshow: function() {
-					selectGrid(0, 0, this.menu.items()[0]);
-				},
-				onhide: function() {
-					var elements = this.menu.items()[0].getEl().getElementsByTagName('a');
-					editor.dom.removeClass(elements, 'mce-active');
-					editor.dom.addClass(elements[0], 'mce-active');
-				},
-				menu: [
-					{
-						type: 'container',
-						html: generateTableGrid(),
-
-						onPostRender: function() {
-							this.lastX = this.lastY = 0;
-						},
-
-						onmousemove: function(e) {
-							var target = e.target, x, y;
-
-							if (target.tagName.toUpperCase() == 'A') {
-								x = parseInt(target.getAttribute('data-mce-x'), 10);
-								y = parseInt(target.getAttribute('data-mce-y'), 10);
-
-								if (this.isRtl() || this.parent().rel == 'tl-tr') {
-									x = 9 - x;
-								}
-
-								if (x !== this.lastX || y !== this.lastY) {
-									selectGrid(x, y, e.control);
-
-									this.lastX = x;
-									this.lastY = y;
-								}
-							}
-						},
-
-						onclick: function(e) {
-							var self = this;
-
-							if (e.target.tagName.toUpperCase() == 'A') {
-								e.preventDefault();
-								e.stopPropagation();
-								self.parent().cancel();
-
-								editor.undoManager.transact(function() {
-									insertTable(self.lastX + 1, self.lastY + 1);
-								});
-
-								editor.addVisual();
-							}
-						}
-					}
-				]
-			});
-		}
-
-		editor.addMenuItem('tableprops', {
-			text: 'Table properties',
-			context: 'table',
-			onPostRender: postRender,
-			onclick: dialogs.tableProps
-		});
-
-		editor.addMenuItem('deletetable', {
-			text: 'Delete table',
-			context: 'table',
-			onPostRender: postRender,
-			cmd: 'mceTableDelete'
-		});
-
-		editor.addMenuItem('cell', {
-			separator: 'before',
-			text: 'Cell',
-			context: 'table',
-			menu: [
-				{text: 'Cell properties', onclick: cmd('mceTableCellProps'), onPostRender: postRenderCell},
-				{text: 'Merge cells', onclick: cmd('mceTableMergeCells'), onPostRender: postRenderMergeCell},
-				{text: 'Split cell', onclick: cmd('mceTableSplitCells'), onPostRender: postRenderCell}
-			]
-		});
-
-		editor.addMenuItem('row', {
-			text: 'Row',
-			context: 'table',
-			menu: [
-				{text: 'Insert row before', onclick: cmd('mceTableInsertRowBefore'), onPostRender: postRenderCell},
-				{text: 'Insert row after', onclick: cmd('mceTableInsertRowAfter'), onPostRender: postRenderCell},
-				{text: 'Delete row', onclick: cmd('mceTableDeleteRow'), onPostRender: postRenderCell},
-				{text: 'Row properties', onclick: cmd('mceTableRowProps'), onPostRender: postRenderCell},
-				{text: '-'},
-				{text: 'Cut row', onclick: cmd('mceTableCutRow'), onPostRender: postRenderCell},
-				{text: 'Copy row', onclick: cmd('mceTableCopyRow'), onPostRender: postRenderCell},
-				{text: 'Paste row before', onclick: cmd('mceTablePasteRowBefore'), onPostRender: postRenderCell},
-				{text: 'Paste row after', onclick: cmd('mceTablePasteRowAfter'), onPostRender: postRenderCell}
-			]
-		});
-
-		editor.addMenuItem('column', {
-			text: 'Column',
-			context: 'table',
-			menu: [
-				{text: 'Insert column before', onclick: cmd('mceTableInsertColBefore'), onPostRender: postRenderCell},
-				{text: 'Insert column after', onclick: cmd('mceTableInsertColAfter'), onPostRender: postRenderCell},
-				{text: 'Delete column', onclick: cmd('mceTableDeleteCol'), onPostRender: postRenderCell}
-			]
-		});
-
-		var menuItems = [];
-		each("inserttable tableprops deletetable | cell row column".split(' '), function(name) {
-			if (name == '|') {
-				menuItems.push({text: '-'});
-			} else {
-				menuItems.push(editor.menuItems[name]);
-			}
-		});
-
-		editor.addButton("table", {
-			type: "menubutton",
-			title: "Table",
-			menu: menuItems
-		});
-
-		// Select whole table is a table border is clicked
-		if (!Env.isIE) {
-			editor.on('click', function(e) {
-				e = e.target;
-
-				if (e.nodeName === 'TABLE') {
-					editor.selection.select(e);
-					editor.nodeChanged();
-				}
-			});
-		}
-
-		self.quirks = new Quirks(editor);
-
-		editor.on('Init', function() {
-			self.cellSelection = new CellSelection(editor, function (selecting) {
-				if (selecting && resizeBars) {
-					resizeBars.clearBars();
-				}
-			});
-			self.resizeBars = resizeBars;
-		});
-
-		editor.on('PreInit', function() {
-			// Remove internal data attributes
-			editor.serializer.addAttributeFilter(
-				'data-mce-cell-padding,data-mce-border,data-mce-border-color',
-				function(nodes, name) {
-
-					var i = nodes.length;
-
-					while (i--) {
-						nodes[i].attr(name, null);
-					}
-				});
-		});
-
-		// Register action commands
-		each({
-			mceTableSplitCells: function(grid) {
-				grid.split();
-			},
-
-			mceTableMergeCells: function(grid) {
-				var cell;
-
-				cell = editor.dom.getParent(editor.selection.getStart(), 'th,td');
-
-				if (!editor.dom.select('td[data-mce-selected],th[data-mce-selected]').length) {
-					dialogs.merge(grid, cell);
-				} else {
-					grid.merge();
-				}
-			},
-
-			mceTableInsertRowBefore: function(grid) {
-				grid.insertRows(true);
-			},
-
-			mceTableInsertRowAfter: function(grid) {
-				grid.insertRows();
-			},
-
-			mceTableInsertColBefore: function(grid) {
-				grid.insertCols(true);
-			},
-
-			mceTableInsertColAfter: function(grid) {
-				grid.insertCols();
-			},
-
-			mceTableDeleteCol: function(grid) {
-				grid.deleteCols();
-			},
-
-			mceTableDeleteRow: function(grid) {
-				grid.deleteRows();
-			},
-
-			mceTableCutRow: function(grid) {
-				clipboardRows = grid.cutRows();
-			},
-
-			mceTableCopyRow: function(grid) {
-				clipboardRows = grid.copyRows();
-			},
-
-			mceTablePasteRowBefore: function(grid) {
-				grid.pasteRows(clipboardRows, true);
-			},
-
-			mceTablePasteRowAfter: function(grid) {
-				grid.pasteRows(clipboardRows);
-			},
-
-			mceSplitColsBefore: function(grid) {
-				grid.splitCols(true);
-			},
-
-			mceSplitColsAfter: function(grid) {
-				grid.splitCols(false);
-			},
-
-			mceTableDelete: function(grid) {
-				if (resizeBars) {
-					resizeBars.clearBars();
-				}
-				grid.deleteTable();
-			}
-		}, function(func, name) {
-			editor.addCommand(name, function() {
-				var grid = new TableGrid(editor);
-
-				if (grid) {
-					func(grid);
-					editor.execCommand('mceRepaint');
-					self.cellSelection.clear();
-				}
-			});
-		});
-
-		// Register dialog commands
-		each({
-			mceInsertTable: dialogs.table,
-			mceTableProps: function() {
-				dialogs.table(true);
-			},
-			mceTableRowProps: dialogs.row,
-			mceTableCellProps: dialogs.cell
-		}, function(func, name) {
-			editor.addCommand(name, function(ui, val) {
-				func(val);
-			});
-		});
-
-		function addButtons() {
-			editor.addButton('tableprops', {
-				title: 'Table properties',
-				onclick: dialogs.tableProps,
-				icon: 'table'
-			});
-
-			editor.addButton('tabledelete', {
-				title: 'Delete table',
-				onclick: cmd('mceTableDelete')
-			});
-
-			editor.addButton('tablecellprops', {
-				title: 'Cell properties',
-				onclick: cmd('mceTableCellProps')
-			});
-
-			editor.addButton('tablemergecells', {
-				title: 'Merge cells',
-				onclick: cmd('mceTableMergeCells')
-			});
-
-			editor.addButton('tablesplitcells', {
-				title: 'Split cell',
-				onclick: cmd('mceTableSplitCells')
-			});
-
-			editor.addButton('tableinsertrowbefore', {
-				title: 'Insert row before',
-				onclick: cmd('mceTableInsertRowBefore')
-			});
-
-			editor.addButton('tableinsertrowafter', {
-				title: 'Insert row after',
-				onclick: cmd('mceTableInsertRowAfter')
-			});
-
-			editor.addButton('tabledeleterow', {
-				title: 'Delete row',
-				onclick: cmd('mceTableDeleteRow')
-			});
-
-			editor.addButton('tablerowprops', {
-				title: 'Row properties',
-				onclick: cmd('mceTableRowProps')
-			});
-
-			editor.addButton('tablecutrow', {
-				title: 'Cut row',
-				onclick: cmd('mceTableCutRow')
-			});
-
-			editor.addButton('tablecopyrow', {
-				title: 'Copy row',
-				onclick: cmd('mceTableCopyRow')
-			});
-
-			editor.addButton('tablepasterowbefore', {
-				title: 'Paste row before',
-				onclick: cmd('mceTablePasteRowBefore')
-			});
-
-			editor.addButton('tablepasterowafter', {
-				title: 'Paste row after',
-				onclick: cmd('mceTablePasteRowAfter')
-			});
-
-			editor.addButton('tableinsertcolbefore', {
-				title: 'Insert column before',
-				onclick: cmd('mceTableInsertColBefore')
-			});
-
-			editor.addButton('tableinsertcolafter', {
-				title: 'Insert column after',
-				onclick: cmd('mceTableInsertColAfter')
-			});
-
-			editor.addButton('tabledeletecol', {
-				title: 'Delete column',
-				onclick: cmd('mceTableDeleteCol')
-			});
-
-		}
-
-		function isTable(table) {
-
-			var selectorMatched = editor.dom.is(table, 'table') && editor.getBody().contains(table);
-
-			return selectorMatched;
-		}
-
-		function addToolbars() {
-			var toolbarItems = editor.settings.table_toolbar;
-
-			if (toolbarItems === '' || toolbarItems === false) {
-				return;
-			}
-
-			if (!toolbarItems) {
-				toolbarItems = 'tableprops tabledelete | ' +
-					'tableinsertrowbefore tableinsertrowafter tabledeleterow | ' +
-					'tableinsertcolbefore tableinsertcolafter tabledeletecol';
-			}
-
-			editor.addContextToolbar(
-				isTable,
-				toolbarItems
-			);
-		}
-
-		function getClipboardRows() {
-			return clipboardRows;
-		}
-
-		function setClipboardRows(rows) {
-			clipboardRows = rows;
-		}
-
-		addButtons();
-		addToolbars();
-
-		// Enable tab key cell navigation
-		if (editor.settings.table_tab_navigation !== false) {
-			editor.on('keydown', function(e) {
-				var cellElm, grid, delta;
-
-				if (e.keyCode == 9) {
-					cellElm = editor.dom.getParent(editor.selection.getStart(), 'th,td');
-
-					if (cellElm) {
-						e.preventDefault();
-
-						grid = new TableGrid(editor);
-						delta = e.shiftKey ? -1 : 1;
-
-						editor.undoManager.transact(function() {
-							if (!grid.moveRelIdx(cellElm, delta) && delta > 0) {
-								grid.insertRow();
-								grid.refresh();
-								grid.moveRelIdx(cellElm, delta);
-							}
-						});
-					}
-				}
-			});
-		}
-
-		self.insertTable = insertTable;
-		self.setClipboardRows = setClipboardRows;
-		self.getClipboardRows = getClipboardRows;
-	}
-
-	PluginManager.add('table', Plugin);
-});
-})(window);
-
-/***/ }),
-/* 177 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// Exports the "code" plugin for usage with module loaders
-// Usage:
-//   CommonJS:
-//     require('tinymce/plugins/code')
-//   ES2015:
-//     import 'tinymce/plugins/code'
-__webpack_require__(178);
-
-/***/ }),
-/* 178 */
-/***/ (function(module, exports) {
-
-/**
- * plugin.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2015 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
-
-/*global tinymce:true */
-
-tinymce.PluginManager.add('code', function(editor) {
-	function showDialog() {
-		var win = editor.windowManager.open({
-			title: "Source code",
-			body: {
-				type: 'textbox',
-				name: 'code',
-				multiline: true,
-				minWidth: editor.getParam("code_dialog_width", 600),
-				minHeight: editor.getParam("code_dialog_height", Math.min(tinymce.DOM.getViewPort().h - 200, 500)),
-				spellcheck: false,
-				style: 'direction: ltr; text-align: left'
-			},
-			onSubmit: function(e) {
-				// We get a lovely "Wrong document" error in IE 11 if we
-				// don't move the focus to the editor before creating an undo
-				// transation since it tries to make a bookmark for the current selection
-				editor.focus();
-
-				editor.undoManager.transact(function() {
-					editor.setContent(e.data.code);
-				});
-
-				editor.selection.setCursorLocation();
-				editor.nodeChanged();
-			}
-		});
-
-		// Gecko has a major performance issue with textarea
-		// contents so we need to set it when all reflows are done
-		win.find('#code').value(editor.getContent({source_view: true}));
-	}
-
-	editor.addCommand("mceCodeEditor", showDialog);
-
-	editor.addButton('code', {
-		icon: 'code',
-		tooltip: 'Source code',
-		onclick: showDialog
-	});
-
-	editor.addMenuItem('code', {
-		icon: 'code',
-		text: 'Source code',
-		context: 'tools',
-		onclick: showDialog
-	});
-});
-
-/***/ }),
-/* 179 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// Exports the "wordcount" plugin for usage with module loaders
-// Usage:
-//   CommonJS:
-//     require('tinymce/plugins/wordcount')
-//   ES2015:
-//     import 'tinymce/plugins/wordcount'
-__webpack_require__(180);
-
-/***/ }),
-/* 180 */
-/***/ (function(module, exports) {
-
-(function () {
-
-var defs = {}; // id -> {dependencies, definition, instance (possibly undefined)}
-
-// Used when there is no 'main' module.
-// The name is probably (hopefully) unique so minification removes for releases.
-var register_3795 = function (id) {
-  var module = dem(id);
-  var fragments = id.split('.');
-  var target = Function('return this;')();
-  for (var i = 0; i < fragments.length - 1; ++i) {
-    if (target[fragments[i]] === undefined)
-      target[fragments[i]] = {};
-    target = target[fragments[i]];
-  }
-  target[fragments[fragments.length - 1]] = module;
-};
-
-var instantiate = function (id) {
-  var actual = defs[id];
-  var dependencies = actual.deps;
-  var definition = actual.defn;
-  var len = dependencies.length;
-  var instances = new Array(len);
-  for (var i = 0; i < len; ++i)
-    instances[i] = dem(dependencies[i]);
-  var defResult = definition.apply(null, instances);
-  if (defResult === undefined)
-     throw 'module [' + id + '] returned undefined';
-  actual.instance = defResult;
-};
-
-var def = function (id, dependencies, definition) {
-  if (typeof id !== 'string')
-    throw 'module id must be a string';
-  else if (dependencies === undefined)
-    throw 'no dependencies for ' + id;
-  else if (definition === undefined)
-    throw 'no definition function for ' + id;
-  defs[id] = {
-    deps: dependencies,
-    defn: definition,
-    instance: undefined
-  };
-};
-
-var dem = function (id) {
-  var actual = defs[id];
-  if (actual === undefined)
-    throw 'module [' + id + '] was undefined';
-  else if (actual.instance === undefined)
-    instantiate(id);
-  return actual.instance;
-};
-
-var req = function (ids, callback) {
-  var len = ids.length;
-  var instances = new Array(len);
-  for (var i = 0; i < len; ++i)
-    instances.push(dem(ids[i]));
-  callback.apply(null, callback);
-};
-
-var ephox = {};
-
-ephox.bolt = {
-  module: {
-    api: {
-      define: def,
-      require: req,
-      demand: dem
-    }
-  }
-};
-
-var define = def;
-var require = req;
-var demand = dem;
-// this helps with minificiation when using a lot of global references
-var defineGlobal = function (id, ref) {
-  define(id, [], function () { return ref; });
-};
-/*jsc
-["tinymce.wordcount.Plugin","global!tinymce.PluginManager","global!tinymce.util.Delay","tinymce.wordcount.text.WordGetter","tinymce.wordcount.text.UnicodeData","tinymce.wordcount.text.StringMapper","tinymce.wordcount.text.WordBoundary","tinymce.wordcount.alien.Arr"]
-jsc*/
-defineGlobal("global!tinymce.PluginManager", tinymce.PluginManager);
-defineGlobal("global!tinymce.util.Delay", tinymce.util.Delay);
-/**
- * UnicodeData.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2016 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
-/* eslint-disable max-len */
-
-define("tinymce.wordcount.text.UnicodeData", [], function() {
-	var regExps = {
-		aletter: '[A-Za-z\u00AA\u00B5\u00BA\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02C1\u02C6-\u02D1\u02E0-\u02E4\u02EC\u02EE\u0370-\u0374\u0376\u0377\u037A-\u037D\u0386\u0388-\u038A\u038C\u038E-\u03A1\u03A3-\u03F5\u03F7-\u0481\u048A-\u0527\u0531-\u0556\u0559\u0561-\u0587\u05D0-\u05EA\u05F0-\u05F3\u0620-\u064A\u066E\u066F\u0671-\u06D3\u06D5\u06E5\u06E6\u06EE\u06EF\u06FA-\u06FC\u06FF\u0710\u0712-\u072F\u074D-\u07A5\u07B1\u07CA-\u07EA\u07F4\u07F5\u07FA\u0800-\u0815\u081A\u0824\u0828\u0840-\u0858\u0904-\u0939\u093D\u0950\u0958-\u0961\u0971-\u0977\u0979-\u097F\u0985-\u098C\u098F\u0990\u0993-\u09A8\u09AA-\u09B0\u09B2\u09B6-\u09B9\u09BD\u09CE\u09DC\u09DD\u09DF-\u09E1\u09F0\u09F1\u0A05-\u0A0A\u0A0F\u0A10\u0A13-\u0A28\u0A2A-\u0A30\u0A32\u0A33\u0A35\u0A36\u0A38\u0A39\u0A59-\u0A5C\u0A5E\u0A72-\u0A74\u0A85-\u0A8D\u0A8F-\u0A91\u0A93-\u0AA8\u0AAA-\u0AB0\u0AB2\u0AB3\u0AB5-\u0AB9\u0ABD\u0AD0\u0AE0\u0AE1\u0B05-\u0B0C\u0B0F\u0B10\u0B13-\u0B28\u0B2A-\u0B30\u0B32\u0B33\u0B35-\u0B39\u0B3D\u0B5C\u0B5D\u0B5F-\u0B61\u0B71\u0B83\u0B85-\u0B8A\u0B8E-\u0B90\u0B92-\u0B95\u0B99\u0B9A\u0B9C\u0B9E\u0B9F\u0BA3\u0BA4\u0BA8-\u0BAA\u0BAE-\u0BB9\u0BD0\u0C05-\u0C0C\u0C0E-\u0C10\u0C12-\u0C28\u0C2A-\u0C33\u0C35-\u0C39\u0C3D\u0C58\u0C59\u0C60\u0C61\u0C85-\u0C8C\u0C8E-\u0C90\u0C92-\u0CA8\u0CAA-\u0CB3\u0CB5-\u0CB9\u0CBD\u0CDE\u0CE0\u0CE1\u0CF1\u0CF2\u0D05-\u0D0C\u0D0E-\u0D10\u0D12-\u0D3A\u0D3D\u0D4E\u0D60\u0D61\u0D7A-\u0D7F\u0D85-\u0D96\u0D9A-\u0DB1\u0DB3-\u0DBB\u0DBD\u0DC0-\u0DC6\u0F00\u0F40-\u0F47\u0F49-\u0F6C\u0F88-\u0F8C\u10A0-\u10C5\u10D0-\u10FA\u10FC\u1100-\u1248\u124A-\u124D\u1250-\u1256\u1258\u125A-\u125D\u1260-\u1288\u128A-\u128D\u1290-\u12B0\u12B2-\u12B5\u12B8-\u12BE\u12C0\u12C2-\u12C5\u12C8-\u12D6\u12D8-\u1310\u1312-\u1315\u1318-\u135A\u1380-\u138F\u13A0-\u13F4\u1401-\u166C\u166F-\u167F\u1681-\u169A\u16A0-\u16EA\u16EE-\u16F0\u1700-\u170C\u170E-\u1711\u1720-\u1731\u1740-\u1751\u1760-\u176C\u176E-\u1770\u1820-\u1877\u1880-\u18A8\u18AA\u18B0-\u18F5\u1900-\u191C\u1A00-\u1A16\u1B05-\u1B33\u1B45-\u1B4B\u1B83-\u1BA0\u1BAE\u1BAF\u1BC0-\u1BE5\u1C00-\u1C23\u1C4D-\u1C4F\u1C5A-\u1C7D\u1CE9-\u1CEC\u1CEE-\u1CF1\u1D00-\u1DBF\u1E00-\u1F15\u1F18-\u1F1D\u1F20-\u1F45\u1F48-\u1F4D\u1F50-\u1F57\u1F59\u1F5B\u1F5D\u1F5F-\u1F7D\u1F80-\u1FB4\u1FB6-\u1FBC\u1FBE\u1FC2-\u1FC4\u1FC6-\u1FCC\u1FD0-\u1FD3\u1FD6-\u1FDB\u1FE0-\u1FEC\u1FF2-\u1FF4\u1FF6-\u1FFC\u2071\u207F\u2090-\u209C\u2102\u2107\u210A-\u2113\u2115\u2119-\u211D\u2124\u2126\u2128\u212A-\u212D\u212F-\u2139\u213C-\u213F\u2145-\u2149\u214E\u2160-\u2188\u24B6-\u24E9\u2C00-\u2C2E\u2C30-\u2C5E\u2C60-\u2CE4\u2CEB-\u2CEE\u2D00-\u2D25\u2D30-\u2D65\u2D6F\u2D80-\u2D96\u2DA0-\u2DA6\u2DA8-\u2DAE\u2DB0-\u2DB6\u2DB8-\u2DBE\u2DC0-\u2DC6\u2DC8-\u2DCE\u2DD0-\u2DD6\u2DD8-\u2DDE\u2E2F\u3005\u303B\u303C\u3105-\u312D\u3131-\u318E\u31A0-\u31BA\uA000-\uA48C\uA4D0-\uA4FD\uA500-\uA60C\uA610-\uA61F\uA62A\uA62B\uA640-\uA66E\uA67F-\uA697\uA6A0-\uA6EF\uA717-\uA71F\uA722-\uA788\uA78B-\uA78E\uA790\uA791\uA7A0-\uA7A9\uA7FA-\uA801\uA803-\uA805\uA807-\uA80A\uA80C-\uA822\uA840-\uA873\uA882-\uA8B3\uA8F2-\uA8F7\uA8FB\uA90A-\uA925\uA930-\uA946\uA960-\uA97C\uA984-\uA9B2\uA9CF\uAA00-\uAA28\uAA40-\uAA42\uAA44-\uAA4B\uAB01-\uAB06\uAB09-\uAB0E\uAB11-\uAB16\uAB20-\uAB26\uAB28-\uAB2E\uABC0-\uABE2\uAC00-\uD7A3\uD7B0-\uD7C6\uD7CB-\uD7FB\uFB00-\uFB06\uFB13-\uFB17\uFB1D\uFB1F-\uFB28\uFB2A-\uFB36\uFB38-\uFB3C\uFB3E\uFB40\uFB41\uFB43\uFB44\uFB46-\uFBB1\uFBD3-\uFD3D\uFD50-\uFD8F\uFD92-\uFDC7\uFDF0-\uFDFB\uFE70-\uFE74\uFE76-\uFEFC\uFF21-\uFF3A\uFF41-\uFF5A\uFFA0-\uFFBE\uFFC2-\uFFC7\uFFCA-\uFFCF\uFFD2-\uFFD7\uFFDA-\uFFDC]',
-		midnumlet: "['\\.\u2018\u2019\u2024\uFE52\uFF07\uFF0E]",
-		midletter: '[:\u00B7\u00B7\u05F4\u2027\uFE13\uFE55\uFF1A]',
-		midnum: '[,;;\u0589\u060C\u060D\u066C\u07F8\u2044\uFE10\uFE14\uFE50\uFE54\uFF0C\uFF1B]',
-		numeric: '[0-9\u0660-\u0669\u066B\u06F0-\u06F9\u07C0-\u07C9\u0966-\u096F\u09E6-\u09EF\u0A66-\u0A6F\u0AE6-\u0AEF\u0B66-\u0B6F\u0BE6-\u0BEF\u0C66-\u0C6F\u0CE6-\u0CEF\u0D66-\u0D6F\u0E50-\u0E59\u0ED0-\u0ED9\u0F20-\u0F29\u1040-\u1049\u1090-\u1099\u17E0-\u17E9\u1810-\u1819\u1946-\u194F\u19D0-\u19D9\u1A80-\u1A89\u1A90-\u1A99\u1B50-\u1B59\u1BB0-\u1BB9\u1C40-\u1C49\u1C50-\u1C59\uA620-\uA629\uA8D0-\uA8D9\uA900-\uA909\uA9D0-\uA9D9\uAA50-\uAA59\uABF0-\uABF9]',
-		cr: '\\r',
-		lf: '\\n',
-		newline: '[\u000B\u000C\u0085\u2028\u2029]',
-		extend: '[\u0300-\u036F\u0483-\u0489\u0591-\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06DC\u06DF-\u06E4\u06E7\u06E8\u06EA-\u06ED\u0711\u0730-\u074A\u07A6-\u07B0\u07EB-\u07F3\u0816-\u0819\u081B-\u0823\u0825-\u0827\u0829-\u082D\u0859-\u085B\u0900-\u0903\u093A-\u093C\u093E-\u094F\u0951-\u0957\u0962\u0963\u0981-\u0983\u09BC\u09BE-\u09C4\u09C7\u09C8\u09CB-\u09CD\u09D7\u09E2\u09E3\u0A01-\u0A03\u0A3C\u0A3E-\u0A42\u0A47\u0A48\u0A4B-\u0A4D\u0A51\u0A70\u0A71\u0A75\u0A81-\u0A83\u0ABC\u0ABE-\u0AC5\u0AC7-\u0AC9\u0ACB-\u0ACD\u0AE2\u0AE3\u0B01-\u0B03\u0B3C\u0B3E-\u0B44\u0B47\u0B48\u0B4B-\u0B4D\u0B56\u0B57\u0B62\u0B63\u0B82\u0BBE-\u0BC2\u0BC6-\u0BC8\u0BCA-\u0BCD\u0BD7\u0C01-\u0C03\u0C3E-\u0C44\u0C46-\u0C48\u0C4A-\u0C4D\u0C55\u0C56\u0C62\u0C63\u0C82\u0C83\u0CBC\u0CBE-\u0CC4\u0CC6-\u0CC8\u0CCA-\u0CCD\u0CD5\u0CD6\u0CE2\u0CE3\u0D02\u0D03\u0D3E-\u0D44\u0D46-\u0D48\u0D4A-\u0D4D\u0D57\u0D62\u0D63\u0D82\u0D83\u0DCA\u0DCF-\u0DD4\u0DD6\u0DD8-\u0DDF\u0DF2\u0DF3\u0E31\u0E34-\u0E3A\u0E47-\u0E4E\u0EB1\u0EB4-\u0EB9\u0EBB\u0EBC\u0EC8-\u0ECD\u0F18\u0F19\u0F35\u0F37\u0F39\u0F3E\u0F3F\u0F71-\u0F84\u0F86\u0F87\u0F8D-\u0F97\u0F99-\u0FBC\u0FC6\u102B-\u103E\u1056-\u1059\u105E-\u1060\u1062-\u1064\u1067-\u106D\u1071-\u1074\u1082-\u108D\u108F\u109A-\u109D\u135D-\u135F\u1712-\u1714\u1732-\u1734\u1752\u1753\u1772\u1773\u17B6-\u17D3\u17DD\u180B-\u180D\u18A9\u1920-\u192B\u1930-\u193B\u19B0-\u19C0\u19C8\u19C9\u1A17-\u1A1B\u1A55-\u1A5E\u1A60-\u1A7C\u1A7F\u1B00-\u1B04\u1B34-\u1B44\u1B6B-\u1B73\u1B80-\u1B82\u1BA1-\u1BAA\u1BE6-\u1BF3\u1C24-\u1C37\u1CD0-\u1CD2\u1CD4-\u1CE8\u1CED\u1CF2\u1DC0-\u1DE6\u1DFC-\u1DFF\u200C\u200D\u20D0-\u20F0\u2CEF-\u2CF1\u2D7F\u2DE0-\u2DFF\u302A-\u302F\u3099\u309A\uA66F-\uA672\uA67C\uA67D\uA6F0\uA6F1\uA802\uA806\uA80B\uA823-\uA827\uA880\uA881\uA8B4-\uA8C4\uA8E0-\uA8F1\uA926-\uA92D\uA947-\uA953\uA980-\uA983\uA9B3-\uA9C0\uAA29-\uAA36\uAA43\uAA4C\uAA4D\uAA7B\uAAB0\uAAB2-\uAAB4\uAAB7\uAAB8\uAABE\uAABF\uAAC1\uABE3-\uABEA\uABEC\uABED\uFB1E\uFE00-\uFE0F\uFE20-\uFE26\uFF9E\uFF9F]',
-		format: '[\u00AD\u0600-\u0603\u06DD\u070F\u17B4\u17B5\u200E\u200F\u202A-\u202E\u2060-\u2064\u206A-\u206F\uFEFF\uFFF9-\uFFFB]',
-		katakana: '[\u3031-\u3035\u309B\u309C\u30A0-\u30FA\u30FC-\u30FF\u31F0-\u31FF\u32D0-\u32FE\u3300-\u3357\uFF66-\uFF9D]',
-		extendnumlet: '[_\u203F\u2040\u2054\uFE33\uFE34\uFE4D-\uFE4F\uFF3F]',
-		punctuation: '[!-#%-*,-\\/:;?@\\[-\\]_{}\u00A1\u00AB\u00B7\u00BB\u00BF;\u00B7\u055A-\u055F\u0589\u058A\u05BE\u05C0\u05C3\u05C6\u05F3\u05F4\u0609\u060A\u060C\u060D\u061B\u061E\u061F\u066A-\u066D\u06D4\u0700-\u070D\u07F7-\u07F9\u0830-\u083E\u085E\u0964\u0965\u0970\u0DF4\u0E4F\u0E5A\u0E5B\u0F04-\u0F12\u0F3A-\u0F3D\u0F85\u0FD0-\u0FD4\u0FD9\u0FDA\u104A-\u104F\u10FB\u1361-\u1368\u1400\u166D\u166E\u169B\u169C\u16EB-\u16ED\u1735\u1736\u17D4-\u17D6\u17D8-\u17DA\u1800-\u180A\u1944\u1945\u1A1E\u1A1F\u1AA0-\u1AA6\u1AA8-\u1AAD\u1B5A-\u1B60\u1BFC-\u1BFF\u1C3B-\u1C3F\u1C7E\u1C7F\u1CD3\u2010-\u2027\u2030-\u2043\u2045-\u2051\u2053-\u205E\u207D\u207E\u208D\u208E\u3008\u3009\u2768-\u2775\u27C5\u27C6\u27E6-\u27EF\u2983-\u2998\u29D8-\u29DB\u29FC\u29FD\u2CF9-\u2CFC\u2CFE\u2CFF\u2D70\u2E00-\u2E2E\u2E30\u2E31\u3001-\u3003\u3008-\u3011\u3014-\u301F\u3030\u303D\u30A0\u30FB\uA4FE\uA4FF\uA60D-\uA60F\uA673\uA67E\uA6F2-\uA6F7\uA874-\uA877\uA8CE\uA8CF\uA8F8-\uA8FA\uA92E\uA92F\uA95F\uA9C1-\uA9CD\uA9DE\uA9DF\uAA5C-\uAA5F\uAADE\uAADF\uABEB\uFD3E\uFD3F\uFE10-\uFE19\uFE30-\uFE52\uFE54-\uFE61\uFE63\uFE68\uFE6A\uFE6B\uFF01-\uFF03\uFF05-\uFF0A\uFF0C-\uFF0F\uFF1A\uFF1B\uFF1F\uFF20\uFF3B-\uFF3D\uFF3F\uFF5B\uFF5D\uFF5F-\uFF65]'
-	};
-
-	var characterIndices = {
-		ALETTER: 0,
-		MIDNUMLET: 1,
-		MIDLETTER: 2,
-		MIDNUM: 3,
-		NUMERIC: 4,
-		CR: 5,
-		LF: 6,
-		NEWLINE: 7,
-		EXTEND: 8,
-		FORMAT: 9,
-		KATAKANA: 10,
-		EXTENDNUMLET: 11,
-		AT: 12,
-		OTHER: 13
-	};
-
-	// RegExp objects generated from code point data. Each regex matches a single
-	// character against a set of Unicode code points. The index of each item in
-	// this array must match its corresponding code point constant value defined
-	// above.
-	var SETS = [
-		new RegExp(regExps.aletter),
-		new RegExp(regExps.midnumlet),
-		new RegExp(regExps.midletter),
-		new RegExp(regExps.midnum),
-		new RegExp(regExps.numeric),
-		new RegExp(regExps.cr),
-		new RegExp(regExps.lf),
-		new RegExp(regExps.newline),
-		new RegExp(regExps.extend),
-		new RegExp(regExps.format),
-		new RegExp(regExps.katakana),
-		new RegExp(regExps.extendnumlet),
-		new RegExp('@')
-	];
-
-	var EMPTY_STRING = '';
-	var PUNCTUATION = new RegExp('^' + regExps.punctuation + '$');
-	var WHITESPACE = /\s/;
-
-	return {
-		characterIndices: characterIndices,
-		SETS: SETS,
-		EMPTY_STRING: EMPTY_STRING,
-		PUNCTUATION: PUNCTUATION,
-		WHITESPACE: WHITESPACE
-	};
-});
-/**
- * Arr.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2016 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
-
-define('tinymce.wordcount.alien.Arr', [
-], function () {
-	var each = function (o, cb, s) {
-		var n, l;
-
-		if (!o) {
-			return 0;
-		}
-
-		s = s || o;
-
-		if (o.length !== undefined) {
-			// Indexed arrays, needed for Safari
-			for (n = 0, l = o.length; n < l; n++) {
-				if (cb.call(s, o[n], n, o) === false) {
-					return 0;
-				}
-			}
-		} else {
-			// Hashtables
-			for (n in o) {
-				if (o.hasOwnProperty(n)) {
-					if (cb.call(s, o[n], n, o) === false) {
-						return 0;
-					}
-				}
-			}
-		}
-
-		return 1;
-	};
-
-	var map = function (array, callback) {
-		var out = [];
-
-		each(array, function(item, index) {
-			out.push(callback(item, index, array));
-		});
-
-		return out;
-	};
-
-	return {
-		each: each,
-		map: map
-	};
-});
-
-/**
- * StringMapper.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2016 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
-define('tinymce.wordcount.text.StringMapper', [
-	'tinymce.wordcount.text.UnicodeData',
-	'tinymce.wordcount.alien.Arr'
-], function(UnicodeData, Arr) {
-	var SETS = UnicodeData.SETS;
-	var OTHER = UnicodeData.characterIndices.OTHER;
-
-	var getType = function (char) {
-		var j, set, type = OTHER;
-		var setsLength = SETS.length;
-		for (j = 0; j < setsLength; ++j) {
-			set = SETS[j];
-
-			if (set && set.test(char)) {
-				type = j;
-				break;
-			}
-		}
-		return type;
-	};
-
-	var memoize = function (func) {
-		var cache = {};
-		return function(char) {
-			if (cache[char]) {
-				return cache[char];
-			} else {
-				var result = func(char);
-				cache[char] = result;
-				return result;
-			}
-		};
-	};
-
-	var classify = function (string) {
-		var memoized = memoize(getType);
-		return Arr.map(string.split(''), memoized);
-	};
-
-	return {
-		classify: classify
-	};
-});
-
-/**
- * IsWordBoundary.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2016 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
-
-define("tinymce.wordcount.text.WordBoundary", [
-	"tinymce.wordcount.text.UnicodeData"
-], function(UnicodeData) {
-	var ci = UnicodeData.characterIndices;
-	var isWordBoundary = function (map, index) {
-		var prevType;
-		var type = map[index];
-		var nextType = map[index + 1];
-		var nextNextType;
-
-		if (index < 0 || (index > map.length - 1 && index !== 0)) {
-				// console.log('isWordBoundary: index out of bounds', 'warn', 'text-wordbreak');
-			return false;
-		}
-
-		// WB5. Don't break between most letters.
-		if (type === ci.ALETTER && nextType === ci.ALETTER) {
-			return false;
-		}
-
-		nextNextType = map[index + 2];
-
-		// WB6. Don't break letters across certain punctuation.
-		if (type === ci.ALETTER &&
-						(nextType === ci.MIDLETTER || nextType === ci.MIDNUMLET || nextType === ci.AT) &&
-						nextNextType === ci.ALETTER) {
-			return false;
-		}
-
-		prevType = map[index - 1];
-
-		// WB7. Don't break letters across certain punctuation.
-		if ((type === ci.MIDLETTER || type === ci.MIDNUMLET || nextType === ci.AT) &&
-						nextType === ci.ALETTER &&
-						prevType === ci.ALETTER) {
-			return false;
-		}
-
-		// WB8/WB9/WB10. Don't break inside sequences of digits or digits
-		// adjacent to letters.
-		if ((type === ci.NUMERIC || type === ci.ALETTER) &&
-						(nextType === ci.NUMERIC || nextType === ci.ALETTER)) {
-			return false;
-		}
-
-		// WB11. Don't break inside numeric sequences like "3.2" or
-		// "3,456.789".
-		if ((type === ci.MIDNUM || type === ci.MIDNUMLET) &&
-						nextType === ci.NUMERIC &&
-						prevType === ci.NUMERIC) {
-			return false;
-		}
-
-		// WB12. Don't break inside numeric sequences like "3.2" or
-		// "3,456.789".
-		if (type === ci.NUMERIC &&
-						(nextType === ci.MIDNUM || nextType === ci.MIDNUMLET) &&
-						nextNextType === ci.NUMERIC) {
-			return false;
-		}
-
-		// WB4. Ignore format and extend characters.
-		if (type === ci.EXTEND || type === ci.FORMAT ||
-						prevType === ci.EXTEND || prevType === ci.FORMAT ||
-						nextType === ci.EXTEND || nextType === ci.FORMAT) {
-			return false;
-		}
-
-		// WB3. Don't break inside CRLF.
-		if (type === ci.CR && nextType === ci.LF) {
-			return false;
-		}
-
-		// WB3a. Break before newlines (including CR and LF).
-		if (type === ci.NEWLINE || type === ci.CR || type === ci.LF) {
-			return true;
-		}
-
-		// WB3b. Break after newlines (including CR and LF).
-		if (nextType === ci.NEWLINE || nextType === ci.CR || nextType === ci.LF) {
-			return true;
-		}
-
-		// WB13. Don't break between Katakana characters.
-		if (type === ci.KATAKANA && nextType === ci.KATAKANA) {
-			return false;
-		}
-
-		// WB13a. Don't break from extenders.
-		if (nextType === ci.EXTENDNUMLET &&
-						(type === ci.ALETTER || type === ci.NUMERIC || type === ci.KATAKANA ||
-						type === ci.EXTENDNUMLET)) {
-			return false;
-		}
-
-		// WB13b. Don't break from extenders.
-		if (type === ci.EXTENDNUMLET &&
-						(nextType === ci.ALETTER || nextType === ci.NUMERIC ||
-						nextType === ci.KATAKANA)) {
-			return false;
-		}
-
-		if (type === ci.AT) {
-			return false;
-		}
-
-		// Break after any character not covered by the rules above.
-		return true;
-	};
-
-	return {
-		isWordBoundary: isWordBoundary
-	};
-});
-/**
- * WordGetter.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2016 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
-
-define("tinymce.wordcount.text.WordGetter", [
-	"tinymce.wordcount.text.UnicodeData",
-	"tinymce.wordcount.text.StringMapper",
-	"tinymce.wordcount.text.WordBoundary"
-], function(UnicodeData, StringMapper, WordBoundary) {
-	var EMPTY_STRING = UnicodeData.EMPTY_STRING;
-	var WHITESPACE = UnicodeData.WHITESPACE;
-	var PUNCTUATION = UnicodeData.PUNCTUATION;
-
-	var isProtocol = function (word) {
-		return word === 'http' || word === 'https';
-	};
-
-	var findWordEnd = function (string, index) {
-		var i;
-		for (i = index; i < string.length; ++i) {
-			var chr = string.charAt(i);
-
-			if (WHITESPACE.test(chr)) {
-				break;
-			}
-		}
-		return i;
-	};
-
-	var extractUrl = function (word, string, index) {
-		var endIndex = findWordEnd(string, index + 1);
-		var peakedWord = string.substring(index + 1, endIndex);
-		if (peakedWord.substr(0, 3) === '://') {
-			return {
-				word: word + peakedWord,
-				index: endIndex
-			};
-		}
-
-		return {
-			word: word,
-			index: index
-		};
-	};
-
-	var getWords = function (string, options) {
-		var i = 0;
-		var map = StringMapper.classify(string);
-		var len = map.length;
-		var word = [];
-		var words = [];
-		var chr;
-		var includePunctuation;
-		var includeWhitespace;
-
-		if (!options) {
-			options = {};
-		}
-
-		if (options.ignoreCase) {
-			string = string.toLowerCase();
-		}
-
-		includePunctuation = options.includePunctuation;
-		includeWhitespace = options.includeWhitespace;
-
-		// Loop through each character in the classification map and determine
-		// whether it precedes a word boundary, building an array of distinct
-		// words as we go.
-		for (; i < len; ++i) {
-			chr = string.charAt(i);
-
-			// Append this character to the current word.
-			word.push(chr);
-
-			// If there's a word boundary between the current character and the
-			// next character, append the current word to the words array and
-			// start building a new word.
-			if (WordBoundary.isWordBoundary(map, i)) {
-				word = word.join(EMPTY_STRING);
-
-				if (word &&
-								(includeWhitespace || !WHITESPACE.test(word)) &&
-								(includePunctuation || !PUNCTUATION.test(word))) {
-					if (isProtocol(word)) {
-						var obj = extractUrl(word, string, i);
-						words.push(obj.word);
-						i = obj.index;
-					} else {
-						words.push(word);
-					}
-				}
-
-				word = [];
-			}
-		}
-
-		return words;
-	};
-
-	return {
-		getWords: getWords
-	};
-});
-/**
- * Plugin.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2016 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
-
-define("tinymce.wordcount.Plugin", [
-	"global!tinymce.PluginManager",
-	"global!tinymce.util.Delay",
-	"tinymce.wordcount.text.WordGetter"
-], function(PluginManager, Delay, WordGetter) {
-	PluginManager.add('wordcount', function(editor) {
-		var getTextContent = function(editor) {
-			return editor.removed ? '' : editor.getBody().innerText;
-		};
-
-		var getCount = function() {
-			return WordGetter.getWords(getTextContent(editor)).length;
-		};
-
-		var update = function() {
-			editor.theme.panel.find('#wordcount').text(['Words: {0}', getCount()]);
-		};
-
-		editor.on('init', function() {
-			var statusbar = editor.theme.panel && editor.theme.panel.find('#statusbar')[0];
-			var debouncedUpdate = Delay.debounce(update, 300);
-
-			if (statusbar) {
-				Delay.setEditorTimeout(editor, function() {
-					statusbar.insert({
-						type: 'label',
-						name: 'wordcount',
-						text: ['Words: {0}', getCount()],
-						classes: 'wordcount',
-						disabled: editor.settings.readonly
-					}, 0);
-
-					editor.on('setcontent beforeaddundo undo redo keyup', debouncedUpdate);
-				}, 0);
-			}
-		});
-
-		return {
-			getCount: getCount
-		};
-	});
-
-	return function () {};
-});
-
-dem('tinymce.wordcount.Plugin')();
-})();
+module.exports = __webpack_require__(58);
 
 
 /***/ })

@@ -10,10 +10,11 @@
                             <h4  data-toggle="collapse" data-target="#detailsHolder" id="detailsTitle" class="collapsed">Details <i class="fa fa-fw fa-plus-circle" ></i><i class="fa fa-fw fa-minus-circle" ></i></h4>
                             <app-deliverydetails v-model="delivery" collapseId="detailsHolder" collapse="true"></app-deliverydetails>
                             <hr>
-                            <div :is="field.component" v-for="field in fields" v-bind="field.props" :ref="field.props.id"></div>
+                            <div :is="field.component" v-for="field in fields" v-bind="field.props" ref="customs"></div>
                         </div>
                         <div class="panel-footer">
                             <a  class="btn btn-default" :href="backURL" ><i class="fa fa-fw fa-chevron-left"></i> Back</a>
+                            <button type="button" @click="process"  :class="{'btn btn-success pull-right': true }"><i class="fa fa-fw fa-floppy-o" ></i> Save</button>
                         </div>
                     </div>
                 </form>
@@ -53,19 +54,29 @@
                         this.$router.push('/400');
                     });
                 },
+                process(){
+                    var formData = new FormData();
+                    $.each(this.$refs.customs,function(i,v){
+                            formData.append(v.custom_id, v.getValue()); 
+                    });
+                     this.$http.post('/ajax/content/'+this.delivery.id, formData).then(response => {
+                       console.log("ok",response);
+                      }, response => {
+                        console.log("error",response);
+                      });
+                },
                 createForm(){
                     $.each(this.delivery.customs,function(i,field){
                         var oField={
                                     component: field.component.tag, 
                                     props: {id:"custom_"+field.id,
+                                            custom_id:field.id,
                                             name:field.key,
                                             label: field.name,
                                             help_text:field.help_text
                                             }
                                 }
                         this.fields.push(oField);
-                        
-                        
                         
                         $("#formHolder").append("<alert></alert>");
                         

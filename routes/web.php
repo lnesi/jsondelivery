@@ -22,6 +22,7 @@ Route::group(['prefix' => 'ajax','middleware' => 'auth'], function () {
 	Route::resource('campaigns', CampaignController::class,['except' => ['create', 'edit']]);
 	Route::resource('deliveries', DeliveryController::class,['except' => ['create', 'edit']]);
 	Route::resource('customs', DeliveryCustomController::class,['except' => ['create', 'edit']]);
+
 	
 	//Read Only Resources
 	Route::resource('sizes', SizeController::class,['only' => [ 'index','show']]);
@@ -33,6 +34,7 @@ Route::group(['prefix' => 'ajax','middleware' => 'auth'], function () {
 	Route::get('regions/{id}/remove/{country_id}', 'RegionController@removeCountry');
 	Route::get('regions/{id}/add/{country_id}', 'RegionController@addCountry');
 
+	Route::post('content/{id}', 'ContentController@add');
 	
 });
 

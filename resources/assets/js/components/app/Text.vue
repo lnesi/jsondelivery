@@ -1,7 +1,7 @@
 <template>
 	<div class="form-group">
 		<label :for="id">{{label}}</label>
-		<input type="text" class="form-control custom" :name="name" :id="id"/>
+		<input type="text" class="form-control custom" :name="name" :id="id" v-model="valueModel"/>
 		<p class="help-block">{{help_text}}</p>
 	</div>
 </template>
