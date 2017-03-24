@@ -10,6 +10,8 @@
                             <h4  data-toggle="collapse" data-target="#detailsHolder" id="detailsTitle" class="collapsed">Details <i class="fa fa-fw fa-plus-circle" ></i><i class="fa fa-fw fa-minus-circle" ></i></h4>
                             <app-deliverydetails v-model="delivery" collapseId="detailsHolder" collapse="true"></app-deliverydetails>
                             <hr>
+                            <tbvue-input name="name" id="in_name" placeholder="Name" rules="required|max:100" v-model="name">Lookup Name</tbvue-input>
+                            <hr>
                             <div :is="field.component" v-for="field in fields" v-bind="field.props" ref="customs"></div>
                         </div>
                         <div class="panel-footer">
@@ -27,7 +29,7 @@
     export default {
             data(){
                 return{
-                    
+                    name:'',
                     delivery:{},
                     fields:[]
                 }

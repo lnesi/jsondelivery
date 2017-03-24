@@ -106423,11 +106423,13 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
+//
+//
 
 /* harmony default export */ __webpack_exports__["default"] = {
     data: function data() {
         return {
-
+            name: '',
             delivery: {},
             fields: []
         };
@@ -109915,7 +109917,20 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
         _vm.delivery = $$v
       }
     }
-  }), _vm._v(" "), _c('hr'), _vm._v(" "), _vm._l((_vm.fields), function(field) {
+  }), _vm._v(" "), _c('hr'), _vm._v(" "), _c('tbvue-input', {
+    attrs: {
+      "name": "name",
+      "id": "in_name",
+      "placeholder": "Name",
+      "rules": "required|max:100"
+    },
+    model: {
+      value: (_vm.name),
+      callback: function($$v) {
+        _vm.name = $$v
+      }
+    }
+  }, [_vm._v("Lookup Name")]), _vm._v(" "), _c('hr'), _vm._v(" "), _vm._l((_vm.fields), function(field) {
     return _c(field.component, _vm._b({
       ref: "customs",
       refInFor: true,
