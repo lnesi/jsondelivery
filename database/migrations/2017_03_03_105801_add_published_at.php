@@ -17,7 +17,7 @@ class AddPublishedAt extends Migration
         Schema::table('deliveries',function(Blueprint $table){
           $table->timestamp('published_at')->nullable()->after('updated_at');
         });
-        Schema::table('delivery_sets',function(Blueprint $table){
+        Schema::table('delivery_contents',function(Blueprint $table){
           $table->timestamp('published_at')->nullable()->after('updated_at');
         });
     }
