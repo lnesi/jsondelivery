@@ -11011,11 +11011,19 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 			valueModel: null
 		};
 	},
+	mounted: function mounted() {
+		this.valueModel = this.value;
+	},
 
 	props: ['label', 'help_text', 'id', 'name', 'value', 'custom_id'],
 	methods: {
 		getValue: function getValue() {
 			return this.valueModel;
+		}
+	},
+	watch: {
+		value: function value(val) {
+			console.log("value prop", val);
 		}
 	}
 };
@@ -105207,11 +105215,12 @@ var NewDelivery = __webpack_require__(129);
 var EditDelivery = __webpack_require__(123);
 var OpenDelivery = __webpack_require__(130);
 var AddContent = __webpack_require__(118);
+var EditContent = __webpack_require__(181);
 
 var Error400 = __webpack_require__(126);
 var Error404 = __webpack_require__(127);
 
-var routeList = [{ path: '/', component: Home }, { path: '/partners', component: Partners }, { path: '/partners/:id', component: EditPartner }, { path: '/audiences', component: Audiences }, { path: '/audiences/:id', component: EditAudience }, { path: '/campaigns', component: Campaigns }, { path: '/campaigns/:id', component: EditCampaign }, { path: '/regions', component: Regions }, { path: '/regions/:id', component: EditRegion }, { path: '/delivery/new', component: NewDelivery }, { path: '/deliveries/:id', component: EditDelivery }, { path: '/deliveries/:id/edit', component: OpenDelivery }, { path: '/deliveries/:id/addcontent', component: AddContent }, { path: '/400', component: Error400 }, { path: '*', component: Error404 }];
+var routeList = [{ path: '/', component: Home }, { path: '/partners', component: Partners }, { path: '/partners/:id', component: EditPartner }, { path: '/audiences', component: Audiences }, { path: '/audiences/:id', component: EditAudience }, { path: '/campaigns', component: Campaigns }, { path: '/campaigns/:id', component: EditCampaign }, { path: '/regions', component: Regions }, { path: '/regions/:id', component: EditRegion }, { path: '/delivery/new', component: NewDelivery }, { path: '/deliveries/:id', component: EditDelivery }, { path: '/deliveries/:id/edit', component: OpenDelivery }, { path: '/deliveries/:id/addcontent', component: AddContent }, { path: '/deliveries/:id/editcontent/:content_id', component: EditContent }, { path: '/400', component: Error400 }, { path: '*', component: Error404 }];
 
 var router = new VueRouter({
   routes: routeList
@@ -105761,7 +105770,6 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 var comp = __webpack_require__(6);
 /* harmony default export */ __webpack_exports__["default"] = {
 	mixins: [comp.default]
-
 };
 
 /***/ }),
@@ -105787,8 +105795,8 @@ var comp = __webpack_require__(6);
 		};
 	},
 	mounted: function mounted() {
-		console.log("HI TEHRE");
 		//tinyMCE.init();
+
 		this.editor = new tinymce.Editor(this.id, {
 			menubar: 'edit insert view format',
 			plugins: ["link", "table", "wordcount", "code"],
@@ -105799,6 +105807,7 @@ var comp = __webpack_require__(6);
 			height: 300
 		}, tinymce.EditorManager);
 		this.editor.render();
+		this.editor.setContent(this.value);
 	},
 
 	methods: {
@@ -106375,6 +106384,11 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+//
+//
+//
+//
+//
 //
 //
 //
@@ -109323,7 +109337,20 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
   return _c('div', [_c('table', {
     staticClass: "table table-bordered table-striped "
   }, [_c('thead', [_vm._m(0), _vm._v(" "), _vm._l((_vm.delivery.contents), function(content) {
-    return _c('tr', [_c('td', [_vm._v(_vm._s(content.name))]), _vm._v(" "), _c('td', [_vm._v(_vm._s(content.status.name))]), _vm._v(" "), _c('td', [_vm._v(_vm._s(content.distribution))]), _vm._v(" "), _c('td')])
+    return _c('tr', [_c('td', [_vm._v(_vm._s(content.name))]), _vm._v(" "), _c('td', [_vm._v(_vm._s(content.status.name))]), _vm._v(" "), _c('td', [_vm._v(_vm._s(content.distribution))]), _vm._v(" "), _c('td', [_c('div', {
+      staticClass: "btn-group btn-group-xs",
+      attrs: {
+        "role": "group",
+        "aria-label": "..."
+      }
+    }, [_c('a', {
+      staticClass: "btn btn-default",
+      attrs: {
+        "href": '#deliveries/' + _vm.delivery.id + '/editcontent/' + content.id
+      }
+    }, [_c('i', {
+      staticClass: "fa fa-fw fa-edit"
+    }), _vm._v(" Edit")])])])])
   })], 2)])])
 },staticRenderFns: [function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
   return _c('tr', [_c('th', [_vm._v("Name")]), _vm._v(" "), _c('th', [_vm._v("Status")]), _vm._v(" "), _c('th', [_vm._v("Distribution")]), _vm._v(" "), _c('th', [_vm._v("Actions")])])
@@ -110075,7 +110102,7 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
     staticClass: "panel panel-default"
   }, [_c('div', {
     staticClass: "panel-heading"
-  }, [_vm._v("Delivery")]), _vm._v(" "), _c('div', {
+  }, [_vm._v("Delivery: Add Content")]), _vm._v(" "), _c('div', {
     staticClass: "panel-body"
   }, [_vm._m(0), _vm._v(" "), _c('app-deliverydetails', {
     attrs: {
@@ -112041,6 +112068,259 @@ module.exports = function listToStyles (parentId, list) {
 __webpack_require__(57);
 module.exports = __webpack_require__(59);
 
+
+/***/ }),
+/* 173 */,
+/* 174 */,
+/* 175 */,
+/* 176 */,
+/* 177 */,
+/* 178 */,
+/* 179 */,
+/* 180 */,
+/* 181 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var Component = __webpack_require__(0)(
+  /* script */
+  __webpack_require__(182),
+  /* template */
+  __webpack_require__(183),
+  /* scopeId */
+  null,
+  /* cssModules */
+  null
+)
+Component.options.__file = "/home/luisnesi/Documents/jsondelivery/resources/assets/js/pages/EditContent.vue"
+if (Component.esModule && Object.keys(Component.esModule).some(function (key) {return key !== "default" && key !== "__esModule"})) {console.error("named exports are not supported in *.vue files.")}
+if (Component.options.functional) {console.error("[vue-loader] EditContent.vue: functional components are not supported with templates, they should use render functions.")}
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-662e949b", Component.options)
+  } else {
+    hotAPI.reload("data-v-662e949b", Component.options)
+  }
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 182 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function($) {Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+/* harmony default export */ __webpack_exports__["default"] = {
+    data: function data() {
+        return {
+
+            delivery: {},
+            content: { name: '' },
+            fields: []
+        };
+    },
+    mounted: function mounted() {
+        this.load(this.$route.params.id);
+    },
+
+    computed: {
+        backURL: function backURL() {
+            return '#/deliveries/' + this.delivery.id + "/edit";
+        }
+    },
+    methods: {
+        load: function load(id) {
+            var _this = this;
+
+            this.$parent.$emit("SHOW_PRELOADER");
+            this.$http.get("/ajax/deliveries/" + id).then(function (response) {
+                _this.$parent.$emit("HIDE_PRELOADER");
+                _this.delivery = response.body;
+                _this.content = _this.getContent(_this.$route.params.content_id);
+                _this.createForm();
+            }, function (response) {
+                _this.$parent.$emit("HIDE_PRELOADER");
+                _this.$router.push('/400');
+            });
+        },
+        process: function process() {
+            var formData = new FormData();
+            formData.append('lookup_name', this.lookup_name);
+            $.each(this.$refs.customs, function (i, v) {
+                formData.append(v.custom_id, v.getValue());
+            });
+            this.$http.post('/ajax/content/' + this.delivery.id, formData).then(function (response) {
+                console.log("ok", response);
+            }, function (response) {
+                console.log("error", response);
+            });
+        },
+        createForm: function createForm() {
+            $.each(this.delivery.customs, function (i, field) {
+                var oField = {
+                    component: field.component.tag,
+                    props: { id: "custom_" + field.id,
+                        custom_id: field.id,
+                        name: field.key,
+                        label: field.name,
+                        help_text: field.help_text,
+                        value: this.content.values.filter(function (value) {
+                            return value.custom_id == field.id;
+                        })[0].data
+                    }
+                };
+                this.fields.push(oField);
+
+                $("#formHolder").append("<alert></alert>");
+            }.bind(this));
+        },
+        getContent: function getContent(content_id) {
+            for (var i = 0; i < this.delivery.contents.length; i++) {
+                if (this.delivery.contents[i].id == content_id) {
+                    return this.delivery.contents[i];
+                }
+            }
+        }
+    }
+};
+/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(2)))
+
+/***/ }),
+/* 183 */
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
+  return _c('div', {
+    staticClass: "container"
+  }, [_c('div', {
+    staticClass: "row"
+  }, [_c('div', {
+    staticClass: "col-md-12"
+  }, [_c('form', {
+    attrs: {
+      "onsubmit": "return false;"
+    },
+    on: {
+      "submit": function($event) {
+        _vm.validate()
+      }
+    }
+  }, [_c('div', {
+    staticClass: "panel panel-default"
+  }, [_c('div', {
+    staticClass: "panel-heading"
+  }, [_vm._v("Delivery: Edit Content")]), _vm._v(" "), _c('div', {
+    staticClass: "panel-body"
+  }, [_vm._m(0), _vm._v(" "), _c('app-deliverydetails', {
+    attrs: {
+      "collapseId": "detailsHolder",
+      "collapse": "true"
+    },
+    model: {
+      value: (_vm.delivery),
+      callback: function($$v) {
+        _vm.delivery = $$v
+      },
+      expression: "delivery"
+    }
+  }), _vm._v(" "), _c('hr'), _vm._v(" "), _c('tbvue-input', {
+    attrs: {
+      "name": "name",
+      "id": "in_name",
+      "placeholder": "Name",
+      "rules": "required|max:100"
+    },
+    model: {
+      value: (_vm.content.name),
+      callback: function($$v) {
+        _vm.content.name = $$v
+      },
+      expression: "content.name"
+    }
+  }, [_vm._v("Lookup Name")]), _vm._v(" "), _c('hr'), _vm._v(" "), _vm._l((_vm.fields), function(field) {
+    return _c(field.component, _vm._b({
+      ref: "customs",
+      refInFor: true,
+      tag: "div"
+    }, 'div', field.props))
+  })], 2), _vm._v(" "), _c('div', {
+    staticClass: "panel-footer"
+  }, [_c('a', {
+    staticClass: "btn btn-default",
+    attrs: {
+      "href": _vm.backURL
+    }
+  }, [_c('i', {
+    staticClass: "fa fa-fw fa-chevron-left"
+  }), _vm._v(" Back")]), _vm._v(" "), _c('button', {
+    class: {
+      'btn btn-success pull-right': true
+    },
+    attrs: {
+      "type": "button"
+    },
+    on: {
+      "click": _vm.process
+    }
+  }, [_c('i', {
+    staticClass: "fa fa-fw fa-floppy-o"
+  }), _vm._v(" Save")])])])])])])])
+},staticRenderFns: [function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
+  return _c('h4', {
+    staticClass: "collapsed",
+    attrs: {
+      "data-toggle": "collapse",
+      "data-target": "#detailsHolder",
+      "id": "detailsTitle"
+    }
+  }, [_vm._v("Details "), _c('i', {
+    staticClass: "fa fa-fw fa-plus-circle"
+  }), _c('i', {
+    staticClass: "fa fa-fw fa-minus-circle"
+  })])
+}]}
+module.exports.render._withStripped = true
+if (false) {
+  module.hot.accept()
+  if (module.hot.data) {
+     require("vue-hot-reload-api").rerender("data-v-662e949b", module.exports)
+  }
+}
 
 /***/ })
 /******/ ]);

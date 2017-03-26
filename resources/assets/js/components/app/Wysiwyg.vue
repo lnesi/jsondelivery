@@ -15,8 +15,8 @@ export default{
 		}
 	},
 	mounted(){
-		console.log("HI TEHRE");
 		//tinyMCE.init();
+	
 		this.editor= new tinymce.Editor(this.id,{  
 			menubar: 'edit insert view format',
 			plugins: ["link","table","wordcount","code"],
@@ -27,7 +27,7 @@ export default{
 			height:300
 		}, tinymce.EditorManager);
 		this.editor.render();
-		
+		this.editor.setContent(this.value);
 	},
 	methods:{
 		getValue(){

@@ -57,6 +57,7 @@ const NewDelivery = require('./pages/NewDelivery.vue');
 const EditDelivery = require('./pages/EditDelivery.vue');
 const OpenDelivery = require('./pages/OpenDelivery.vue');
 const AddContent = require('./pages/AddContent.vue');
+const EditContent = require('./pages/EditContent.vue');
 
 const Error400 = require('./pages/Error400.vue');
 const Error404 = require('./pages/Error404.vue');
@@ -76,6 +77,7 @@ const routeList = [
   { path: '/deliveries/:id', component: EditDelivery },
   { path: '/deliveries/:id/edit', component: OpenDelivery },
   { path: '/deliveries/:id/addcontent', component: AddContent },
+  { path: '/deliveries/:id/editcontent/:content_id', component: EditContent },
   { path: '/400', component: Error400 },
   { path: '*', component: Error404 }
 ]

@@ -4,13 +4,13 @@
             <div class="col-md-12">
                  <form  @submit="validate()" onsubmit="return false;">
                     <div class="panel panel-default">
-                        <div class="panel-heading">Delivery: Add Content</div>
+                        <div class="panel-heading">Delivery: Edit Content</div>
 
                         <div class="panel-body">
                             <h4  data-toggle="collapse" data-target="#detailsHolder" id="detailsTitle" class="collapsed">Details <i class="fa fa-fw fa-plus-circle" ></i><i class="fa fa-fw fa-minus-circle" ></i></h4>
                             <app-deliverydetails v-model="delivery" collapseId="detailsHolder" collapse="true"></app-deliverydetails>
                             <hr>
-                            <tbvue-input name="name" id="in_name" placeholder="Name" rules="required|max:100" v-model="lookup_name">Lookup Name</tbvue-input>
+                            <tbvue-input name="name" id="in_name" placeholder="Name" rules="required|max:100" v-model="content.name">Lookup Name</tbvue-input>
                             <hr>
                             <div :is="field.component" v-for="field in fields" v-bind="field.props" ref="customs"></div>
                         </div>
@@ -29,8 +29,9 @@
     export default {
             data(){
                 return{
-                    lookup_name:'',
+                  
                     delivery:{},
+                    content:{name:''},
                     fields:[]
                 }
             },
@@ -50,6 +51,7 @@
                     this.$http.get("/ajax/deliveries/" + id).then(response => {
                         this.$parent.$emit("HIDE_PRELOADER");
                         this.delivery = response.body;
+                        this.content=this.getContent(this.$route.params.content_id);
                         this.createForm();
                     }, response => {
                         this.$parent.$emit("HIDE_PRELOADER");
@@ -76,7 +78,8 @@
                                             custom_id:field.id,
                                             name:field.key,
                                             label: field.name,
-                                            help_text:field.help_text
+                                            help_text:field.help_text,
+                                            value: this.content.values.filter(function(value){return value.custom_id==field.id})[0].data
                                             }
                                 }
                         this.fields.push(oField);
@@ -85,6 +88,13 @@
                         
                     }.bind(this));
                  
+                },
+                getContent(content_id){
+                    for(var i=0;i<this.delivery.contents.length;i++){
+                        if(this.delivery.contents[i].id==content_id){
+                           return this.delivery.contents[i];  
+                        } 
+                    }
                 }
             }
     }

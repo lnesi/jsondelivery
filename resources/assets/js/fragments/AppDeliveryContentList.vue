@@ -12,7 +12,12 @@
 					<td>{{content.name}}</td>
 					<td>{{content.status.name}}</td>
 					<td>{{content.distribution}}</td>
-					<td></td>
+					<td>
+						<div class="btn-group btn-group-xs" role="group" aria-label="...">
+                            <a class="btn btn-default" :href="'#deliveries/'+delivery.id+'/editcontent/'+content.id" ><i class="fa fa-fw fa-edit"></i> Edit</a>
+                            
+                         </div>
+					</td>
 				</tr>
 			</thead>
 		</table>
@@ -24,7 +29,7 @@
 		data(){
 			return {
 				delivery:{
-					contents:[]
+					contents:[] 
 				}
 			}
 		},

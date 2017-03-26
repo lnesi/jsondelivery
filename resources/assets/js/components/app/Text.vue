@@ -8,7 +8,6 @@
 <script>
 var comp = require('../../mixins/app_component.js');
 export default{
-	mixins:[comp.default],
-
+	mixins:[comp.default]
 }
 </script>
