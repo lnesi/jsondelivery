@@ -10,7 +10,7 @@ class ContentController extends Controller
 {
     public function add(Request $request, $id){
     	$delivery=Delivery::findOrFail($id);
-    	$content=new DeliveryContent(['name'=>'test']);
+    	$content=new DeliveryContent(['name'=>$request->input('lookup_name')]);
 	    $content->delivery()->associate($delivery);
 	    $content->save();
     	

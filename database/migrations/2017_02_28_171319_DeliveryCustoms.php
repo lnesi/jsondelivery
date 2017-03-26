@@ -35,7 +35,7 @@ class DeliveryCustoms extends Migration
             
             $sql='CREATE TRIGGER bi_delivery_customs BEFORE INSERT ON delivery_customs FOR EACH ROW
                   BEGIN
-                  SET NEW.sort_index=(SELECT count(*)+1 FROM delivery_customs where delivery_id=NEW.delivery_id and deleted_at is null);
+                  SET NEW.sort_index=(SELECT count(*)+1 FROM delivery_customs where delivery_id=NEW.delivery_id);
                   END;';
             DB::connection()->getPdo()->exec($sql);
         });
