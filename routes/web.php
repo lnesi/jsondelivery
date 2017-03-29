@@ -35,6 +35,7 @@ Route::group(['prefix' => 'ajax','middleware' => 'auth'], function () {
 	Route::get('regions/{id}/add/{country_id}', 'RegionController@addCountry');
 
 	Route::post('content/{id}', 'ContentController@add');
+	Route::put('content/{delivery_id}/{content_id}', 'ContentController@edit');
 	
 });
 

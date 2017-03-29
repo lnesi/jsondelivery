@@ -1,5 +1,5 @@
 <template>
-  <div :class="{'form-group': true, 'has-error': errors.has(this.name) }">
+  <div :class="{'form-group': true, 'has-error': hasErrors }">
     <label :for="id" class="control-label"><slot></slot></label>
     <div class="tbvue_input_holder">
       <input v-model="inputmodel" type="text" :name="name" class="form-control" :id="id" @blur="validate" :placeholder="placeholder" >
@@ -8,6 +8,7 @@
     <p class="help-block">{{ errors.first(this.name) }}</p>
   </div>
 </template>
+
 <style lang="scss">
     .tbvue_input_holder{
         position:relative;
@@ -56,6 +57,11 @@
           }
        },
       
+      computed:{
+        hasErrors(){
+          return this.errors.has(this.name);
+        }
+      },
        
        methods:{
           validate(){

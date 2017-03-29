@@ -27,7 +27,7 @@ export default{
 			height:300
 		}, tinymce.EditorManager);
 		this.editor.render();
-		this.editor.setContent(this.value);
+		if(this.value) this.editor.setContent(this.value);
 	},
 	methods:{
 		getValue(){

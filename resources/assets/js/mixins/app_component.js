@@ -6,7 +6,7 @@ export default {
 		
 	},
 	mounted(){
-		this.valueModel=this.value;
+		if(this.value) this.valueModel=this.value;
 	},
 	props:['label','help_text','id','name','value','custom_id'],
 	methods:{

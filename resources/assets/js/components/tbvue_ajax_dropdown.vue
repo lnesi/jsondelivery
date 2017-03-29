@@ -1,5 +1,5 @@
 <template>
-    <div :class="{'form-group': true, 'has-error': errors.has(this.name) }">
+    <div :class="{'form-group': true, 'has-error': errors.has(this.name)}">
         <label :for="id" class="control-label"><slot></slot></label>
         <div class="tbvue_dropdown_holder">
         <select class="form-control"   :name="name"  :id="id" v-model="inputmodel" @blur="validate">

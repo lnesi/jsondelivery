@@ -1,6 +1,9 @@
 <template>
 	<div class="form-group">
 		<label :for="id">{{label}}</label>
+		<p v-show="hasImage">
+		<img :src="image" class="img-thumbnail">
+		</p>
 		<input type="file" class="custom" :name="name" :id="id" accept="image/x-png,image/gif,image/jpeg" @change="onFileChange" />
 		<p class="help-block">{{help_text}} (Types allowed: jpg,gif,png)</p>
 	</div>
@@ -17,7 +20,7 @@ export default{
 	methods:{
 		onFileChange(e){
 			var files = e.target.files || e.dataTransfer.files;
-			 if (!files.length) return;
+			 //if (!files.length) return;
 			 this.createImage(files[0]);
 		},
 		createImage(file){
@@ -28,6 +31,23 @@ export default{
 			 	this.image=e.target.result;
 			 }.bind(this);
 			 reader.readAsDataURL(file);
+		}
+	},
+	watch:{
+		valueModel(value){
+			console.log("valueModel",value instanceof File);
+			if(value instanceof File){
+				 this.createImage(value);
+			}else if(value!=null && value!=""){
+				this.image="data:image/png;base64,"+value;
+			}
+			
+		}
+	},
+	computed:{
+		
+		hasImage(){
+			return this.image!="" && this.image!=null;
 		}
 	}
 }
