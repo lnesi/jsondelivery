@@ -25,6 +25,10 @@ class CustomValue extends Model
         if($this->custom->component->tag=="app-image"){
             return base64_encode($value);
         }
+        if($this->custom->component->tag=="app-checkbox"){
+            return (strtolower($value)=="true");
+            
+        }
         return $value;
     }
 }

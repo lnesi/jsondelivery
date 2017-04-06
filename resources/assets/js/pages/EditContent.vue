@@ -61,6 +61,7 @@
                     });
                 },
                 process(){
+                    this.$parent.$emit("SHOW_PRELOADER");
                     var formData = new FormData();
                     formData.append('lookup_name',this.lookup_name);
                     formData.append('_method','put');
@@ -69,8 +70,10 @@
                     });
                      this.$http.post('/ajax/content/'+this.delivery.id+'/'+this.$route.params.content_id, formData).then(response => {
                        console.log("ok",response);
+                       this.$parent.$emit("HIDE_PRELOADER");
                       }, response => {
                         console.log("error",response);
+                        this.$parent.$emit("HIDE_PRELOADER");
                       });
                 },
                 createForm(){

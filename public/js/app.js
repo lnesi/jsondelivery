@@ -103495,7 +103495,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* 32 */
 /***/ (function(module, exports, __webpack_require__) {
 
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+/* WEBPACK VAR INJECTION */(function($) {function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 /**
  * First we will load all of this project's JavaScript dependencies which
@@ -103581,6 +103581,11 @@ window.app = new Vue(_defineProperty({
     };
   },
 
+  created: function created() {
+    $(window).resize(function () {
+      this.resize();
+    }.bind(this));
+  },
   methods: {
     alert: function alert(event) {
       console.log("HI");
@@ -103600,6 +103605,7 @@ window.app = new Vue(_defineProperty({
     });
     this.$emit("HIDE_PRELOADER");
     this.loadUser();
+    this.resize();
   }
 }, 'methods', {
   loadUser: function loadUser() {
@@ -103611,8 +103617,16 @@ window.app = new Vue(_defineProperty({
         _this2.is_logged = true;
       }
     });
+  },
+  resize: function resize() {
+    $('#app').css({
+      overflow: 'hidden',
+      height: $(window).height()
+    });
+    $(".contentHolder").height($(window).height() - $("#mainNav").outerHeight() - parseInt($("#mainNav").css("margin-bottom")));
   }
 }));
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ }),
 /* 33 */,
@@ -105350,6 +105364,9 @@ var edit_mix = __webpack_require__(6);
             });
         },
         process: function process() {
+            var _this2 = this;
+
+            this.$parent.$emit("SHOW_PRELOADER");
             var formData = new FormData();
             formData.append('lookup_name', this.lookup_name);
             formData.append('_method', 'put');
@@ -105358,8 +105375,10 @@ var edit_mix = __webpack_require__(6);
             });
             this.$http.post('/ajax/content/' + this.delivery.id + '/' + this.$route.params.content_id, formData).then(function (response) {
                 console.log("ok", response);
+                _this2.$parent.$emit("HIDE_PRELOADER");
             }, function (response) {
                 console.log("error", response);
+                _this2.$parent.$emit("HIDE_PRELOADER");
             });
         },
         createForm: function createForm() {
@@ -106309,7 +106328,7 @@ exports = module.exports = __webpack_require__(9)();
 
 
 // module
-exports.push([module.i, "\n#preloader {\n  position: absolute;\n  width: 100%;\n  top: 0;\n  height: 100%;\n  left: 0;\n  background: rgba(0, 0, 0, 0.75);\n  z-index: 1000;\n  color: #fff;\n  text-align: center;\n}\n#preloader.fadeOut {\n    pointer-events: none;\n    opacity: 0;\n    -transition: opacity 0.5s ease-in-out;\n    -webkit-transition: opacity 0.5s ease-in-out;\n    -moz-transition: opacity 0.5s ease-in-out;\n    -ms-transition: opacity 0.5s ease-in-out;\n    -o-transition: opacity 0.5s ease-in-out;\n}\n#preloader.fadeIn {\n    pointer-events: auto;\n    opacity: 1;\n    -transition: opacity 0.5s ease-in-out;\n    -webkit-transition: opacity 0.5s ease-in-out;\n    -moz-transition: opacity 0.5s ease-in-out;\n    -ms-transition: opacity 0.5s ease-in-out;\n    -o-transition: opacity 0.5s ease-in-out;\n}\n", ""]);
+exports.push([module.i, "\n#preloader {\n  position: absolute;\n  width: 100%;\n  top: 0;\n  height: 100%;\n  left: 0;\n  background: rgba(0, 0, 0, 0.75);\n  z-index: 1031;\n  color: #fff;\n  text-align: center;\n}\n#preloader.fadeOut {\n    pointer-events: none;\n    opacity: 0;\n    -transition: opacity 0.5s ease-in-out;\n    -webkit-transition: opacity 0.5s ease-in-out;\n    -moz-transition: opacity 0.5s ease-in-out;\n    -ms-transition: opacity 0.5s ease-in-out;\n    -o-transition: opacity 0.5s ease-in-out;\n}\n#preloader.fadeIn {\n    pointer-events: auto;\n    opacity: 1;\n    -transition: opacity 0.5s ease-in-out;\n    -webkit-transition: opacity 0.5s ease-in-out;\n    -moz-transition: opacity 0.5s ease-in-out;\n    -ms-transition: opacity 0.5s ease-in-out;\n    -o-transition: opacity 0.5s ease-in-out;\n}\n", ""]);
 
 // exports
 
@@ -110324,7 +110343,10 @@ if (false) {
 
 module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
   return _c('nav', {
-    staticClass: "navbar navbar-default navbar-static-top"
+    staticClass: "navbar navbar-default navbar-fixed-top",
+    attrs: {
+      "id": "mainNav"
+    }
   }, [_c('div', {
     staticClass: "container"
   }, [_vm._m(0), _vm._v(" "), _c('div', {

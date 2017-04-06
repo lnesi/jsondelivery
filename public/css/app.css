@@ -8322,7 +8322,7 @@ button.close {
   z-index: 10;
   width: 100%;
   opacity: 0.75;
-  margin-top: 5px;
+  margin-top: 75px;
 }
 
 #detailsTitle {
@@ -8343,4 +8343,12 @@ button.close {
 
 #detailsTitle.collapsed .fa-plus-circle {
   display: inline-block;
+}
+
+.contentHolder {
+  padding-top: 20px;
+  margin-top: 50px;
+  overflow-y: auto;
+  height: 100%;
+  box-sizing: content-box;
 }

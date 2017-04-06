@@ -93,7 +93,6 @@ Vue.http.interceptors.push((request, next) => {
 });
 
 
-
 window.app = new Vue({
     el: '#app',
     component:["modal","alert","confirm","preloader","mainnav"],
@@ -103,6 +102,11 @@ window.app = new Vue({
         user:{id:null,name:null},
         is_logged:false
       }
+    },
+    created:function(){
+       $(window).resize(function(){
+          this.resize();
+        }.bind(this));
     },
     methods:{
     	alert:function(event){
@@ -121,6 +125,7 @@ window.app = new Vue({
   		});
   		this.$emit("HIDE_PRELOADER");
       this.loadUser();
+      this.resize();
     },
     methods:{
       loadUser(){
@@ -131,6 +136,14 @@ window.app = new Vue({
             }
             
          });
+      },
+      resize(){
+        $('#app').css({
+            overflow:'hidden',
+            height: $(window).height()
+        });
+        $(".contentHolder").height($(window).height()-$("#mainNav").outerHeight()-parseInt($("#mainNav").css("margin-bottom")));
+       
       }
     }
 

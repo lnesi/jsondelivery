@@ -43,7 +43,7 @@
         height: 100%;
         left: 0;
         background: rgba(0,0,0,.75);
-        z-index: 1000;
+        z-index: 1031;
         color:#fff;
         text-align: center;
         &.fadeOut{

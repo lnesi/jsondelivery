@@ -38,27 +38,33 @@ class ContentController extends Controller
         $content=DeliveryContent::findOrFail($content_id);
         $content->name=$request->input('lookup_name');
         $content->save();
-        foreach($delivery->customs as $custom){
-            if($custom->component->tag!="app-image"){
-                if($request->input($custom->id)){
-                    $query=CustomValue::query();
-                    $query->where('custom_id',$custom->id);
-                    $query->where('set_id',$content_id);
-                    $cc=$query->get();
-                    if($cc->count()>0){
-                        $cc[0]->data=$request->input($custom->id);
-                        $cc[0]->save();
-                    }else{
-                       CustomValue::create(['set_id'=>$content->id,'custom_id'=>$custom->id,"data"=>$request->input($custom->id)]);
-                    }
-                }
-            }else{
 
-                
+        foreach($delivery->customs as $custom){
+            $data=null;
+            $query=CustomValue::query();
+            $query->where('custom_id',$custom->id);
+            $query->where('set_id',$content_id);
+            $cc=$query->get();
+            if($custom->component->tag!="app-image"){
+                $data=$request->input($custom->id);
+            }else{
+                $fileUpload=$request->file($custom->id);
+                if($fileUpload){
+                    echo 'hi';
+                    $data=file_get_contents($fileUpload->path());
+                }
             }
-            $content=$content->fresh('values');
-        
-            return $content;
+            if($data){
+                if($cc->count()>0){
+                     $cc[0]->data=$data;
+                     $cc[0]->save();
+                }else{
+                     CustomValue::create(['set_id'=>$content->id,'custom_id'=>$custom->id,"data"=>$data]);
+                }
+            }
+            
         }
+       $content=$content->fresh('values');
+       return $content;
     }	
 }

@@ -24,15 +24,17 @@
 </head>
 <body>
     <div id="app">
+        <preloader></preloader>
         <mainnav ></mainnav>
         <alert></alert>
         <confirm></confirm>
-        <preloader></preloader>
-        
+        <div class="contentHolder">
         @yield('content')
+        </div>
     </div>
 
     <!-- Scripts -->
     <script src="{{ asset('js/app.js') }}"></script>
+   
 </body>
 </html>
