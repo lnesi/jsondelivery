@@ -59,12 +59,20 @@ const OpenDelivery = require('./pages/OpenDelivery.vue');
 const AddContent = require('./pages/AddContent.vue');
 const EditContent = require('./pages/EditContent.vue');
 
+const Users = require('./pages/Users.vue');
+const EditUser = require('./pages/EditUser.vue');
+const AddUser = require('./pages/AddUser.vue');
+
 const Error400 = require('./pages/Error400.vue');
 const Error404 = require('./pages/Error404.vue');
+const Error401 = require('./pages/Error401.vue');
 
 
 const routeList = [
   { path: '/', component: Home },
+  { path: '/users', component: Users },
+  { path: '/users/edit/:id', component: EditUser },
+  { path: '/users/add', component: AddUser },
   { path: '/partners', component: Partners },
   { path: '/partners/:id', component: EditPartner },
   { path: '/audiences', component: Audiences },
@@ -79,6 +87,7 @@ const routeList = [
   { path: '/deliveries/:id/addcontent', component: AddContent },
   { path: '/deliveries/:id/editcontent/:content_id', component: EditContent },
   { path: '/400', component: Error400 },
+  { path: '/401', component: Error401 },
   { path: '*', component: Error404 }
 ]
 

@@ -2,7 +2,7 @@
   <div :class="{'form-group': true, 'has-error': hasErrors }">
     <label :for="id" class="control-label"><slot></slot></label>
     <div class="tbvue_input_holder">
-      <input v-model="inputmodel" type="text" :name="name" class="form-control" :id="id" @blur="validate" :placeholder="placeholder" >
+      <input v-model="inputmodel" type="text" :name="name" class="form-control" :id="id" @blur="validate" :placeholder="placeholder" :disabled="this.disabled">
       <i class="fa fa-fw fa-exclamation-triangle text-danger" v-show="errors.has(this.name) " ></i>
     </div>
     <p class="help-block">{{ errors.first(this.name) }}</p>
@@ -29,6 +29,7 @@
         this.validator=new VeeValidate.Validator();
         this.validator.attach(this.name, this.rules , {prettyName:this.$slots.default[0].text});
         this.$set(this, 'errors', this.validator.errorBag);
+        
         //this.validate();
        
        },
@@ -76,6 +77,14 @@
           //   this.$emit('input', value);
           // }
        },
-       props:["value","id","name","placeholder","rules"]
+       props:{
+          value:{default:null},
+          id:{type:String,required: true},
+          name:{type:String,required:true},
+          rules:{type:String,default:''},
+          disabled:{type:Boolean,default:false},
+          placeholder:{type:String,default:''}
+       }
+      
     }
 </script>

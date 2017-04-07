@@ -56,7 +56,7 @@
     export default {
         mixins: [crud_mix],
         created: function () {
-          this.resource_url="ajax/partners{/id}";
+          this.resource_url="ajax/admin/partners{/id}";
           this.singular="Partner";
           this.addObject={name:"",abbr:""}
           this.validator=new VeeValidate.Validator();

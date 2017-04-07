@@ -25,6 +25,11 @@ export default {
             this.provider.get().then(response => {
                 this.list = response.body;
                 this.$root.$emit("HIDE_PRELOADER");
+            },response=>{
+				if(response.status==401){
+					this.$root.$router.push("/401");
+				}
+            	
             });
         },
 

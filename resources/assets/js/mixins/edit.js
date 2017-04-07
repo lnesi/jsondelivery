@@ -27,5 +27,5 @@ export default {
               this.save();
           }).catch(()=>null);
       }
-}
+  }
 }

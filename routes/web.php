@@ -16,7 +16,7 @@ Route::group(['prefix' => 'ajax','middleware' => 'auth'], function () {
 	Route::get('user', function (Request $request) {
 	    return Auth::user();
 	});
-	Route::resource('partners', PartnerController::class,['except' => ['create', 'edit']]);
+	Route::resource('partners', PartnerController::class,['only' => ['index','show']]);
 	Route::resource('audiences', AudienceController::class,['except' => ['create', 'edit']]);
 	Route::resource('regions', RegionController::class,['except' => ['create', 'edit']]);
 	Route::resource('campaigns', CampaignController::class,['except' => ['create', 'edit']]);
@@ -36,7 +36,11 @@ Route::group(['prefix' => 'ajax','middleware' => 'auth'], function () {
 
 	Route::post('content/{id}', 'ContentController@add');
 	Route::put('content/{delivery_id}/{content_id}', 'ContentController@edit');
+	Route::group(['prefix' => 'admin','middleware' => ['auth','auth.admin']],function(){
+		Route::resource('partners', PartnerController::class,['except' => ['create', 'edit']]);
+		Route::resource('users', UserController::class,['except' => ['create', 'edit']]);
 	
+	});
 });
 
 

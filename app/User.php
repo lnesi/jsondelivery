@@ -24,10 +24,16 @@ class User extends Authenticatable
      * @var array
      */
     protected $hidden = [
-        'password', 'remember_token',
+        'password', 'remember_token','partner_id'
     ];
 
+    protected $with=['partner'];
+   
     public function partner(){
-        return $this->hasOne(Partner::class);
+        return $this->belongsTo(Partner::class);
+    }
+
+    public function getIsAdminAttribute($value){
+        return $value==1;
     }
 }

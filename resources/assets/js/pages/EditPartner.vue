@@ -28,7 +28,7 @@
     export default {
         mixins: [edit_mix.default],
         created: function () {
-          this.resource_url="ajax/partners{/id}";
+          this.resource_url="ajax/admin/partners{/id}";
           this.singular="Partner";
 
        },

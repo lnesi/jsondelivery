@@ -31,8 +31,8 @@
                                
                               </ul>
                         </li>
-                        <li class="dropdown">
-                              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="lnr lnr-cog"></i> System <span class="caret"></span></a>
+                        <li class="dropdown" v-show="user.is_admin">
+                              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="lnr lnr-cog"></i> Admin <span class="caret"></span></a>
                               <ul class="dropdown-menu">
                                 <li><a href="#/partners"><i class="lnr lnr-apartment"></i> Partners</a></li>
                                 <li role="separator" class="divider"></li>
