@@ -27,6 +27,7 @@ Vue.component('preloader', require('./components/Preloader.vue'));
 Vue.component('mainnav', require('./components/MainNav.vue'));
 Vue.component('tbvue-ajax-dropdown', require('./components/tbvue_ajax_dropdown.vue'));
 Vue.component('tbvue-input', require('./components/tbvue_input.vue'));
+Vue.component('tbvue-password', require('./components/tbvue_password.vue'));
 
 // Fragments Components
 Vue.component('app-customseditor', require('./fragments/AppCustomsEditor.vue'));

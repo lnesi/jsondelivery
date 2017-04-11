@@ -5,7 +5,7 @@
               <div class="col-md-12 ">
                   <div class="panel panel-default">
                       <div class="panel-heading">
-                      <h2><i class="lnr lnr-users"></i> Users <small><button type="button" class="btn btn-default pull-right" data-toggle="modal" data-target="#addModal"><i class="fa fa-fw fa-plus"></i> Add</button></small></h2>
+                      <h2><i class="lnr lnr-users"></i> Users <small><a href="#/users/add" class="btn btn-default pull-right" ><i class="fa fa-fw fa-plus"></i> Add</a></small></h2>
                       
                       </div>
 
@@ -42,20 +42,14 @@
     </div>
 </template>
 <script>
-var crud_mix = require('../mixins/crd.js').default;
+var list_mix = require('../mixins/list.js').default;
     export default {
-        mixins: [crud_mix],
+        mixins: [list_mix],
         created: function () {
           this.resource_url="ajax/admin/users{/id}";
           this.singular="User";
           this.addObject={name:"",email:"",partner_id:"",password:""};
-          this.validator=new VeeValidate.Validator();
-          this.validator.attach('name', 'required|max:100', { prettyName: 'Name' });
-          this.validator.attach('email', 'required|email', { prettyName: 'Email' });
-          this.validator.attach('partner_id', 'required|numeric', { prettyName: 'Partner' });
-          this.validator.attach('password', 'required', { prettyName: 'Password' });
-          this.validator.validateAll(this.addObject).then(() => {}).catch(() => {});
-          this.$set(this, 'errors', this.validator.errorBag);
+          
        },
        
         

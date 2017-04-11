@@ -12,7 +12,7 @@
                             <p>{{item.is_admin?'-':item.partner.name}}</p>
                           </div>
                         <tbvue-input name="name" id="in_name" placeholder="Name" rules="required|max:100" v-model="item.name">Name</tbvue-input>
-                        <tbvue-input name="name" id="in_abbr"  placeholder="abbr" rules="required|email" v-model="item.email" :disabled="true">Email</tbvue-input>
+                        <tbvue-input name="name" id="in_abbr"  placeholder="Email" rules="required|email" v-model="item.email" :disabled="true">Email</tbvue-input>
                     	
                     </div>
                     <div class="panel-footer">
