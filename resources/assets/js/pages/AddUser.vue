@@ -7,14 +7,14 @@
                     <div class="panel-heading">Add User</div>
 
                     <div class="panel-body">
-                     	<tbvue-ajax-dropdown data-url="ajax/partners?paginate=false" name="partner_id" rules="required" id="partner_id" v-model="addObject.partner_id">Partner</tbvue-ajax-dropdown>
-                        <tbvue-input name="name" id="in_name" placeholder="Name" rules="required|max:100" v-model="addObject.name">Name</tbvue-input>
-                        <tbvue-input name="name" id="in_email"  placeholder="Email" rules="required|email|remote:ajax/admin/users/validate" v-model="addObject.email">Email</tbvue-input>
-                    	  <tbvue-password v-model="addObject.password"></tbvue-password>
+                     	  <tbvue-ajax-dropdown ref="forminputs" data-url="ajax/partners?paginate=false" name="partner_id" rules="required" id="partner_id" v-model="addObject.partner_id">Partner</tbvue-ajax-dropdown>
+                        <tbvue-input ref="forminputs" name="name" id="in_name" placeholder="Name" rules="required|max:100" v-model="addObject.name">Name</tbvue-input>
+                        <tbvue-input ref="forminputs" name="name" id="in_email"  placeholder="Email" rules="required|email|remote:ajax/admin/users/validate" v-model="addObject.email">Email</tbvue-input>
+                    	  <tbvue-password ref="forminputs" v-model="addObject.password"></tbvue-password>
                     </div>
                     <div class="panel-footer">
                         <a  class="btn btn-default" href="#/users" ><i class="fa fa-fw fa-chevron-left"></i> Back</a>
-                        <button type="submit"   :class="{'btn btn-success pull-right': true, 'disabled': errors.has('name') || errors.has('abbr') }"><i class="fa fa-fw fa-floppy-o" ></i> Save</button>
+                        <button type="submit"   :class="{'btn btn-success pull-right': true, 'disabled': hasErrors }"><i class="fa fa-fw fa-floppy-o" ></i> Save</button>
                     </div>
                 </div>
                 </form>
@@ -36,6 +36,11 @@
             	validator: null
 			}
 		},
+    computed:{
+      hasErrors:function(){
+        return false;
+      }
+    },
 		created: function () {
           this.resource_url="ajax/admin/users{/id}";
           this.singular="User";
@@ -50,12 +55,16 @@
        },
 		methods:{
 			validate() {
-
-	            this.validator.validateAll(this.addObject).then(result => {
-	              console.log("is valid");
-	            }).catch(() => null);
-	            this.$set(this, 'errors', this.validator.errorBag);
-        	},
+        this.$children.forEach(function(element){
+          if(element.is_input){
+            element.validate()
+          }
+        });
+	      this.validator.validateAll(this.addObject).then(result => {
+	          console.log("is valid");
+	      }).catch(() => null);
+	      this.$set(this, 'errors', this.validator.errorBag);
+      },
 		}
 	}
 </script>

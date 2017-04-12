@@ -44,8 +44,8 @@
 				model:{
 					password1:'',
 					password2:''
-				}
-				
+				},
+				is_input:true,
 			}
 		},
 		

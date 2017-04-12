@@ -43,7 +43,8 @@
         return {
           inputmodel:null,
           errors:null,
-          loading:false
+          loading:false,
+          is_input:true,
         }
        },
        watch:{

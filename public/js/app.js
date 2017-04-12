@@ -104274,7 +104274,8 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             errors: null,
             list: [],
             loading: false,
-            label: "Loading..."
+            label: "Loading...",
+            is_input: true
         };
     },
 
@@ -104378,7 +104379,8 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
     return {
       inputmodel: null,
       errors: null,
-      loading: false
+      loading: false,
+      is_input: true
     };
   },
 
@@ -104479,8 +104481,8 @@ var passregex = {
 			model: {
 				password1: '',
 				password2: ''
-			}
-
+			},
+			is_input: true
 		};
 	},
 
@@ -105177,42 +105179,51 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 
 /* harmony default export */ __webpack_exports__["default"] = {
-	data: function data() {
-		return {
-			addObject: {
-				name: '',
-				email: '',
-				password: '',
-				partner_id: ''
-			},
-			errors: [],
-			validator: null
-		};
-	},
+  data: function data() {
+    return {
+      addObject: {
+        name: '',
+        email: '',
+        password: '',
+        partner_id: ''
+      },
+      errors: [],
+      validator: null
+    };
+  },
 
-	created: function created() {
-		this.resource_url = "ajax/admin/users{/id}";
-		this.singular = "User";
-		this.addObject = { name: "", email: "", partner_id: "", password: "" };
-		this.validator = new VeeValidate.Validator();
-		this.validator.attach('name', 'required|max:100', { prettyName: 'Name' });
-		this.validator.attach('email', 'required|email', { prettyName: 'Email' });
-		this.validator.attach('partner_id', 'required|numeric', { prettyName: 'Partner' });
-		this.validator.attach('password', 'required', { prettyName: 'Password' });
-		this.validator.validateAll(this.addObject).then(function () {}).catch(function () {});
-		this.$set(this, 'errors', this.validator.errorBag);
-	},
-	methods: {
-		validate: function validate() {
-
-			this.validator.validateAll(this.addObject).then(function (result) {
-				console.log("is valid");
-			}).catch(function () {
-				return null;
-			});
-			this.$set(this, 'errors', this.validator.errorBag);
-		}
-	}
+  computed: {
+    hasErrors: function hasErrors() {
+      return false;
+    }
+  },
+  created: function created() {
+    this.resource_url = "ajax/admin/users{/id}";
+    this.singular = "User";
+    this.addObject = { name: "", email: "", partner_id: "", password: "" };
+    this.validator = new VeeValidate.Validator();
+    this.validator.attach('name', 'required|max:100', { prettyName: 'Name' });
+    this.validator.attach('email', 'required|email', { prettyName: 'Email' });
+    this.validator.attach('partner_id', 'required|numeric', { prettyName: 'Partner' });
+    this.validator.attach('password', 'required', { prettyName: 'Password' });
+    this.validator.validateAll(this.addObject).then(function () {}).catch(function () {});
+    this.$set(this, 'errors', this.validator.errorBag);
+  },
+  methods: {
+    validate: function validate() {
+      this.$children.forEach(function (element) {
+        if (element.is_input) {
+          element.validate();
+        }
+      });
+      this.validator.validateAll(this.addObject).then(function (result) {
+        console.log("is valid");
+      }).catch(function () {
+        return null;
+      });
+      this.$set(this, 'errors', this.validator.errorBag);
+    }
+  }
 };
 
 /***/ }),
@@ -110655,6 +110666,7 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
   }, [_vm._v("Add User")]), _vm._v(" "), _c('div', {
     staticClass: "panel-body"
   }, [_c('tbvue-ajax-dropdown', {
+    ref: "forminputs",
     attrs: {
       "data-url": "ajax/partners?paginate=false",
       "name": "partner_id",
@@ -110668,6 +110680,7 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
       }
     }
   }, [_vm._v("Partner")]), _vm._v(" "), _c('tbvue-input', {
+    ref: "forminputs",
     attrs: {
       "name": "name",
       "id": "in_name",
@@ -110681,6 +110694,7 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
       }
     }
   }, [_vm._v("Name")]), _vm._v(" "), _c('tbvue-input', {
+    ref: "forminputs",
     attrs: {
       "name": "name",
       "id": "in_email",
@@ -110694,6 +110708,7 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
       }
     }
   }, [_vm._v("Email")]), _vm._v(" "), _c('tbvue-password', {
+    ref: "forminputs",
     model: {
       value: (_vm.addObject.password),
       callback: function($$v) {
@@ -110704,7 +110719,7 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
     staticClass: "panel-footer"
   }, [_vm._m(0), _vm._v(" "), _c('button', {
     class: {
-      'btn btn-success pull-right': true, 'disabled': _vm.errors.has('name') || _vm.errors.has('abbr')
+      'btn btn-success pull-right': true, 'disabled': _vm.hasErrors
     },
     attrs: {
       "type": "submit"

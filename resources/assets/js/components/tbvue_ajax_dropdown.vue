@@ -52,7 +52,8 @@
                 errors: null,
                 list: [],
                 loading:false,
-                label:"Loading..."
+                label:"Loading...",
+                is_input:true,
             }
         },
 
