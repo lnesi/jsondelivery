@@ -38,7 +38,9 @@ Route::group(['prefix' => 'ajax','middleware' => 'auth'], function () {
 	Route::put('content/{delivery_id}/{content_id}', 'ContentController@edit');
 	Route::group(['prefix' => 'admin','middleware' => ['auth','auth.admin']],function(){
 		Route::resource('partners', PartnerController::class,['except' => ['create', 'edit']]);
+		Route::post('users/validate','UserController@validateEmail');
 		Route::resource('users', UserController::class,['except' => ['create', 'edit']]);
+
 	
 	});
 });

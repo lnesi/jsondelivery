@@ -4,6 +4,7 @@
     <div class="tbvue_input_holder">
       <input v-model="inputmodel" type="text" :name="name" class="form-control" :id="id" @blur="validate" :placeholder="placeholder" :disabled="this.disabled">
       <i class="fa fa-fw fa-exclamation-triangle text-danger" v-show="errors.has(this.name) " ></i>
+      <i class="fa fa-spinner fa-pulse fa-fw" v-show="loading"></i>
     </div>
     <p class="help-block">{{ errors.first(this.name) }}</p>
   </div>
@@ -22,6 +23,8 @@
     }
 </style>
 <script>
+  
+
     export default {
       validator: null,
        created(){
@@ -39,7 +42,8 @@
        data(){
         return {
           inputmodel:null,
-          errors:null
+          errors:null,
+          loading:false
         }
        },
        watch:{
@@ -65,10 +69,14 @@
       },
        
        methods:{
+
           validate(){
+            this.loading=true;
             this.validator.validate(this.name, this.inputmodel).then(() => {
+                this.loading=false;
                 // success
             }).catch(() => {
+                this.loading=false;
                 // failed
             });;
           },

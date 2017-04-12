@@ -9,8 +9,8 @@
                     <div class="panel-body">
                      	<tbvue-ajax-dropdown data-url="ajax/partners?paginate=false" name="partner_id" rules="required" id="partner_id" v-model="addObject.partner_id">Partner</tbvue-ajax-dropdown>
                         <tbvue-input name="name" id="in_name" placeholder="Name" rules="required|max:100" v-model="addObject.name">Name</tbvue-input>
-                        <tbvue-input name="name" id="in_abbr"  placeholder="Email" rules="required|email" v-model="addObject.email">Email</tbvue-input>
-                    	<tbvue-password v-model="addObject.password"></tbvue-password>
+                        <tbvue-input name="name" id="in_email"  placeholder="Email" rules="required|email|remote:ajax/admin/users/validate" v-model="addObject.email">Email</tbvue-input>
+                    	  <tbvue-password v-model="addObject.password"></tbvue-password>
                     </div>
                     <div class="panel-footer">
                         <a  class="btn btn-default" href="#/users" ><i class="fa fa-fw fa-chevron-left"></i> Back</a>
@@ -52,9 +52,7 @@
 			validate() {
 
 	            this.validator.validateAll(this.addObject).then(result => {
-	                this.add();
-	                $('#addModal').modal('hide');
-	                this.reset();
+	              console.log("is valid");
 	            }).catch(() => null);
 	            this.$set(this, 'errors', this.validator.errorBag);
         	},

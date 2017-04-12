@@ -63,7 +63,7 @@
 /******/ 	__webpack_require__.p = "./";
 
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 163);
+/******/ 	return __webpack_require__(__webpack_require__.s = 166);
 /******/ })
 /************************************************************************/
 /******/ ({
@@ -10296,7 +10296,7 @@ return jQuery;
 
 /***/ }),
 
-/***/ 10:
+/***/ 11:
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global, module) {var __WEBPACK_AMD_DEFINE_RESULT__;/**
@@ -27385,11 +27385,11 @@ return jQuery;
   }
 }.call(this));
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3), __webpack_require__(29)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3), __webpack_require__(30)(module)))
 
 /***/ }),
 
-/***/ 11:
+/***/ 12:
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global, process) {(function (global, undefined) {
@@ -27583,7 +27583,7 @@ return jQuery;
 
 /***/ }),
 
-/***/ 12:
+/***/ 13:
 /***/ (function(module, exports, __webpack_require__) {
 
 var apply = Function.prototype.apply;
@@ -27636,14 +27636,14 @@ exports._unrefActive = exports.active = function(item) {
 };
 
 // setimmediate attaches itself to the global object
-__webpack_require__(11);
+__webpack_require__(12);
 exports.setImmediate = setImmediate;
 exports.clearImmediate = clearImmediate;
 
 
 /***/ }),
 
-/***/ 13:
+/***/ 14:
 /***/ (function(module, exports, __webpack_require__) {
 
 // Exports the "code" plugin for usage with module loaders
@@ -27652,11 +27652,11 @@ exports.clearImmediate = clearImmediate;
 //     require('tinymce/plugins/code')
 //   ES2015:
 //     import 'tinymce/plugins/code'
-__webpack_require__(14);
+__webpack_require__(15);
 
 /***/ }),
 
-/***/ 14:
+/***/ 15:
 /***/ (function(module, exports) {
 
 /**
@@ -27722,7 +27722,7 @@ tinymce.PluginManager.add('code', function(editor) {
 
 /***/ }),
 
-/***/ 15:
+/***/ 16:
 /***/ (function(module, exports, __webpack_require__) {
 
 // Exports the "link" plugin for usage with module loaders
@@ -27731,11 +27731,19 @@ tinymce.PluginManager.add('code', function(editor) {
 //     require('tinymce/plugins/link')
 //   ES2015:
 //     import 'tinymce/plugins/link'
-__webpack_require__(16);
+__webpack_require__(17);
 
 /***/ }),
 
-/***/ 16:
+/***/ 166:
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports = __webpack_require__(33);
+
+
+/***/ }),
+
+/***/ 17:
 /***/ (function(module, exports) {
 
 /**
@@ -28357,15 +28365,7 @@ tinymce.PluginManager.add('link', function(editor) {
 
 /***/ }),
 
-/***/ 163:
-/***/ (function(module, exports, __webpack_require__) {
-
-module.exports = __webpack_require__(33);
-
-
-/***/ }),
-
-/***/ 17:
+/***/ 18:
 /***/ (function(module, exports, __webpack_require__) {
 
 // Exports the "table" plugin for usage with module loaders
@@ -28374,11 +28374,11 @@ module.exports = __webpack_require__(33);
 //     require('tinymce/plugins/table')
 //   ES2015:
 //     import 'tinymce/plugins/table'
-__webpack_require__(18);
+__webpack_require__(19);
 
 /***/ }),
 
-/***/ 18:
+/***/ 19:
 /***/ (function(module, exports) {
 
 /**
@@ -32980,19 +32980,6 @@ define("tinymce/tableplugin/Plugin", [
 
 /***/ }),
 
-/***/ 19:
-/***/ (function(module, exports, __webpack_require__) {
-
-// Exports the "wordcount" plugin for usage with module loaders
-// Usage:
-//   CommonJS:
-//     require('tinymce/plugins/wordcount')
-//   ES2015:
-//     import 'tinymce/plugins/wordcount'
-__webpack_require__(20);
-
-/***/ }),
-
 /***/ 2:
 /***/ (function(module, exports) {
 
@@ -33181,6 +33168,19 @@ process.umask = function() { return 0; };
 /***/ }),
 
 /***/ 20:
+/***/ (function(module, exports, __webpack_require__) {
+
+// Exports the "wordcount" plugin for usage with module loaders
+// Usage:
+//   CommonJS:
+//     require('tinymce/plugins/wordcount')
+//   ES2015:
+//     import 'tinymce/plugins/wordcount'
+__webpack_require__(21);
+
+/***/ }),
+
+/***/ 21:
 /***/ (function(module, exports) {
 
 (function () {
@@ -33753,7 +33753,7 @@ dem('tinymce.wordcount.Plugin')();
 
 /***/ }),
 
-/***/ 21:
+/***/ 22:
 /***/ (function(module, exports, __webpack_require__) {
 
 // Exports the "modern" theme for usage with module loaders
@@ -33762,11 +33762,11 @@ dem('tinymce.wordcount.Plugin')();
 //     require('tinymce/themes/modern')
 //   ES2015:
 //     import 'tinymce/themes/modern'
-__webpack_require__(22);
+__webpack_require__(23);
 
 /***/ }),
 
-/***/ 22:
+/***/ 23:
 /***/ (function(module, exports) {
 
 (function () {
@@ -35115,7 +35115,7 @@ dem('tinymce.modern.Theme')();
 
 /***/ }),
 
-/***/ 23:
+/***/ 24:
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(setImmediate) {// 4.5.5 (2017-03-07)
@@ -84330,11 +84330,11 @@ define("tinymce/Register", [
 
 expose(["tinymce/geom/Rect","tinymce/util/Promise","tinymce/util/Delay","tinymce/Env","tinymce/dom/EventUtils","tinymce/dom/Sizzle","tinymce/util/Tools","tinymce/dom/DomQuery","tinymce/html/Styles","tinymce/dom/TreeWalker","tinymce/html/Entities","tinymce/dom/DOMUtils","tinymce/dom/ScriptLoader","tinymce/AddOnManager","tinymce/dom/RangeUtils","tinymce/html/Node","tinymce/html/Schema","tinymce/html/SaxParser","tinymce/html/DomParser","tinymce/html/Writer","tinymce/html/Serializer","tinymce/dom/Serializer","tinymce/util/VK","tinymce/dom/ControlSelection","tinymce/dom/BookmarkManager","tinymce/dom/Selection","tinymce/Formatter","tinymce/UndoManager","tinymce/EditorCommands","tinymce/util/URI","tinymce/util/Class","tinymce/util/EventDispatcher","tinymce/util/Observable","tinymce/ui/Selector","tinymce/ui/Collection","tinymce/ui/ReflowQueue","tinymce/ui/Control","tinymce/ui/Factory","tinymce/ui/KeyboardNavigation","tinymce/ui/Container","tinymce/ui/DragHelper","tinymce/ui/Scrollable","tinymce/ui/Panel","tinymce/ui/Movable","tinymce/ui/Resizable","tinymce/ui/FloatPanel","tinymce/ui/Window","tinymce/ui/MessageBox","tinymce/WindowManager","tinymce/ui/Tooltip","tinymce/ui/Widget","tinymce/ui/Progress","tinymce/ui/Notification","tinymce/NotificationManager","tinymce/EditorObservable","tinymce/Shortcuts","tinymce/Editor","tinymce/util/I18n","tinymce/FocusManager","tinymce/EditorManager","tinymce/util/XHR","tinymce/util/JSON","tinymce/util/JSONRequest","tinymce/util/JSONP","tinymce/util/LocalStorage","tinymce/Compat","tinymce/ui/Layout","tinymce/ui/AbsoluteLayout","tinymce/ui/Button","tinymce/ui/ButtonGroup","tinymce/ui/Checkbox","tinymce/ui/ComboBox","tinymce/ui/ColorBox","tinymce/ui/PanelButton","tinymce/ui/ColorButton","tinymce/util/Color","tinymce/ui/ColorPicker","tinymce/ui/Path","tinymce/ui/ElementPath","tinymce/ui/FormItem","tinymce/ui/Form","tinymce/ui/FieldSet","tinymce/ui/FilePicker","tinymce/ui/FitLayout","tinymce/ui/FlexLayout","tinymce/ui/FlowLayout","tinymce/ui/FormatControls","tinymce/ui/GridLayout","tinymce/ui/Iframe","tinymce/ui/InfoBox","tinymce/ui/Label","tinymce/ui/Toolbar","tinymce/ui/MenuBar","tinymce/ui/MenuButton","tinymce/ui/MenuItem","tinymce/ui/Throbber","tinymce/ui/Menu","tinymce/ui/ListBox","tinymce/ui/Radio","tinymce/ui/ResizeHandle","tinymce/ui/SelectBox","tinymce/ui/Slider","tinymce/ui/Spacer","tinymce/ui/SplitButton","tinymce/ui/StackLayout","tinymce/ui/TabPanel","tinymce/ui/TextBox"]);
 })(window);
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12).setImmediate))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(13).setImmediate))
 
 /***/ }),
 
-/***/ 24:
+/***/ 25:
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -87442,7 +87442,7 @@ return index;
 
 /***/ }),
 
-/***/ 25:
+/***/ 26:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -88523,7 +88523,7 @@ var xhrClient = function (request) {
 
 var nodeClient = function (request) {
 
-    var client = __webpack_require__(30);
+    var client = __webpack_require__(31);
 
     return new PromiseObj(function (resolve) {
 
@@ -88978,7 +88978,7 @@ module.exports = plugin;
 
 /***/ }),
 
-/***/ 26:
+/***/ 27:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -91264,7 +91264,7 @@ if (inBrowser && window.Vue) {
 
 /***/ }),
 
-/***/ 28:
+/***/ 29:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -100450,35 +100450,6 @@ module.exports = Vue$3;
 
 /***/ }),
 
-/***/ 29:
-/***/ (function(module, exports) {
-
-module.exports = function(module) {
-	if(!module.webpackPolyfill) {
-		module.deprecate = function() {};
-		module.paths = [];
-		// module.parent = undefined by default
-		if(!module.children) module.children = [];
-		Object.defineProperty(module, "loaded", {
-			enumerable: true,
-			get: function() {
-				return module.l;
-			}
-		});
-		Object.defineProperty(module, "id", {
-			enumerable: true,
-			get: function() {
-				return module.i;
-			}
-		});
-		module.webpackPolyfill = 1;
-	}
-	return module;
-};
-
-
-/***/ }),
-
 /***/ 3:
 /***/ (function(module, exports) {
 
@@ -100510,6 +100481,35 @@ module.exports = g;
 /***/ 30:
 /***/ (function(module, exports) {
 
+module.exports = function(module) {
+	if(!module.webpackPolyfill) {
+		module.deprecate = function() {};
+		module.paths = [];
+		// module.parent = undefined by default
+		if(!module.children) module.children = [];
+		Object.defineProperty(module, "loaded", {
+			enumerable: true,
+			get: function() {
+				return module.l;
+			}
+		});
+		Object.defineProperty(module, "id", {
+			enumerable: true,
+			get: function() {
+				return module.i;
+			}
+		});
+		module.webpackPolyfill = 1;
+	}
+	return module;
+};
+
+
+/***/ }),
+
+/***/ 31:
+/***/ (function(module, exports) {
+
 /* (ignored) */
 
 /***/ }),
@@ -100531,11 +100531,11 @@ window.app = new Vue({
 
 "use strict";
 /* WEBPACK VAR INJECTION */(function(__webpack_provided_window_dot_jQuery) {Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vee_validate__ = __webpack_require__(24);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vee_validate__ = __webpack_require__(25);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vee_validate___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_vee_validate__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_vue_router__ = __webpack_require__(26);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_vue_router__ = __webpack_require__(27);
 
-window._ = __webpack_require__(10);
+window._ = __webpack_require__(11);
 
 /**
  * We'll load jQuery and the Bootstrap jQuery plugin which provides support
@@ -100545,7 +100545,7 @@ window._ = __webpack_require__(10);
 
 window.$ = __webpack_provided_window_dot_jQuery = __webpack_require__(1);
 
-__webpack_require__(8);
+__webpack_require__(9);
 
 /**
  * Vue is a modern JavaScript library for building interactive web interfaces
@@ -100553,8 +100553,8 @@ __webpack_require__(8);
  * and simple, leaving you to focus on building your next great project.
  */
 
-window.Vue = __webpack_require__(28);
-window.VueResource = __webpack_require__(25);
+window.Vue = __webpack_require__(29);
+window.VueResource = __webpack_require__(26);
 
 
 
@@ -100575,12 +100575,12 @@ window.VueRouter = __WEBPACK_IMPORTED_MODULE_1_vue_router__["a" /* default */];
 //     'X-Requested-With': 'XMLHttpRequest'
 // };
 
-__webpack_require__(23);
-__webpack_require__(21);
-__webpack_require__(15);
-__webpack_require__(17);
-__webpack_require__(13);
-__webpack_require__(19);
+__webpack_require__(24);
+__webpack_require__(22);
+__webpack_require__(16);
+__webpack_require__(18);
+__webpack_require__(14);
+__webpack_require__(20);
 
 /**
  * Echo exposes an expressive API for subscribing to channels and listening
@@ -100598,7 +100598,7 @@ __webpack_require__(19);
 
 /***/ }),
 
-/***/ 8:
+/***/ 9:
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(jQuery) {/*!

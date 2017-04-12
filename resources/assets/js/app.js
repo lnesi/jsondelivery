@@ -102,6 +102,23 @@ Vue.http.interceptors.push((request, next) => {
     next();
 });
 
+const remoteRule={
+   getMessage(field, params, data) {
+        return field+" already in used";
+    },
+    validate(value,args) {
+      return new Promise(resolve => {
+        window.app.$http.post(args[0],{value:value}).then(response=>{
+          resolve({valid: true});
+        },response=>{
+          resolve({valid: false});
+        });
+      });
+    }
+}
+
+VeeValidate.Validator.extend('remote', remoteRule);
+
 
 window.app = new Vue({
     el: '#app',
