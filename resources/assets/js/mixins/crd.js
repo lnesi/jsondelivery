@@ -70,6 +70,9 @@ export default {
         },
 
         validate() {
+            this.$refs.addModal.$children.forEach(function(element){
+                if(element.isInput) element.validate();
+            });
             this.validator.validateAll(this.addObject).then(result => {
                 this.add();
                 $('#addModal').modal('hide');

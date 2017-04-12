@@ -53,7 +53,7 @@
                 list: [],
                 loading:false,
                 label:"Loading...",
-                is_input:true,
+                isInput:true,
             }
         },
 

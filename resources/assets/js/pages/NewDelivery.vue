@@ -103,6 +103,9 @@
 
         methods: {
             validate() {
+                this.$children.forEach(function(element){
+                    if(element.isInput) element.validate();
+                });
                 this.validator.validateAll(this.delivery).then(() => {
 
                     this.$http.post('/ajax/deliveries', this.delivery).then(response => {

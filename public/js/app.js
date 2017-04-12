@@ -10666,6 +10666,9 @@ var list_mix = __webpack_require__(8).default;
         validate: function validate() {
             var _this3 = this;
 
+            this.$refs.addModal.$children.forEach(function (element) {
+                if (element.isInput) element.validate();
+            });
             this.validator.validateAll(this.addObject).then(function (result) {
                 _this3.add();
                 $('#addModal').modal('hide');
@@ -104275,7 +104278,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             list: [],
             loading: false,
             label: "Loading...",
-            is_input: true
+            isInput: true
         };
     },
 
@@ -104380,7 +104383,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
       inputmodel: null,
       errors: null,
       loading: false,
-      is_input: true
+      isInput: true
     };
   },
 
@@ -104482,7 +104485,7 @@ var passregex = {
 				password1: '',
 				password2: ''
 			},
-			is_input: true
+			isInput: true
 		};
 	},
 
@@ -105212,7 +105215,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
   methods: {
     validate: function validate() {
       this.$children.forEach(function (element) {
-        if (element.is_input) {
+        if (element.isInput) {
           element.validate();
         }
       });
@@ -105771,6 +105774,9 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
         validate: function validate() {
             var _this3 = this;
 
+            this.$children.forEach(function (element) {
+                if (element.isInput) element.validate();
+            });
             this.validator.validateAll(this.item).then(function () {
                 _this3.save();
             }).catch(function () {
@@ -106337,6 +106343,9 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
         validate: function validate() {
             var _this = this;
 
+            this.$children.forEach(function (element) {
+                if (element.isInput) element.validate();
+            });
             this.validator.validateAll(this.delivery).then(function () {
 
                 _this.$http.post('/ajax/deliveries', _this.delivery).then(function (response) {
@@ -108773,6 +108782,7 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
       staticClass: "fa fa-fw fa-trash"
     }), _vm._v(" Delete")])])])])
   }))])])])])])]), _vm._v(" "), _c('modal', {
+    ref: "addModal",
     attrs: {
       "id": "addModal"
     }
@@ -109504,6 +109514,7 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
       staticClass: "fa fa-fw fa-trash"
     }), _vm._v(" Delete")])])])])
   }))])])])])])]), _vm._v(" "), _c('modal', {
+    ref: "addModal",
     attrs: {
       "id": "addModal"
     }
@@ -109745,6 +109756,7 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
       staticClass: "fa fa-fw fa-trash"
     }), _vm._v(" Delete")])])])])
   }))])])])])])]), _vm._v(" "), _c('modal', {
+    ref: "addModal",
     attrs: {
       "id": "addModal"
     }
@@ -110666,7 +110678,6 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
   }, [_vm._v("Add User")]), _vm._v(" "), _c('div', {
     staticClass: "panel-body"
   }, [_c('tbvue-ajax-dropdown', {
-    ref: "forminputs",
     attrs: {
       "data-url": "ajax/partners?paginate=false",
       "name": "partner_id",
@@ -110680,7 +110691,6 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
       }
     }
   }, [_vm._v("Partner")]), _vm._v(" "), _c('tbvue-input', {
-    ref: "forminputs",
     attrs: {
       "name": "name",
       "id": "in_name",
@@ -110694,7 +110704,6 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
       }
     }
   }, [_vm._v("Name")]), _vm._v(" "), _c('tbvue-input', {
-    ref: "forminputs",
     attrs: {
       "name": "name",
       "id": "in_email",
@@ -110708,7 +110717,6 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
       }
     }
   }, [_vm._v("Email")]), _vm._v(" "), _c('tbvue-password', {
-    ref: "forminputs",
     model: {
       value: (_vm.addObject.password),
       callback: function($$v) {
@@ -111082,6 +111090,7 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
       staticClass: "fa fa-fw fa-trash"
     }), _vm._v(" Delete")])])])])
   }))])])])])])]), _vm._v(" "), _c('modal', {
+    ref: "addModal",
     attrs: {
       "id": "addModal"
     }

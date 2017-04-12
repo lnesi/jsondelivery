@@ -38,7 +38,7 @@
           </div>
       </div>
       
-      <modal id="addModal">
+      <modal id="addModal" ref="addModal">
           <h4 class="modal-title" slot="header">Add Partner</h4>
           <form slot="body">
               <tbvue-input name="name" id="in_name" placeholder="Name" rules="required|max:100" v-model="addObject.name">Name</tbvue-input>

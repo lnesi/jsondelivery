@@ -39,7 +39,7 @@
               </div>
           </div>
       </div>
-      <modal id="addModal">
+      <modal id="addModal" ref="addModal">
           <h4 class="modal-title" slot="header">Add Campaing</h4>
           <form slot="body">
               <tbvue-ajax-dropdown data-url="ajax/partners?paginate=false" name="partner_id" rules="required" id="partner_id" v-model="addObject.partner_id">Partner</tbvue-ajax-dropdown>

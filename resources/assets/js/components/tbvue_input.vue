@@ -44,7 +44,7 @@
           inputmodel:null,
           errors:null,
           loading:false,
-          is_input:true,
+          isInput:true,
         }
        },
        watch:{
