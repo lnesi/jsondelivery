@@ -15,8 +15,7 @@ class UpdateUsers extends Migration
     {
         //
         Schema::table('users',function(Blueprint $table){
-            $table->integer('partner_id')->unsigned()->nullable();
-            $table->boolean('is_admin')->default(false);
+            $table->integer('partner_id')->unsigned()->nullable()->after('active');
             $table->foreign('partner_id')->references('id')->on('partners');
         });
     }

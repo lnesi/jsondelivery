@@ -105220,7 +105220,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
         }
       });
       this.validator.validateAll(this.addObject).then(function (result) {
-        console.log("is valid");
+        console.log("HERE WE ADD");
       }).catch(function () {
         return null;
       });
@@ -106653,14 +106653,108 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
+//
+//
+//
+//
 
 var list_mix = __webpack_require__(8).default;
 /* harmony default export */ __webpack_exports__["default"] = {
     mixins: [list_mix],
+    mounted: function mounted() {
+
+        this.$on('OK_TO_DELETE', function () {
+            if (this.toDelete != null) {
+                this.delete(this.toDelete.id);
+                this.toDelete = null;
+            }
+        }.bind(this));
+
+        this.$on('OK_TO_ACTIVATE', function () {
+            if (this.toStatus != null) {
+                this.toStatus.active = 1;
+                this.activateUser(this.toStatus.id);
+                this.toStatus = null;
+            }
+        }.bind(this));
+
+        this.$on('OK_TO_DEACTIVATE', function () {
+            if (this.toStatus != null) {
+                this.toStatus.active = 0;
+                this.deactivateUser(this.toStatus.id);
+                this.toStatus = null;
+            }
+        }.bind(this));
+    },
+
+    data: function data() {
+        return {
+            toDelete: null,
+            toStatus: null,
+            errors: [],
+            validator: null
+        };
+    },
     created: function created() {
         this.resource_url = "ajax/admin/users{/id}";
         this.singular = "User";
         this.addObject = { name: "", email: "", partner_id: "", password: "" };
+    },
+    methods: {
+        activateUser: function activateUser(id) {
+            var _this = this;
+
+            this.$root.$emit("SHOW_PRELOADER");
+            this.$http.get('/ajax/admin/users/' + id + "/activate").then(function (response) {
+                _this.$root.$emit("HIDE_PRELOADER");
+                _this.$root.$emit("ALERT", "Ok!", "The User has been activated successfully", "success", 3);
+            }, function (response) {
+                console.log("Error");
+            });
+        },
+        deactivateUser: function deactivateUser(id) {
+            var _this2 = this;
+
+            this.$root.$emit("SHOW_PRELOADER");
+            this.$http.get('/ajax/admin/users/' + id + "/deactivate").then(function (response) {
+                _this2.$root.$emit("HIDE_PRELOADER");
+                _this2.$root.$emit("ALERT", "Ok!", "The User has been deactivated successfully", "success", 3);
+            }, function (response) {
+                console.log("Error");
+            });
+        },
+        delete: function _delete(id) {
+            var _this3 = this;
+
+            this.$root.$emit("SHOW_PRELOADER");
+            this.provider.delete({ id: id }).then(function (response) {
+                _this3.$root.$emit("HIDE_PRELOADER");
+                _this3.$root.$emit("ALERT", "Ok!", "The " + _this3.singular + " has been deleted successfully", "warning", 3);
+                _this3.load();
+            }, function (response) {
+                console.log("errorDeleting");
+            });
+        },
+
+        getStatus: function getStatus(value) {
+            if (value == 1) {
+                return "<span class='label label-success'>Active</span>";
+            } else {
+                return "<span class='label label-danger'>Inactive</span>";
+            }
+        },
+        trash: function trash(item) {
+            this.toDelete = item;
+            this.$root.$emit("CONFIRM", "Attention!", "Are you sure you want to delete the user: <strong>" + item.name + "</strong>?", this, "OK_TO_DELETE");
+        },
+        activate: function activate(item) {
+            this.toStatus = item;
+            this.$root.$emit("CONFIRM", "Attention!", "Are you sure you want to activate the user: <strong>" + item.name + "</strong>?", this, "OK_TO_ACTIVATE");
+        },
+        deactivate: function deactivate(item) {
+            this.toStatus = item;
+            this.$root.$emit("CONFIRM", "Attention!", "Are you sure you want to activate the user: <strong>" + item.name + "</strong>?", this, "OK_TO_DEACTIVATE");
+        }
     }
 
 };
@@ -108595,7 +108689,11 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
   }, [_c('table', {
     staticClass: "table table-striped table-bordered"
   }, [_vm._m(1), _vm._v(" "), _c('tbody', _vm._l((_vm.list.data), function(item) {
-    return _c('tr', [_c('td', [_vm._v(_vm._s(item.name))]), _vm._v(" "), _c('td', [_vm._v(_vm._s(item.email))]), _vm._v(" "), _c('td', [_vm._v(_vm._s(item.is_admin ? '-' : item.partner.name))]), _vm._v(" "), _c('td', [_c('div', {
+    return _c('tr', [_c('td', [_vm._v(_vm._s(item.name))]), _vm._v(" "), _c('td', [_vm._v(_vm._s(item.email))]), _vm._v(" "), _c('td', [_vm._v(_vm._s(item.is_admin ? '-' : item.partner.name))]), _vm._v(" "), _c('td', {
+      domProps: {
+        "innerHTML": _vm._s(_vm.getStatus(item.active))
+      }
+    }), _vm._v(" "), _c('td', [_c('div', {
       staticClass: "btn-group btn-group-xs",
       attrs: {
         "role": "group",
@@ -108612,9 +108710,39 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
       directives: [{
         name: "show",
         rawName: "v-show",
-        value: (!item.is_admin),
-        expression: "!item.is_admin"
+        value: (!item.is_admin && !item.active),
+        expression: "!item.is_admin && !item.active"
       }],
+      staticClass: "btn btn-default",
+      attrs: {
+        "type": "button"
+      },
+      on: {
+        "click": function($event) {
+          _vm.activate(item)
+        }
+      }
+    }, [_c('i', {
+      staticClass: "fa fa-fw fa-toggle-off"
+    }), _vm._v(" Activate")]), _vm._v(" "), _c('button', {
+      directives: [{
+        name: "show",
+        rawName: "v-show",
+        value: (!item.is_admin && item.active),
+        expression: "!item.is_admin && item.active"
+      }],
+      staticClass: "btn btn-default",
+      attrs: {
+        "type": "button"
+      },
+      on: {
+        "click": function($event) {
+          _vm.deactivate(item)
+        }
+      }
+    }, [_c('i', {
+      staticClass: "fa fa-fw fa-toggle-on"
+    }), _vm._v(" Deactivate")]), _vm._v(" "), _c('button', {
       staticClass: "btn btn-default",
       attrs: {
         "type": "button"
@@ -108642,7 +108770,7 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
     staticClass: "fa fa-fw fa-plus"
   }), _vm._v(" Add")])])])])
 },function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
-  return _c('thead', [_c('tr', [_c('th', [_vm._v("Name")]), _vm._v(" "), _c('th', [_vm._v("Email")]), _vm._v(" "), _c('th', [_vm._v("Partner")]), _vm._v(" "), _c('th', [_vm._v("Actions")])])])
+  return _c('thead', [_c('tr', [_c('th', [_vm._v("Name")]), _vm._v(" "), _c('th', [_vm._v("Email")]), _vm._v(" "), _c('th', [_vm._v("Partner")]), _vm._v(" "), _c('th', [_vm._v("Status")]), _vm._v(" "), _c('th', [_vm._v("Actions")])])])
 }]}
 module.exports.render._withStripped = true
 if (false) {

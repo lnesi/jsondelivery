@@ -61,7 +61,7 @@
           }
         });
 	      this.validator.validateAll(this.addObject).then(result => {
-	          console.log("is valid");
+	          console.log("HERE WE ADD");
 	      }).catch(() => null);
 	      this.$set(this, 'errors', this.validator.errorBag);
       },

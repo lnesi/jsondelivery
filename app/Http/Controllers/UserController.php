@@ -17,4 +17,28 @@ class UserController extends CrudAjaxController
     	
     
     }
+
+    public function activate(Request $request,$id){
+    	$user=User::findOrFail($id);
+    	if(!$user->is_admin){
+			$user->active=true;
+			$user->save();
+			return $user;
+    	}else{
+    		return response('You  cannot perform this operation on an admin user',401);
+    	}
+    
+    }
+
+    public function deactivate(Request $request,$id){
+    	$user=User::findOrFail($id);
+    	if(!$user->is_admin){
+			$user->active=false;
+			$user->save();
+			return $user;
+    	}else{
+    		return response('You  cannot perform this operation on an admin user',401);
+    	}
+    	
+    }
 }
