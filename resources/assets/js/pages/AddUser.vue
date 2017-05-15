@@ -41,10 +41,9 @@
         return false;
       }
     },
-		created: function () {
-          this.resource_url="ajax/admin/users{/id}";
-          this.singular="User";
-          this.addObject={name:"",email:"",partner_id:"",password:""};
+		created: function () {          
+          this.provider = this.$resource("ajax/admin/users");
+
           this.validator=new VeeValidate.Validator();
           this.validator.attach('name', 'required|max:100', { prettyName: 'Name' });
           this.validator.attach('email', 'required|email', { prettyName: 'Email' });
@@ -61,10 +60,20 @@
           }
         });
 	      this.validator.validateAll(this.addObject).then(result => {
-	          console.log("HERE WE ADD");
+	          this.add();
 	      }).catch(() => null);
 	      this.$set(this, 'errors', this.validator.errorBag);
       },
+      add() {
+            this.$root.$emit("SHOW_PRELOADER");
+            this.provider.save(this.addObject).then(response => {
+                this.$root.$emit("HIDE_PRELOADER");
+                this.$root.$emit("ALERT", "Ok!", "The User has been created successfully", "success", 3);
+                this.$parent.$router.push('/users/');
+            }, response => {
+                console.log("errorAdding");
+            });
+        },
 		}
 	}
 </script>

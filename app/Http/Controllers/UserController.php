@@ -41,4 +41,12 @@ class UserController extends CrudAjaxController
     	}
     	
     }
+
+     public function store(Request $request){
+        $user=new User($request->input());
+        $user->password=bcrypt($request->input('password'));
+        $user->save();
+        return $user;
+    }
+
 }
