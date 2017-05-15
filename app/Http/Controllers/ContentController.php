@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Delivery;
 use App\DeliveryContent;
 use App\CustomValue;
+use App\Status;
 class ContentController extends Controller
 {
     public function add(Request $request, $id){
@@ -67,4 +68,30 @@ class ContentController extends Controller
        $content=$content->fresh('values');
        return $content;
     }	
+
+    public function publish($id,$content_id){
+        $delivery=Delivery::findOrFail($id);
+        $content=DeliveryContent::findOrFail($content_id);
+        $content->status_id=2;//Live
+        $content->published_at=new \Carbon\Carbon();
+        $content->save();  
+        $content->fresh('status');
+        $delivery=Delivery::findOrFail($id);
+        $delivery->fresh('contents');
+        //$content=
+        return $delivery;
+    }
+
+    public function expire($id,$content_id){
+        $delivery=Delivery::findOrFail($id);
+        $content=DeliveryContent::findOrFail($content_id);
+        $content->status_id=3;//Live
+        $content->published_at=new \Carbon\Carbon();
+        $content->save();  
+        $content->fresh('status');
+        $delivery=Delivery::findOrFail($id);
+        $delivery->fresh('contents');
+       
+        return $delivery;
+    }
 }

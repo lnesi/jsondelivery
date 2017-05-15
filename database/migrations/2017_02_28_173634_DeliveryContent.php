@@ -20,7 +20,7 @@ class DeliveryContent extends Migration
         });
 
         Schema::table('status',function(Blueprint $table){
-            $sql="INSERT INTO status(name) VALUES('Draft'),('Live'),('Expire');";
+            $sql="INSERT INTO status(name) VALUES('Draft'),('Live'),('Expired');";
             DB::connection()->getPdo()->exec($sql);
         });
         

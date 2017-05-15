@@ -104908,25 +104908,81 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
+//
+//
 
 /* harmony default export */ __webpack_exports__["default"] = {
-  data: function data() {
-    return {
-      delivery: {
-        contents: []
-      }
-    };
-  },
+	data: function data() {
+		return {
+			delivery: {
+				contents: []
 
-  props: ['value'],
-  watch: {
-    value: {
-      handler: function handler() {
-        this.delivery = this.value;
-      },
-      deep: true
-    }
-  }
+			},
+			operatedItem: null
+		};
+	},
+	mounted: function mounted() {
+		this.$on('OK_TO_PUBLISH', function () {
+			if (this.operatedItem != null) {
+				this.publishContent(this.operatedItem.id);
+				this.operatedItem = null;
+			}
+		}.bind(this));
+
+		this.$on('OK_TO_EXPIRE', function () {
+			if (this.operatedItem != null) {
+				this.unpublishContent(this.operatedItem.id);
+				this.operatedItem = null;
+			}
+		}.bind(this));
+	},
+
+	props: ['value'],
+	watch: {
+		value: {
+			handler: function handler() {
+				this.delivery = this.value;
+			},
+			deep: true
+		}
+	},
+	methods: {
+		publish: function publish(content) {
+			this.operatedItem = content;
+			this.$root.$emit("CONFIRM", "Attention!", "Are you sure you want to publish the following content: <strong><br>" + this.operatedItem.name + "</strong>?", this, "OK_TO_PUBLISH");
+		},
+		unpublish: function unpublish(content) {
+			this.operatedItem = content;
+			this.$root.$emit("CONFIRM", "Attention!", "Are you sure you want to expire the following content: <strong><br>" + this.operatedItem.name + "</strong>?", this, "OK_TO_EXPIRE");
+		},
+		publishContent: function publishContent(id) {
+			var _this = this;
+
+			this.$root.$emit("SHOW_PRELOADER");
+			this.$http.get('/ajax/content/' + this.delivery.id + "/" + id + "/publish").then(function (response) {
+				_this.$root.$emit("HIDE_PRELOADER");
+				console.log(response.body);
+				_this.delivery = response.body;
+
+				_this.$root.$emit("ALERT", "Ok!", "The Content has been published successfully", "success", 3);
+			}, function (response) {
+				console.log("Error");
+			});
+		},
+		unpublishContent: function unpublishContent(id) {
+			var _this2 = this;
+
+			this.$root.$emit("SHOW_PRELOADER");
+			this.$http.get('/ajax/content/' + this.delivery.id + "/" + id + "/expire").then(function (response) {
+				_this2.$root.$emit("HIDE_PRELOADER");
+				_this2.delivery = response.body;
+				console.log(_this2.response);
+				_this2.$root.$emit("ALERT", "Ok!", "The Content has been expired successfully", "success", 3);
+			}, function (response) {
+				console.log("Error");
+			});
+		}
+	}
 
 };
 
@@ -108539,7 +108595,37 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
       }
     }, [_c('i', {
       staticClass: "fa fa-fw fa-edit"
-    }), _vm._v(" Edit")])])])])
+    }), _vm._v(" Edit")]), _vm._v(" "), _c('a', {
+      directives: [{
+        name: "show",
+        rawName: "v-show",
+        value: (content.status.id != 2),
+        expression: "content.status.id!=2"
+      }],
+      staticClass: "btn btn-default",
+      on: {
+        "click": function($event) {
+          _vm.publish(content)
+        }
+      }
+    }, [_c('i', {
+      staticClass: "fa fa-cloud-upload"
+    }), _vm._v(" Publish")]), _vm._v(" "), _c('a', {
+      directives: [{
+        name: "show",
+        rawName: "v-show",
+        value: (content.status.id == 2),
+        expression: "content.status.id==2"
+      }],
+      staticClass: "btn btn-default",
+      on: {
+        "click": function($event) {
+          _vm.unpublish(content)
+        }
+      }
+    }, [_c('i', {
+      staticClass: "fa fa-cloud-download"
+    }), _vm._v(" Unpublish")])])])])
   })], 2)])])
 },staticRenderFns: [function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
   return _c('tr', [_c('th', [_vm._v("Name")]), _vm._v(" "), _c('th', [_vm._v("Status")]), _vm._v(" "), _c('th', [_vm._v("Distribution")]), _vm._v(" "), _c('th', [_vm._v("Actions")])])
