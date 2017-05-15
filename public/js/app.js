@@ -105175,13 +105175,18 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             });
         },
         process: function process() {
+            var _this2 = this;
+
             var formData = new FormData();
             formData.append('lookup_name', this.lookup_name);
             $.each(this.$refs.customs, function (i, v) {
                 formData.append(v.custom_id, v.getValue());
             });
+            this.$parent.$emit("SHOW_PRELOADER");
             this.$http.post('/ajax/content/' + this.delivery.id, formData).then(function (response) {
-                console.log("ok", response);
+                _this2.$root.$emit("HIDE_PRELOADER");
+                _this2.$root.$emit("ALERT", "Ok!", "The Content has been created successfully", "success", 3);
+                _this2.$parent.$router.push('/deliveries/' + _this2.delivery.id + "/edit");
             }, function (response) {
                 console.log("error", response);
             });

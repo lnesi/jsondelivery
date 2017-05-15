@@ -62,8 +62,11 @@
                     $.each(this.$refs.customs,function(i,v){
                             formData.append(v.custom_id, v.getValue()); 
                     });
+                     this.$parent.$emit("SHOW_PRELOADER");
                      this.$http.post('/ajax/content/'+this.delivery.id, formData).then(response => {
-                       console.log("ok",response);
+                        this.$root.$emit("HIDE_PRELOADER");
+                        this.$root.$emit("ALERT", "Ok!", "The Content has been created successfully", "success", 3);
+                        this.$parent.$router.push('/deliveries/'+this.delivery.id+"/edit");
                       }, response => {
                         console.log("error",response);
                       });
