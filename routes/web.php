@@ -39,6 +39,8 @@ Route::group(['prefix' => 'ajax','middleware' => 'auth'], function () {
 
 	Route::post('content/{id}', 'ContentController@add');
 
+	Route::delete('content/{id}', 'ContentController@delete');
+
 	Route::put('content/{delivery_id}/{content_id}', 'ContentController@edit');
 	Route::get('content/{delivery_id}/{content_id}/publish', 'ContentController@publish');
 	Route::get('content/{delivery_id}/{content_id}/expire', 'ContentController@expire');

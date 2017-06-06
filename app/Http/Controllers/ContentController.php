@@ -7,6 +7,7 @@ use App\Delivery;
 use App\DeliveryContent;
 use App\CustomValue;
 use App\Status;
+use Illuminate\Support\Facades\Auth;
 class ContentController extends Controller
 {
     public function add(Request $request, $id){
@@ -68,6 +69,20 @@ class ContentController extends Controller
        $content=$content->fresh('values');
        return $content;
     }	
+
+    public function delete(Request $request, $id){
+        $content=DeliveryContent::findOrFail($id);
+        $user = Auth::user();
+        if($user->is_admin || $user->partner==$content->delivery->partner){
+            $content->delete();
+            $response=['message'=>'ok'];
+            return $response;
+        }else{
+            abort(403, 'Unauthorized action. You cannot delete this content');
+        }
+        //var_dump($content->delivery->partner==);
+        
+    }
 
     public function publish($id,$content_id){
         $delivery=Delivery::findOrFail($id);

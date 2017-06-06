@@ -17,7 +17,7 @@
                             <a class="btn btn-default" :href="'#deliveries/'+delivery.id+'/editcontent/'+content.id" ><i class="fa fa-fw fa-edit"></i> Edit</a>
                             <a class="btn btn-default" @click="publish(content)" v-show="content.status.id!=2"><i class="fa fa-cloud-upload" ></i> Publish</a>
                             <a class="btn btn-default" @click="unpublish(content)" v-show="content.status.id==2"><i class="fa fa-cloud-download" ></i> Unpublish</a>
-
+                            <button type="button" class="btn btn-default" @click="deleteContent(content)" v-show="content.status.id!=2" ><i class="fa fa-fw fa-trash"></i> Delete</button>
                          </div>
 					</td>
 				</tr>
@@ -37,7 +37,9 @@
 				operatedItem:null,
 			}
 		},
+		
 		mounted(){
+			 this.provider = this.$resource("/ajax/content{/id}");
 			 this.$on('OK_TO_PUBLISH', function() {
 	            if (this.operatedItem != null) {
 	                this.publishContent(this.operatedItem.id);
@@ -48,6 +50,13 @@
 			 this.$on('OK_TO_EXPIRE', function() {
 	            if (this.operatedItem != null) {
 	                this.unpublishContent(this.operatedItem.id);
+	                this.operatedItem = null;
+	            }
+	        }.bind(this));
+
+			 this.$on('OK_TO_DELETE', function() {
+	            if (this.operatedItem != null) {
+	                this.delete(this.operatedItem.id);
 	                this.operatedItem = null;
 	            }
 	        }.bind(this));
@@ -89,10 +98,30 @@
 		                this.delivery=response.body;
 		                console.log(this.response);
 		                this.$root.$emit("ALERT", "Ok!", "The Content has been expired successfully", "success", 3);
+
 		            }, response => {
 		                console.log("Error");
 		          });
-	    	}
+	    	},
+	    	deleteContent(content){
+				this.operatedItem = content;
+				this.$root.$emit("CONFIRM", "Attention!", "Are you sure you want to delete the following content: <strong><br>" + this.operatedItem.name + "</strong>?", this, "OK_TO_DELETE");
+	    	},
+	    	delete(id) {
+	            this.$root.$emit("SHOW_PRELOADER");
+	            this.provider.delete({ id: id }).then(response => {
+	                this.$root.$emit("HIDE_PRELOADER");
+	                this.$root.$emit("ALERT", " OK!", "The content has been deleted successfully", "warning");
+	                 this.$parent.load(this.delivery.id);
+	               
+	            }, response => {
+	            	this.$root.$emit("HIDE_PRELOADER");
+	            	console.log(response);
+	            	this.$root.$emit("ALERT", response.status+" Error!", response.body.message, "danger");
+	                console.log("errorDeleting");
+	            });
+	        },
+
 	    }
 	    
 	    

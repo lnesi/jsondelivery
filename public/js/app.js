@@ -104922,6 +104922,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 		};
 	},
 	mounted: function mounted() {
+		this.provider = this.$resource("/ajax/content{/id}");
 		this.$on('OK_TO_PUBLISH', function () {
 			if (this.operatedItem != null) {
 				this.publishContent(this.operatedItem.id);
@@ -104932,6 +104933,13 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 		this.$on('OK_TO_EXPIRE', function () {
 			if (this.operatedItem != null) {
 				this.unpublishContent(this.operatedItem.id);
+				this.operatedItem = null;
+			}
+		}.bind(this));
+
+		this.$on('OK_TO_DELETE', function () {
+			if (this.operatedItem != null) {
+				this.delete(this.operatedItem.id);
 				this.operatedItem = null;
 			}
 		}.bind(this));
@@ -104980,6 +104988,25 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 				_this2.$root.$emit("ALERT", "Ok!", "The Content has been expired successfully", "success", 3);
 			}, function (response) {
 				console.log("Error");
+			});
+		},
+		deleteContent: function deleteContent(content) {
+			this.operatedItem = content;
+			this.$root.$emit("CONFIRM", "Attention!", "Are you sure you want to delete the following content: <strong><br>" + this.operatedItem.name + "</strong>?", this, "OK_TO_DELETE");
+		},
+		delete: function _delete(id) {
+			var _this3 = this;
+
+			this.$root.$emit("SHOW_PRELOADER");
+			this.provider.delete({ id: id }).then(function (response) {
+				_this3.$root.$emit("HIDE_PRELOADER");
+				_this3.$root.$emit("ALERT", " OK!", "The content has been deleted successfully", "warning");
+				_this3.$parent.load(_this3.delivery.id);
+			}, function (response) {
+				_this3.$root.$emit("HIDE_PRELOADER");
+				console.log(response);
+				_this3.$root.$emit("ALERT", response.status + " Error!", response.body.message, "danger");
+				console.log("errorDeleting");
 			});
 		}
 	}
@@ -108630,7 +108657,25 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
       }
     }, [_c('i', {
       staticClass: "fa fa-cloud-download"
-    }), _vm._v(" Unpublish")])])])])
+    }), _vm._v(" Unpublish")]), _vm._v(" "), _c('button', {
+      directives: [{
+        name: "show",
+        rawName: "v-show",
+        value: (content.status.id != 2),
+        expression: "content.status.id!=2"
+      }],
+      staticClass: "btn btn-default",
+      attrs: {
+        "type": "button"
+      },
+      on: {
+        "click": function($event) {
+          _vm.deleteContent(content)
+        }
+      }
+    }, [_c('i', {
+      staticClass: "fa fa-fw fa-trash"
+    }), _vm._v(" Delete")])])])])
   })], 2)])])
 },staticRenderFns: [function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
   return _c('tr', [_c('th', [_vm._v("Name")]), _vm._v(" "), _c('th', [_vm._v("Status")]), _vm._v(" "), _c('th', [_vm._v("Distribution")]), _vm._v(" "), _c('th', [_vm._v("Actions")])])
