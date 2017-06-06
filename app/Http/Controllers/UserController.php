@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Controllers\CrudApiController;
 use App\User;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Crypt;
 class UserController extends CrudAjaxController
 {
     //
@@ -48,5 +50,15 @@ class UserController extends CrudAjaxController
         $user->save();
         return $user;
     }
+
+    public function invite(Request $request){
+        $current = Carbon::now();
+        $user=new User($request->input());
+        $user->password=bcrypt(md5(rand(100000,9999999)));
+        $user->invite_token=base64_encode(Crypt::encryptString($user->email.":".$current->timestamp));
+        // $user->save();
+        // return $user;
+        return url('/accept/'.$user->invite_token);
+    } 
 
 }

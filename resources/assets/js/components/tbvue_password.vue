@@ -13,29 +13,19 @@
 	</div>
 </template>
 <script>
-    const strongRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,})/;
-	const passregex = {
-			  getMessage(field, params, data) {
-			      return "Invalid password strength: (1 Uppercase, 1 Lowercase 1 Number, 1 Special Character)";
-			  },
-			  validate(value) {
-			    return new Promise(resolve => {
-			      resolve({
-			        valid: strongRegex.test(value),
-			      });
-			    });
-			  }
-			};
+   
 
 	export default {
 		
 		created(){
 			this.validator=new VeeValidate.Validator();
-			this.validator.extend('passregex', passregex);
-	        this.validator.attach('password1', {required:true,min:8,passregex}, {prettyName:"Password"});
+	        this.validator.attach('password1', 'required:true|min:8|passregex', {prettyName:"Password"});
 	        this.validator.attach('password2', {required:true,confirmed:'password1'}, {prettyName:"Password"});
 	        
 	        this.$set(this, 'errors', this.validator.errorBag);
+		},
+		mounted(){
+
 		},
 		data(){
 			return {

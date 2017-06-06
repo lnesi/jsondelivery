@@ -1,4 +1,3 @@
-
 /**
  * First we will load all of this project's JavaScript dependencies which
  * includes Vue and other libraries. It is a great starting point when
@@ -63,38 +62,39 @@ const EditContent = require('./pages/EditContent.vue');
 const Users = require('./pages/Users.vue');
 const EditUser = require('./pages/EditUser.vue');
 const AddUser = require('./pages/AddUser.vue');
-
+const InviteUser = require('./pages/InviteUser.vue');
 const Error400 = require('./pages/Error400.vue');
 const Error404 = require('./pages/Error404.vue');
 const Error401 = require('./pages/Error401.vue');
 
 
 const routeList = [
-  { path: '/', component: Home },
-  { path: '/users', component: Users },
-  { path: '/users/edit/:id', component: EditUser },
-  { path: '/users/add', component: AddUser },
-  { path: '/partners', component: Partners },
-  { path: '/partners/:id', component: EditPartner },
-  { path: '/audiences', component: Audiences },
-  { path: '/audiences/:id', component: EditAudience },
-  { path: '/campaigns', component: Campaigns },
-  { path: '/campaigns/:id', component: EditCampaign },
-  { path: '/regions', component: Regions },
-  { path: '/regions/:id', component: EditRegion },
-  { path: '/delivery/new', component: NewDelivery },
-  { path: '/deliveries/:id', component: EditDelivery },
-  { path: '/deliveries/:id/edit', component: OpenDelivery },
-  { path: '/deliveries/:id/addcontent', component: AddContent },
-  { path: '/deliveries/:id/editcontent/:content_id', component: EditContent },
-  { path: '/400', component: Error400 },
-  { path: '/401', component: Error401 },
-  { path: '*', component: Error404 }
-]
+    { path: '/', component: Home },
+    { path: '/users', component: Users },
+    { path: '/users/edit/:id', component: EditUser },
+    { path: '/users/add', component: AddUser },
+    { path: '/users/invite', component: InviteUser },
+    { path: '/partners', component: Partners },
+    { path: '/partners/:id', component: EditPartner },
+    { path: '/audiences', component: Audiences },
+    { path: '/audiences/:id', component: EditAudience },
+    { path: '/campaigns', component: Campaigns },
+    { path: '/campaigns/:id', component: EditCampaign },
+    { path: '/regions', component: Regions },
+    { path: '/regions/:id', component: EditRegion },
+    { path: '/delivery/new', component: NewDelivery },
+    { path: '/deliveries/:id', component: EditDelivery },
+    { path: '/deliveries/:id/edit', component: OpenDelivery },
+    { path: '/deliveries/:id/addcontent', component: AddContent },
+    { path: '/deliveries/:id/editcontent/:content_id', component: EditContent },
+    { path: '/400', component: Error400 },
+    { path: '/401', component: Error401 },
+    { path: '*', component: Error404 }
+];
 
 
 const router = new VueRouter({
-  routes:routeList
+    routes: routeList
 });
 
 Vue.http.interceptors.push((request, next) => {
@@ -102,77 +102,91 @@ Vue.http.interceptors.push((request, next) => {
     next();
 });
 
-const remoteRule={
-   getMessage(field, params, data) {
-        return field+" already in used";
+const remoteRule = {
+    getMessage(field, params, data) {
+        return field + " already in used";
     },
-    validate(value,args) {
-      return new Promise(resolve => {
-        window.app.$http.post(args[0],{value:value}).then(response=>{
-          resolve({valid: true});
-        },response=>{
-          resolve({valid: false});
+    validate(value, args) {
+        return new Promise(resolve => {
+            window.app.$http.post(args[0], { value: value }).then(response => {
+                resolve({ valid: true });
+            }, response => {
+                resolve({ valid: false });
+            });
         });
-      });
     }
 }
 
 VeeValidate.Validator.extend('remote', remoteRule);
 
 
+const strongRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,})/;
+const passregex = {
+    getMessage(field, params, data) {
+        return "Invalid password strength: (1 Uppercase, 1 Lowercase 1 Number, 1 Special Character)";
+    },
+    validate(value) {
+        return new Promise(resolve => {
+            resolve({
+                valid: strongRegex.test(value),
+            });
+        });
+    }
+};
+VeeValidate.Validator.extend('passregex', passregex);
+
 window.app = new Vue({
     el: '#app',
-    component:["modal","alert","confirm","preloader","mainnav"],
-    router:router,
-    data(){
-      return {
-        user:{id:null,name:null},
-        is_logged:false
-      }
+    component: ["modal", "alert", "confirm", "preloader", "mainnav"],
+    router: router,
+    data() {
+        return {
+            user: { id: null, name: null },
+            is_logged: false
+        }
     },
-    created:function(){
-       $(window).resize(function(){
-          this.resize();
+    created: function() {
+        $(window).resize(function() {
+            this.resize();
         }.bind(this));
     },
-    methods:{
-    	alert:function(event){
-    		console.log("HI");
-    	}
+    methods: {
+        alert: function(event) {
+            console.log("HI");
+        }
     },
-    mounted(){
-    	console.log("APP INIT");
-     
-      this.$router.beforeEach((to, from, next) => {
-  		  this.$emit("SHOW_PRELOADER");
-  		  next();
-  		});
-  		this.$router.afterEach((to, from) => {
-  		  this.$emit("HIDE_PRELOADER");
-  		});
-  		this.$emit("HIDE_PRELOADER");
-      this.loadUser();
-      this.resize();
-    },
-    methods:{
-      loadUser(){
-         this.$http.get("ajax/user").then(response => {
-            if(response.body){
-              this.user=response.body
-              this.is_logged=true;
-            }
-            
-         });
-      },
-      resize(){
-        $('#app').css({
-            overflow:'hidden',
-            height: $(window).height()
+    mounted() {
+        console.log("APP INIT");
+
+        this.$router.beforeEach((to, from, next) => {
+            this.$emit("SHOW_PRELOADER");
+            next();
         });
-        $(".contentHolder").height($(window).height()-$("#mainNav").outerHeight()-parseInt($("#mainNav").css("margin-bottom")));
-       
-      }
+        this.$router.afterEach((to, from) => {
+            this.$emit("HIDE_PRELOADER");
+        });
+        this.$emit("HIDE_PRELOADER");
+        this.loadUser();
+        this.resize();
+    },
+    methods: {
+        loadUser() {
+            this.$http.get("ajax/user").then(response => {
+                if (response.body) {
+                    this.user = response.body
+                    this.is_logged = true;
+                }
+
+            });
+        },
+        resize() {
+            $('#app').css({
+                overflow: 'hidden',
+                height: $(window).height()
+            });
+            $(".contentHolder").height($(window).height() - $("#mainNav").outerHeight() - parseInt($("#mainNav").css("margin-bottom")));
+
+        }
     }
 
 });
-

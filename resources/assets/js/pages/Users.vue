@@ -5,7 +5,12 @@
               <div class="col-md-12 ">
                   <div class="panel panel-default">
                       <div class="panel-heading">
-                      <h2><i class="lnr lnr-users"></i> Users <small><a href="#/users/add" class="btn btn-default pull-right" ><i class="fa fa-fw fa-plus"></i> Add</a></small></h2>
+                      <h2><i class="lnr lnr-users"></i> Users
+                          <div class="btn-group  pull-right">
+                          <a href="#/users/invite" class="btn btn-default " ><i class="fa fa-fw fa-send"></i> Invite</a>
+                          <a href="#/users/add" class="btn btn-default" ><i class="fa fa-fw fa-plus"></i> Add</a>
+                          </div>
+                      </h2>
                       
                       </div>
 

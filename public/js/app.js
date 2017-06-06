@@ -103567,94 +103567,109 @@ var EditContent = __webpack_require__(106);
 var Users = __webpack_require__(119);
 var EditUser = __webpack_require__(110);
 var AddUser = __webpack_require__(101);
-
+var InviteUser = __webpack_require__(174);
 var Error400 = __webpack_require__(111);
 var Error404 = __webpack_require__(113);
 var Error401 = __webpack_require__(112);
 
-var routeList = [{ path: '/', component: Home }, { path: '/users', component: Users }, { path: '/users/edit/:id', component: EditUser }, { path: '/users/add', component: AddUser }, { path: '/partners', component: Partners }, { path: '/partners/:id', component: EditPartner }, { path: '/audiences', component: Audiences }, { path: '/audiences/:id', component: EditAudience }, { path: '/campaigns', component: Campaigns }, { path: '/campaigns/:id', component: EditCampaign }, { path: '/regions', component: Regions }, { path: '/regions/:id', component: EditRegion }, { path: '/delivery/new', component: NewDelivery }, { path: '/deliveries/:id', component: EditDelivery }, { path: '/deliveries/:id/edit', component: OpenDelivery }, { path: '/deliveries/:id/addcontent', component: AddContent }, { path: '/deliveries/:id/editcontent/:content_id', component: EditContent }, { path: '/400', component: Error400 }, { path: '/401', component: Error401 }, { path: '*', component: Error404 }];
+var routeList = [{ path: '/', component: Home }, { path: '/users', component: Users }, { path: '/users/edit/:id', component: EditUser }, { path: '/users/add', component: AddUser }, { path: '/users/invite', component: InviteUser }, { path: '/partners', component: Partners }, { path: '/partners/:id', component: EditPartner }, { path: '/audiences', component: Audiences }, { path: '/audiences/:id', component: EditAudience }, { path: '/campaigns', component: Campaigns }, { path: '/campaigns/:id', component: EditCampaign }, { path: '/regions', component: Regions }, { path: '/regions/:id', component: EditRegion }, { path: '/delivery/new', component: NewDelivery }, { path: '/deliveries/:id', component: EditDelivery }, { path: '/deliveries/:id/edit', component: OpenDelivery }, { path: '/deliveries/:id/addcontent', component: AddContent }, { path: '/deliveries/:id/editcontent/:content_id', component: EditContent }, { path: '/400', component: Error400 }, { path: '/401', component: Error401 }, { path: '*', component: Error404 }];
 
 var router = new VueRouter({
-  routes: routeList
+    routes: routeList
 });
 
 Vue.http.interceptors.push(function (request, next) {
-  request.headers.set('X-CSRF-TOKEN', window.Laravel.csrfToken);
-  next();
+    request.headers.set('X-CSRF-TOKEN', window.Laravel.csrfToken);
+    next();
 });
 
 var remoteRule = {
-  getMessage: function getMessage(field, params, data) {
-    return field + " already in used";
-  },
-  validate: function validate(value, args) {
-    return new Promise(function (resolve) {
-      window.app.$http.post(args[0], { value: value }).then(function (response) {
-        resolve({ valid: true });
-      }, function (response) {
-        resolve({ valid: false });
-      });
-    });
-  }
+    getMessage: function getMessage(field, params, data) {
+        return field + " already in used";
+    },
+    validate: function validate(value, args) {
+        return new Promise(function (resolve) {
+            window.app.$http.post(args[0], { value: value }).then(function (response) {
+                resolve({ valid: true });
+            }, function (response) {
+                resolve({ valid: false });
+            });
+        });
+    }
 };
 
 VeeValidate.Validator.extend('remote', remoteRule);
 
-window.app = new Vue(_defineProperty({
-  el: '#app',
-  component: ["modal", "alert", "confirm", "preloader", "mainnav"],
-  router: router,
-  data: function data() {
-    return {
-      user: { id: null, name: null },
-      is_logged: false
-    };
-  },
-
-  created: function created() {
-    $(window).resize(function () {
-      this.resize();
-    }.bind(this));
-  },
-  methods: {
-    alert: function alert(event) {
-      console.log("HI");
+var strongRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,})/;
+var passregex = {
+    getMessage: function getMessage(field, params, data) {
+        return "Invalid password strength: (1 Uppercase, 1 Lowercase 1 Number, 1 Special Character)";
+    },
+    validate: function validate(value) {
+        return new Promise(function (resolve) {
+            resolve({
+                valid: strongRegex.test(value)
+            });
+        });
     }
-  },
-  mounted: function mounted() {
-    var _this = this;
+};
+VeeValidate.Validator.extend('passregex', passregex);
 
-    console.log("APP INIT");
+window.app = new Vue(_defineProperty({
+    el: '#app',
+    component: ["modal", "alert", "confirm", "preloader", "mainnav"],
+    router: router,
+    data: function data() {
+        return {
+            user: { id: null, name: null },
+            is_logged: false
+        };
+    },
 
-    this.$router.beforeEach(function (to, from, next) {
-      _this.$emit("SHOW_PRELOADER");
-      next();
-    });
-    this.$router.afterEach(function (to, from) {
-      _this.$emit("HIDE_PRELOADER");
-    });
-    this.$emit("HIDE_PRELOADER");
-    this.loadUser();
-    this.resize();
-  }
+    created: function created() {
+        $(window).resize(function () {
+            this.resize();
+        }.bind(this));
+    },
+    methods: {
+        alert: function alert(event) {
+            console.log("HI");
+        }
+    },
+    mounted: function mounted() {
+        var _this = this;
+
+        console.log("APP INIT");
+
+        this.$router.beforeEach(function (to, from, next) {
+            _this.$emit("SHOW_PRELOADER");
+            next();
+        });
+        this.$router.afterEach(function (to, from) {
+            _this.$emit("HIDE_PRELOADER");
+        });
+        this.$emit("HIDE_PRELOADER");
+        this.loadUser();
+        this.resize();
+    }
 }, 'methods', {
-  loadUser: function loadUser() {
-    var _this2 = this;
+    loadUser: function loadUser() {
+        var _this2 = this;
 
-    this.$http.get("ajax/user").then(function (response) {
-      if (response.body) {
-        _this2.user = response.body;
-        _this2.is_logged = true;
-      }
-    });
-  },
-  resize: function resize() {
-    $('#app').css({
-      overflow: 'hidden',
-      height: $(window).height()
-    });
-    $(".contentHolder").height($(window).height() - $("#mainNav").outerHeight() - parseInt($("#mainNav").css("margin-bottom")));
-  }
+        this.$http.get("ajax/user").then(function (response) {
+            if (response.body) {
+                _this2.user = response.body;
+                _this2.is_logged = true;
+            }
+        });
+    },
+    resize: function resize() {
+        $('#app').css({
+            overflow: 'hidden',
+            height: $(window).height()
+        });
+        $(".contentHolder").height($(window).height() - $("#mainNav").outerHeight() - parseInt($("#mainNav").css("margin-bottom")));
+    }
 }));
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
@@ -104454,29 +104469,16 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 
-var strongRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,})/;
-var passregex = {
-	getMessage: function getMessage(field, params, data) {
-		return "Invalid password strength: (1 Uppercase, 1 Lowercase 1 Number, 1 Special Character)";
-	},
-	validate: function validate(value) {
-		return new Promise(function (resolve) {
-			resolve({
-				valid: strongRegex.test(value)
-			});
-		});
-	}
-};
 
 /* harmony default export */ __webpack_exports__["default"] = {
 	created: function created() {
 		this.validator = new VeeValidate.Validator();
-		this.validator.extend('passregex', passregex);
-		this.validator.attach('password1', { required: true, min: 8, passregex: passregex }, { prettyName: "Password" });
+		this.validator.attach('password1', 'required:true|min:8|passregex', { prettyName: "Password" });
 		this.validator.attach('password2', { required: true, confirmed: 'password1' }, { prettyName: "Password" });
 
 		this.$set(this, 'errors', this.validator.errorBag);
 	},
+	mounted: function mounted() {},
 	data: function data() {
 		return {
 			validator: null,
@@ -106758,6 +106760,11 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
+//
+//
+//
+//
+//
 
 var list_mix = __webpack_require__(8).default;
 /* harmony default export */ __webpack_exports__["default"] = {
@@ -108910,8 +108917,17 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
     staticClass: "panel-heading"
   }, [_c('h2', [_c('i', {
     staticClass: "lnr lnr-users"
-  }), _vm._v(" Users "), _c('small', [_c('a', {
-    staticClass: "btn btn-default pull-right",
+  }), _vm._v(" Users\n                          "), _c('div', {
+    staticClass: "btn-group  pull-right"
+  }, [_c('a', {
+    staticClass: "btn btn-default ",
+    attrs: {
+      "href": "#/users/invite"
+    }
+  }, [_c('i', {
+    staticClass: "fa fa-fw fa-send"
+  }), _vm._v(" Invite")]), _vm._v(" "), _c('a', {
+    staticClass: "btn btn-default",
     attrs: {
       "href": "#/users/add"
     }
@@ -111908,6 +111924,237 @@ module.exports = function listToStyles (parentId, list) {
 __webpack_require__(32);
 module.exports = __webpack_require__(34);
 
+
+/***/ }),
+/* 166 */,
+/* 167 */,
+/* 168 */,
+/* 169 */,
+/* 170 */,
+/* 171 */,
+/* 172 */,
+/* 173 */,
+/* 174 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var Component = __webpack_require__(0)(
+  /* script */
+  __webpack_require__(175),
+  /* template */
+  __webpack_require__(176),
+  /* scopeId */
+  null,
+  /* cssModules */
+  null
+)
+Component.options.__file = "/Users/luis.nesi/Documents/luis/jsondelivery/resources/assets/js/pages/InviteUser.vue"
+if (Component.esModule && Object.keys(Component.esModule).some(function (key) {return key !== "default" && key !== "__esModule"})) {console.error("named exports are not supported in *.vue files.")}
+if (Component.options.functional) {console.error("[vue-loader] InviteUser.vue: functional components are not supported with templates, they should use render functions.")}
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-14927a18", Component.options)
+  } else {
+    hotAPI.reload("data-v-14927a18", Component.options)
+  }
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 175 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+/* harmony default export */ __webpack_exports__["default"] = {
+  data: function data() {
+    return {
+      addObject: {
+        name: '',
+        email: '',
+
+        partner_id: ''
+      },
+      errors: [],
+      validator: null
+    };
+  },
+
+  computed: {
+    hasErrors: function hasErrors() {
+      return false;
+    }
+  },
+  created: function created() {
+    this.provider = this.$resource("ajax/admin/users");
+
+    this.validator = new VeeValidate.Validator();
+    this.validator.attach('name', 'required|max:100', { prettyName: 'Name' });
+    this.validator.attach('email', 'required|email', { prettyName: 'Email' });
+    this.validator.attach('partner_id', 'required|numeric', { prettyName: 'Partner' });
+    this.validator.validateAll(this.addObject).then(function () {}).catch(function () {});
+    this.$set(this, 'errors', this.validator.errorBag);
+  },
+  methods: {
+    validate: function validate() {
+      var _this = this;
+
+      this.$children.forEach(function (element) {
+        if (element.isInput) {
+          element.validate();
+        }
+      });
+
+      this.validator.validateAll(this.addObject).then(function (result) {
+        console.log("is valid");
+        _this.sendInvitation();
+      }).catch(function () {
+        return null;
+      });
+      this.$set(this, 'errors', this.validator.errorBag);
+    },
+    sendInvitation: function sendInvitation() {
+      var _this2 = this;
+
+      this.$root.$emit("SHOW_PRELOADER");
+
+      this.$http.post('/ajax/admin/users/invite', this.addObject).then(function (response) {
+        _this2.$root.$emit("HIDE_PRELOADER");
+        _this2.$root.$emit("ALERT", "Ok!", "The invitation has been sent successfully", "success", 3);
+        //this.$parent.$router.push('/users/');
+      }, function (response) {
+        _this2.$root.$emit("HIDE_PRELOADER");
+        console.log("Error");
+      });
+    }
+  }
+};
+
+/***/ }),
+/* 176 */
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
+  return _c('div', {
+    staticClass: "container"
+  }, [_c('div', {
+    staticClass: "row"
+  }, [_c('div', {
+    staticClass: "col-md-12"
+  }, [_c('form', {
+    attrs: {
+      "onsubmit": "return false;"
+    },
+    on: {
+      "submit": function($event) {
+        _vm.validate()
+      }
+    }
+  }, [_c('div', {
+    staticClass: "panel panel-default"
+  }, [_c('div', {
+    staticClass: "panel-heading"
+  }, [_vm._v("Add User")]), _vm._v(" "), _c('div', {
+    staticClass: "panel-body"
+  }, [_c('tbvue-ajax-dropdown', {
+    attrs: {
+      "data-url": "ajax/partners?paginate=false",
+      "name": "partner_id",
+      "rules": "required",
+      "id": "partner_id"
+    },
+    model: {
+      value: (_vm.addObject.partner_id),
+      callback: function($$v) {
+        _vm.addObject.partner_id = $$v
+      }
+    }
+  }, [_vm._v("Partner")]), _vm._v(" "), _c('tbvue-input', {
+    attrs: {
+      "name": "name",
+      "id": "in_name",
+      "placeholder": "Name",
+      "rules": "required|max:100"
+    },
+    model: {
+      value: (_vm.addObject.name),
+      callback: function($$v) {
+        _vm.addObject.name = $$v
+      }
+    }
+  }, [_vm._v("Name")]), _vm._v(" "), _c('tbvue-input', {
+    attrs: {
+      "name": "name",
+      "id": "in_email",
+      "placeholder": "Email",
+      "rules": "required|email|remote:ajax/admin/users/validate"
+    },
+    model: {
+      value: (_vm.addObject.email),
+      callback: function($$v) {
+        _vm.addObject.email = $$v
+      }
+    }
+  }, [_vm._v("Email")])], 1), _vm._v(" "), _c('div', {
+    staticClass: "panel-footer"
+  }, [_vm._m(0), _vm._v(" "), _c('button', {
+    class: {
+      'btn btn-success pull-right': true, 'disabled': _vm.hasErrors
+    },
+    attrs: {
+      "type": "submit"
+    }
+  }, [_c('i', {
+    staticClass: "fa fa-fw fa-floppy-o"
+  }), _vm._v(" Save")])])])])])])])
+},staticRenderFns: [function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
+  return _c('a', {
+    staticClass: "btn btn-default",
+    attrs: {
+      "href": "#/users"
+    }
+  }, [_c('i', {
+    staticClass: "fa fa-fw fa-chevron-left"
+  }), _vm._v(" Back")])
+}]}
+module.exports.render._withStripped = true
+if (false) {
+  module.hot.accept()
+  if (module.hot.data) {
+     require("vue-hot-reload-api").rerender("data-v-14927a18", module.exports)
+  }
+}
 
 /***/ })
 /******/ ]);

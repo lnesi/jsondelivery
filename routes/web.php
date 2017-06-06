@@ -48,6 +48,7 @@ Route::group(['prefix' => 'ajax','middleware' => 'auth'], function () {
 	Route::group(['prefix' => 'admin','middleware' => ['auth','auth.admin']],function(){
 		Route::resource('partners', PartnerController::class,['except' => ['create', 'edit']]);
 		Route::post('users/validate','UserController@validateEmail');
+		Route::post('users/invite','UserController@invite');
 		Route::resource('users', UserController::class,['except' => ['create', 'edit']]);
 		Route::get('users/{id}/activate', 'UserController@activate');
 		Route::get('users/{id}/deactivate', 'UserController@deactivate');
