@@ -54,11 +54,11 @@ class UserController extends CrudAjaxController
     public function invite(Request $request){
         $current = Carbon::now();
         $user=new User($request->input());
-        $user->password=bcrypt(md5(rand(100000,9999999)));
+        $user->password=bcrypt(str_random(10));
         $user->invite_token=base64_encode(Crypt::encryptString($user->email.":".$current->timestamp));
-        // $user->save();
-        // return $user;
-        return url('/accept/'.$user->invite_token);
+        $user->save();
+        return $user;
+        //return url('/accept/'.$user->invite_token);
     } 
 
 }
