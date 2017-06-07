@@ -80,4 +80,35 @@ class Delivery extends Model
       }
       return FALSE;
     }
+
+    public function getObject(){
+        $result=new \stdClass;
+        $result->id=$this->id;
+        $result->name=$this->name;
+        $result->status=$this->status;
+        $result->created_at=$this->created_at;
+        $result->updated_at=$this->updated_at;
+        $result->published_at=$this->published_at;
+        $result->type=$this->type;
+        $result->size=$this->size;
+        $result->partner=new \stdClass;
+        $result->partner->id=$this->partner->id;
+        $result->partner->abbr=$this->partner->abbr;
+        $result->partner->name=$this->partner->name;
+        $result->campaign=new \stdClass;
+        $result->campaign->id=$this->campaign->id;
+        $result->campaign->abbr=$this->campaign->abbr;
+        $result->campaign->name=$this->campaign->name;
+        $result->country=$this->country;
+        $result->language=$this->language;
+        $result->region=new \stdClass;
+        $result->region->id=$this->region->id;
+        $result->region->abbr=$this->region->abbr;
+        $result->region->name=$this->region->name;
+        $result->audience=new \stdClass;
+        $result->audience->id=$this->audience->id;
+        $result->audience->abbr=$this->audience->abbr;
+        $result->audience->name=$this->audience->name;
+        return $result;
+    }
 }

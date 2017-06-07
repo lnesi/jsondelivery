@@ -17,3 +17,20 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+Route::get("/delivery/{id}/{jsonp?}/{debug?}",function(Request $request,$id,$jsonp="jdeliveryCallback",$debug=false){
+	
+	if($debug && $debug==="debug"){
+		$debug=true;
+	}else{
+		$debug=false;
+	}
+	
+	$item=App\Delivery::findOrFail($id);
+	if($item->status->id==2 || $debug){
+		$result=$item->getObject();
+		return response()->json($result)->withCallback($jsonp);;
+	}else{
+		return response()->json([ 'error'=> 404, 'message'=> 'Not found' ])->withCallback($jsonp);
+	}
+	
+});
