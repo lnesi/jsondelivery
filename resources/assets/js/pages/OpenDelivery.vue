@@ -2,7 +2,7 @@
     <div class="container">
         <div class="row">
             <div class="col-md-12">
-                 <form  @submit="validate()" onsubmit="return false;">
+                 
                     <div class="panel panel-default">
                         <div class="panel-heading">Delivery</div>
 
@@ -15,9 +15,10 @@
                         </div>
                         <div class="panel-footer">
                             <a  class="btn btn-default" href="#/" ><i class="fa fa-fw fa-chevron-left"></i> Back</a>
+                            <button type="button" class="btn btn-success pull-right" @click="save_distribution()"><i class="fa fa-fw fa-floppy-o"></i> Save</button>
                         </div>
                     </div>
-                </form>
+              
             </div>
         </div>
     </div>
@@ -27,7 +28,6 @@
     export default {
             data(){
                 return{
-                    
                     delivery:{}
                 }
             },
@@ -49,6 +49,23 @@
                         this.$parent.$emit("HIDE_PRELOADER");
                         this.$router.push('/400');
                     });
+                },
+                save_distribution(){
+                    //this.$parent.$emit("SHOW_PRELOADER");
+                    var list={}
+                    this.delivery.contents.forEach( function(c){
+                        list[c.id]=c.distribution;
+                    });
+                    this.$parent.$emit("SHOW_PRELOADER");
+                    this.$http.put("/ajax/deliveries/" + this.delivery.id+"/distribution",list).then(response => {
+                        this.$parent.$emit("HIDE_PRELOADER");
+                        
+                    }, response => {
+                        this.$parent.$emit("HIDE_PRELOADER");
+                        console.log(response);
+                        this.$root.$emit("ALERT", response.status+" Error!", response.body.message, "danger");
+                    });
+                    
                 }
             }
     }

@@ -104926,8 +104926,9 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 			},
 			operatedItem: null,
 			tooltip_styles: {
-				backgroundColor: "#666",
-				borderColor: "#666"
+				backgroundColor: "#fff",
+				borderColor: "#666",
+				color: "#666"
 			}
 		};
 	},
@@ -106617,11 +106618,11 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
+//
 
 /* harmony default export */ __webpack_exports__["default"] = {
     data: function data() {
         return {
-
             delivery: {}
         };
     },
@@ -106645,6 +106646,23 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             }, function (response) {
                 _this.$parent.$emit("HIDE_PRELOADER");
                 _this.$router.push('/400');
+            });
+        },
+        save_distribution: function save_distribution() {
+            var _this2 = this;
+
+            //this.$parent.$emit("SHOW_PRELOADER");
+            var list = {};
+            this.delivery.contents.forEach(function (c) {
+                list[c.id] = c.distribution;
+            });
+            this.$parent.$emit("SHOW_PRELOADER");
+            this.$http.put("/ajax/deliveries/" + this.delivery.id + "/distribution", list).then(function (response) {
+                _this2.$parent.$emit("HIDE_PRELOADER");
+            }, function (response) {
+                _this2.$parent.$emit("HIDE_PRELOADER");
+                console.log(response);
+                _this2.$root.$emit("ALERT", response.status + " Error!", response.body.message, "danger");
             });
         }
     }
@@ -108873,7 +108891,7 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
   }, [_c('thead', [_vm._m(0), _vm._v(" "), _vm._l((_vm.delivery.contents), function(content) {
     return _c('tr', [_c('td', [_vm._v(_vm._s(content.name))]), _vm._v(" "), _c('td', [_vm._v(_vm._s(content.status.name))]), _vm._v(" "), _c('td', {
       staticStyle: {
-        "padding-right": "50px"
+        "padding-right": "55px"
       }
     }, [_c('vue-slider', {
       ref: "slider",
@@ -109989,15 +110007,6 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
     staticClass: "row"
   }, [_c('div', {
     staticClass: "col-md-12"
-  }, [_c('form', {
-    attrs: {
-      "onsubmit": "return false;"
-    },
-    on: {
-      "submit": function($event) {
-        _vm.validate()
-      }
-    }
   }, [_c('div', {
     staticClass: "panel panel-default"
   }, [_c('div', {
@@ -110026,18 +110035,30 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
         _vm.delivery = $$v
       }
     }
-  })], 1), _vm._v(" "), _vm._m(0)])])])])])
-},staticRenderFns: [function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
-  return _c('div', {
+  })], 1), _vm._v(" "), _c('div', {
     staticClass: "panel-footer"
-  }, [_c('a', {
+  }, [_vm._m(0), _vm._v(" "), _c('button', {
+    staticClass: "btn btn-success pull-right",
+    attrs: {
+      "type": "button"
+    },
+    on: {
+      "click": function($event) {
+        _vm.save_distribution()
+      }
+    }
+  }, [_c('i', {
+    staticClass: "fa fa-fw fa-floppy-o"
+  }), _vm._v(" Save")])])])])])])
+},staticRenderFns: [function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
+  return _c('a', {
     staticClass: "btn btn-default",
     attrs: {
       "href": "#/"
     }
   }, [_c('i', {
     staticClass: "fa fa-fw fa-chevron-left"
-  }), _vm._v(" Back")])])
+  }), _vm._v(" Back")])
 }]}
 module.exports.render._withStripped = true
 if (false) {

@@ -11,7 +11,7 @@
 				<tr v-for="content in delivery.contents">
 					<td>{{content.name}}</td>
 					<td>{{content.status.name}}</td>
-					<td style="    padding-right: 50px;">
+					<td style="padding-right: 55px;">
 						<vue-slider :tooltipStyle="tooltip_styles" ref="slider" tooltip-dir="right" v-model="content.distribution"></vue-slider>
 					</td>
 					<td>
@@ -38,8 +38,9 @@
 				},
 				operatedItem:null,
 				tooltip_styles:{
-					backgroundColor:"#666",
-					borderColor:"#666"
+					backgroundColor:"#fff",
+					borderColor:"#666",
+					color:"#666"
 				}
 			}
 		},

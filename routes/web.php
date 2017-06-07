@@ -27,7 +27,7 @@ Route::group(['prefix' => 'ajax','middleware' => 'auth'], function () {
 	
 	Route::resource('deliveries', DeliveryController::class,['except' => ['create', 'edit']]);
 	Route::resource('customs', DeliveryCustomController::class,['except' => ['create', 'edit']]);
-
+	Route::put('deliveries/{id}/distribution', "DeliveryController@saveDistribution");
 
 	
 	//Read Only Resources

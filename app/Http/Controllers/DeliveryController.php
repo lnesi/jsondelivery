@@ -71,6 +71,18 @@ class DeliveryController extends ReadAjaxController
         $response=['message'=>'ok'];
         return $response;
       }
+
+      public function saveDistribution(Request $request, $id){
+            $item=Delivery::findOrFail($id);
+            foreach($item->contents as $content){
+                if($request->input($content->id)){
+                    $content->distribution=$request->input($content->id);
+                    $content->save();
+                }
+            }
+            $item->save();
+            return $item;
+      }
   
    
 }
