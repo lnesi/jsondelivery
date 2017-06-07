@@ -4,9 +4,14 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\CrudApiController;
+use Illuminate\Support\Facades\Crypt;
 use App\User;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\UserInvite;
+use Illuminate\Contracts\Encryption\DecryptException;
+use Illuminate\Support\Facades\Password;
+
 class UserController extends CrudAjaxController
 {
     //
@@ -52,13 +57,59 @@ class UserController extends CrudAjaxController
     }
 
     public function invite(Request $request){
-        $current = Carbon::now();
+        
         $user=new User($request->input());
         $user->password=bcrypt(str_random(10));
+        $current = Carbon::now();
         $user->invite_token=base64_encode(Crypt::encryptString($user->email.":".$current->timestamp));
         $user->save();
+        Mail::to($user)->send(new UserInvite($user));
         return $user;
-        //return url('/accept/'.$user->invite_token);
     } 
+
+    public function accept(Request $request, $token){
+        try {
+            $now = Carbon::now();
+            $decrypted = Crypt::decryptString(base64_decode($token));
+            $atoken=explode(":",$decrypted);
+            $tokendate= Carbon::createFromTimestamp($atoken[1]);
+            $diff=$tokendate->diffInMinutes($now);
+            if($diff<=1440){ // 24 Hours
+                $user=User::where(['email'=>$atoken[0]])->first();
+                if($user){
+                    if(!$user->active){
+                        $user->active=true;
+                        $user->invite_token=null;
+                        $user->save();
+                        $broker=Password::broker();
+                        $broker->sendResetLink(['email'=>$atoken[0]]);
+                        return view('auth.invite_ok');
+                    }else{
+                        return view('auth.invite_expired');
+                    }
+                    
+                }else{
+                    return view('auth.invite_invalid');
+                }
+                
+            }else{
+                return view('auth.invite_expired');
+            }
+           
+        } catch (DecryptException $e) {
+            return view('auth.invalid_invite');
+        }
+       
+    }
+
+    public function resendinvite(Request $request, $id){
+        $user=User::findOrFail($id);
+        $current = Carbon::now();
+        $user->invite_token=base64_encode(Crypt::encryptString($user->email.":".$current->timestamp));
+        $user->save();
+        Mail::to($user)->send(new UserInvite($user));
+
+
+    }
 
 }

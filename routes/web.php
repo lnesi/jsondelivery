@@ -13,6 +13,9 @@
 
 Route::get('/', 'FrontController@index');
 
+Route::get('/accept/{token}','UserController@accept');
+
+
 Route::group(['prefix' => 'ajax','middleware' => 'auth'], function () {
 	Route::get('user', function (Request $request) {
 	    return Auth::user();
@@ -52,6 +55,7 @@ Route::group(['prefix' => 'ajax','middleware' => 'auth'], function () {
 		Route::resource('users', UserController::class,['except' => ['create', 'edit']]);
 		Route::get('users/{id}/activate', 'UserController@activate');
 		Route::get('users/{id}/deactivate', 'UserController@deactivate');
+		Route::get('users/{id}/resendinvite', 'UserController@resendinvite');
 	
 	});
 });

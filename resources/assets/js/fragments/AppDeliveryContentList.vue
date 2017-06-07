@@ -118,7 +118,7 @@
 	            	this.$root.$emit("HIDE_PRELOADER");
 	            	console.log(response);
 	            	this.$root.$emit("ALERT", response.status+" Error!", response.body.message, "danger");
-	                console.log("errorDeleting");
+	                
 	            });
 	        },
 

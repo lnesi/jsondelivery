@@ -20,7 +20,7 @@ class CreateUsersTable extends Migration
             $table->string('password');
             $table->boolean('is_admin')->default(FALSE);
             $table->boolean('active')->default(FALSE);
-            $table->string('invite_token');
+            $table->string('invite_token',512);
             $table->rememberToken();
             $table->timestamps();
         });

@@ -38,6 +38,7 @@
                                         <button type="button" class="btn btn-default" @click="activate(item)" v-show="!item.is_admin && !item.active"><i class="fa fa-fw fa-toggle-off"></i> Activate</button>
                                         <button type="button" class="btn btn-default" @click="deactivate(item)" v-show="!item.is_admin && item.active"><i class="fa fa-fw fa-toggle-on"></i> Deactivate</button>
                                         <button type="button" class="btn btn-default" @click="trash(item)" ><i class="fa fa-fw fa-trash"></i> Delete</button>
+                                        <button type="button" class="btn btn-default" v-show="item.invite_token!=null" @click="reinvite(item)" ><i class="fa fa-fw fa-send"></i> re-send Invite</button>
                                      </div>
                                 </td>
                             </tr>
@@ -102,7 +103,9 @@ export default {
                 this.$root.$emit("HIDE_PRELOADER");
                 this.$root.$emit("ALERT", "Ok!", "The User has been activated successfully", "success", 3);
             }, response => {
-                console.log("Error");
+                this.$root.$emit("HIDE_PRELOADER");
+                console.log(response);
+                this.$root.$emit("ALERT", response.status+" Error!", response.body.message, "danger");
             });
         },
         deactivateUser(id) {
@@ -111,7 +114,9 @@ export default {
                 this.$root.$emit("HIDE_PRELOADER");
                 this.$root.$emit("ALERT", "Ok!", "The User has been deactivated successfully", "success", 3);
             }, response => {
-                console.log("Error");
+                this.$root.$emit("HIDE_PRELOADER");
+                console.log(response);
+                this.$root.$emit("ALERT", response.status+" Error!", response.body.message, "danger");
             });
         },
         delete(id) {
@@ -121,7 +126,9 @@ export default {
                 this.$root.$emit("ALERT", "Ok!", "The " + this.singular + " has been deleted successfully", "warning", 3);
                 this.load();
             }, response => {
-                console.log("errorDeleting");
+                this.$root.$emit("HIDE_PRELOADER");
+                console.log(response);
+                this.$root.$emit("ALERT", response.status+" Error!", response.body.message, "danger");
             });
         },
         getStatus: function(value) {
@@ -143,6 +150,18 @@ export default {
         deactivate(item) {
             this.toStatus = item;
             this.$root.$emit("CONFIRM", "Attention!", "Are you sure you want to activate the user: <strong>" + item.name + "</strong>?", this, "OK_TO_DEACTIVATE");
+        },
+
+        reinvite(item){
+            this.$root.$emit("SHOW_PRELOADER");
+            this.$http.get('/ajax/admin/users/' + item.id + "/resendinvite").then(response => {
+                this.$root.$emit("HIDE_PRELOADER");
+                this.$root.$emit("ALERT", "Ok!", "The invite has sent successfully", "success", 3);
+            }, response => {
+                this.$root.$emit("HIDE_PRELOADER");
+                console.log(response);
+                this.$root.$emit("ALERT", response.status+" Error!", response.body.message, "danger");
+            });
         }
 
 
