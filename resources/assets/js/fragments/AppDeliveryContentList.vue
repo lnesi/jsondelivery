@@ -11,7 +11,9 @@
 				<tr v-for="content in delivery.contents">
 					<td>{{content.name}}</td>
 					<td>{{content.status.name}}</td>
-					<td>{{content.distribution}}</td>
+					<td style="    padding-right: 50px;">
+						<vue-slider :tooltipStyle="tooltip_styles" ref="slider" tooltip-dir="right" v-model="content.distribution"></vue-slider>
+					</td>
 					<td>
 						<div class="btn-group btn-group-xs" role="group" aria-label="...">
                             <a class="btn btn-default" :href="'#deliveries/'+delivery.id+'/editcontent/'+content.id" ><i class="fa fa-fw fa-edit"></i> Edit</a>
@@ -35,6 +37,10 @@
 
 				},
 				operatedItem:null,
+				tooltip_styles:{
+					backgroundColor:"#666",
+					borderColor:"#666"
+				}
 			}
 		},
 		

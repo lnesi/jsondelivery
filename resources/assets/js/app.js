@@ -27,6 +27,8 @@ Vue.component('mainnav', require('./components/MainNav.vue'));
 Vue.component('tbvue-ajax-dropdown', require('./components/tbvue_ajax_dropdown.vue'));
 Vue.component('tbvue-input', require('./components/tbvue_input.vue'));
 Vue.component('tbvue-password', require('./components/tbvue_password.vue'));
+Vue.component('vue-slider',require("vue-slider-component"));
+
 
 // Fragments Components
 Vue.component('app-customseditor', require('./fragments/AppCustomsEditor.vue'));
@@ -137,7 +139,7 @@ VeeValidate.Validator.extend('passregex', passregex);
 
 window.app = new Vue({
     el: '#app',
-    component: ["modal", "alert", "confirm", "preloader", "mainnav"],
+    component: ["modal", "alert", "confirm", "preloader", "mainnav","vue-slider"],
     router: router,
     data() {
         return {
