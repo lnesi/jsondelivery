@@ -26,6 +26,9 @@ Route::group(['prefix' => 'ajax','middleware' => 'auth'], function () {
 	Route::resource('campaigns', CampaignController::class,['except' => ['create', 'edit']]);
 	
 	Route::resource('deliveries', DeliveryController::class,['except' => ['create', 'edit']]);
+	Route::get('deliveries/{id}/expire',"DeliveryController@expire");
+	Route::get('deliveries/{id}/publish',"DeliveryController@publish");
+
 	Route::resource('customs', DeliveryCustomController::class,['except' => ['create', 'edit']]);
 	Route::put('deliveries/{id}/distribution', "DeliveryController@saveDistribution");
 

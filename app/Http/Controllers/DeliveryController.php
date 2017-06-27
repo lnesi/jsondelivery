@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Delivery;
 use App\DeliveryCustom;
 use App\Component;
-
+use App\Status;
 class DeliveryController extends ReadAjaxController
 {
    
@@ -72,17 +72,35 @@ class DeliveryController extends ReadAjaxController
         return $response;
       }
 
-      public function saveDistribution(Request $request, $id){
-            $item=Delivery::findOrFail($id);
-            foreach($item->contents as $content){
-                if($request->input($content->id)){
-                    $content->distribution=$request->input($content->id);
-                    $content->save();
-                }
+    public function saveDistribution(Request $request, $id){
+        $item=Delivery::findOrFail($id);
+        foreach($item->contents as $content){
+            if($request->input($content->id)){
+                $content->distribution=$request->input($content->id);
+                $content->save();
             }
-            $item->save();
-            return $item;
-      }
-  
+        }
+        $item->save();
+        return $item;
+    }
+
+    public function expire($id){
+        $item=Delivery::findOrFail($id);
+        $item->status_id=3;
+        
+        $item->save();
+        $item->fresh('status');
+       
+        return $item;
+    }
+
+    public function publish($id){
+        $item=Delivery::findOrFail($id);
+        $item->status_id=2;
+        $item->published_at=new \Carbon\Carbon();
+        $item->save();
+        $item->fresh('status');
+        return $item;
+    }          
    
 }
