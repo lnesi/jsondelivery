@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use App\Delivery;
 use App\DeliveryCustom;
 use App\Component;
@@ -66,10 +67,16 @@ class DeliveryController extends ReadAjaxController
      * @return \Illuminate\Http\Response
      */
     public function destroy($id){
-        $item=Delivery::findOrFail($id);
-        $item->delete();
-        $response=['message'=>'ok'];
-        return $response;
+        $user = Auth::user();
+        if($user->is_admin){
+            $item=Delivery::findOrFail($id);
+            //$item->delete();
+            $response=['message'=>'ok'];
+            return $response;
+        }else{
+            abort(403, 'Unauthorized action.');
+        }
+        
       }
 
     public function saveDistribution(Request $request, $id){
@@ -85,6 +92,7 @@ class DeliveryController extends ReadAjaxController
     }
 
     public function expire($id){
+        
         $item=Delivery::findOrFail($id);
         $item->status_id=3;
         
