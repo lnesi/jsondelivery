@@ -40,7 +40,7 @@
                     </div>
                     <div class="panel-footer">
                         <a  class="btn btn-default" href="#/" ><i class="fa fa-fw fa-chevron-left"></i> Cancel</a>
-                        <button type="submit"   :class="{'btn btn-success pull-right': true, 'disabled': hasValidateErrors }"><i class="fa fa-fw fa-floppy-o" ></i> Save</button>
+                        <button type="submit"   :class="{'btn btn-success pull-right': true, 'disabled': isValidForm }"><i class="fa fa-fw fa-floppy-o" ></i> Save</button>
                     </div>
                 </div>
                 </form>
@@ -50,7 +50,7 @@
 </template>
 <script>
     export default {
-        validator: null,
+     
         data() {
             return {
                 delivery: {
@@ -62,16 +62,11 @@
                     type_id: "",
                     size_id: "",
                     country_id: "",
-                    language_id: ""
+                    language_id: "",
+                    
                 },
-                errors: null
+              isValidForm:false
             }
-        },
-        created() {
-            this.createValidator();
-            this.$set(this, 'errors', this.validator.errorBag);
-
-
         },
         computed: {
             campaignURL() {
@@ -103,44 +98,27 @@
 
         methods: {
             validate() {
-                this.$children.forEach(function(element){
-                    if(element.isInput) element.validate();
-                });
-                this.validator.validateAll(this.delivery).then(() => {
-
-                    this.$http.post('/ajax/deliveries', this.delivery).then(response => {
+                this.isValidForm = true;
+                    this.$children.forEach(function(element){
+                        if(element.isInput) element.validate();
+                        if (this.isValidForm) this.isValidForm = element.isValid;
+                    }.bind(this));
+                  if (this.isValidForm) {
+                        this.add();
+                       
+                    }
+              
+            },
+            add(){
+                this.$http.post('/ajax/deliveries', this.delivery).then(response => {
                         this.$parent.$emit("ALERT", "Ok!", "The Delivery has been created successfully", "success", 3);
                         this.$parent.$router.push('/deliveries/'+response.body.id);
                     }, response => {
                         console.log("error", response);
                         this.$parent.$emit("ALERT", "Error!", "Internal server error", "danger", 3);
                     });
-
-                }).catch(() => {
-                    console.log("errores")
-                });
-                this.$set(this, 'errors', this.validator.errorBag);
-                console.log(this.errors);
             },
-            createValidator() {
-
-                this.validator = new VeeValidate.Validator();
-                this.validator.attach('partner_id', 'required|numeric', { prettyName: 'Partner' });
-                this.validator.attach('campaign_id', 'required|numeric', { prettyName: 'Campaign' });
-                this.validator.attach('audience_id', 'required|numeric', { prettyName: 'Audience' });
-                this.validator.attach('region_id', 'required|numeric', { prettyName: 'Region' });
-                this.validator.attach('country_id', 'required|numeric', { prettyName: 'Country' });
-                this.validator.attach('language_id', 'required|numeric', { prettyName: 'Language' });
-                this.validator.attach('type_id', 'required|numeric', { prettyName: 'Type' });
-                this.validator.attach('size_id', 'required|numeric', { prettyName: 'Size' });
-                this.validator.attach('name', 'required|max:255', { prettyName: 'Name' });
-                this.validator.validateAll(this.delivery).then(() => {}).catch(() => {});
-                this.$set(this, 'errors', this.validator.errorBag);
-
-            },
-            clearErrors() {
-                this.errors.clear();
-            }
+           
         }
     }
 

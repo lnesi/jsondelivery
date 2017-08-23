@@ -1,5 +1,5 @@
 <template>
-    <div :class="{'form-group': true, 'has-error': errors.has(this.name)}">
+    <div :class="{'form-group': true, 'has-error': hasErrors}">
         <label :for="id" class="control-label"><slot></slot></label>
         <div class="tbvue_dropdown_holder">
         <select class="form-control"   :name="name"  :id="id" v-model="inputmodel" @blur="validate">
@@ -7,9 +7,9 @@
             <option v-for="item in list" :value="item.id" >{{item.name}}</option>
         </select>
         <i class="fa fa-spinner fa-pulse fa-fw" v-show="loading"></i>
-        <i class="fa fa-fw fa-exclamation-triangle text-danger" v-show="errors.has(this.name) && !loading" ></i>
+        <i class="fa fa-fw fa-exclamation-triangle text-danger" v-show="hasErrors && !loading" ></i>
         </div>
-        <p class="help-block">{{ errors.first(this.name) }}</p>
+        <p class="help-block">{{ validator.errors.first(this.name) }}</p>
     </div>
 </template>
 <style lang="scss">
@@ -34,7 +34,7 @@
                 prettyName = this.$slots.default[0].text;
             }
             this.validator.attach(this.name, this.rules, { prettyName: prettyName });
-            this.$set(this, 'errors', this.validator.errorBag);
+          
             if (this.dataUrl != "") {
                 this.load();
             }
@@ -49,14 +49,21 @@
         data() {
             return {
                 inputmodel: '',
-                errors: null,
+                validator:null,
                 list: [],
                 loading:false,
                 label:"Loading...",
                 isInput:true,
             }
         },
-
+        computed:{
+            hasErrors(){
+                return this.validator.errors.has(this.name);
+            },
+            isValid(){
+              return this.validator.errors.count()==0;
+            }
+        },
         watch: {
             inputmodel(value) {
                 if (value !== undefined) {

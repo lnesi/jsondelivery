@@ -29,6 +29,7 @@
                             </div>
                           </div>
                           <tbvue-input name="name" id="in_name" placeholder="Name" rules="required|max:255" v-model="item.name">Name</tbvue-input>
+                          <tbvue-input name="preview_url" id="in_preview_url" placeholder="Preview URL" rules="url" v-model="item.preview_url">Preview URL</tbvue-input>
                           <div class="row">
                             <div class="col col-md-6">
                               <tbvue-ajax-dropdown data-url="ajax/types?paginate=false" name="type_id" rules="required" id="type_id" v-model="item.type_id">Delivery Type</tbvue-ajax-dropdown>
@@ -42,7 +43,7 @@
                         </div>
                         <div class="panel-footer">
                             <a  class="btn btn-default" href="#/" ><i class="fa fa-fw fa-chevron-left"></i> Cancel</a>
-                            <button type="submit"   :class="{'btn btn-success pull-right': true, 'disabled': hasValidateErrors }"><i class="fa fa-fw fa-floppy-o" ></i> Save</button>
+                            <button type="submit"   :class="{'btn btn-success pull-right': true, 'disabled': isValidForm }"><i class="fa fa-fw fa-floppy-o" ></i> Save</button>
                         </div>
                     </div>
                 </form>
@@ -57,28 +58,27 @@
       data() {
           return {
               item: {
-                  partner_id: "",
+                  partner_id: null,
                   name: "",
-                  campaign_id: "",
-                  audience_id: "",
-                  region_id: "",
-                  type_id: "",
-                  size_id: "",
-                  country_id: "",
-                  language_id: ""
+                  campaign_id: null,
+                  audience_id: null,
+                  region_id: null,
+                  type_id: null,
+                  size_id: null,
+                  country_id: null,
+                  language_id:null,
+                  preview_url:null
               },
               delivery: {
                   partner: {},
                   campaign: {}
               },
-              errors: null
+              isValidForm:false
+             // errors: null
           }
       },
 
-      created() {
-          this.createValidator();
-          this.$set(this, 'errors', this.validator.errorBag);
-      },
+     
       computed: {
           campaignURL() {
               if (this.delivery.partner_id != "") {
@@ -133,42 +133,33 @@
                   this.item.language_id = this.delivery.language.id;
                   this.item.type_id = this.delivery.type.id;
                   this.item.size_id = this.delivery.size.id;
-                  this.validator.validateAll(this.item).then(() => {}).catch(() => {});
+                  this.item.preview_url = this.delivery.preview_url;
+                 // this.validator.validateAll(this.item).then(() => {}).catch(() => {});
 
               }, response => {
                   this.$parent.$emit("HIDE_PRELOADER");
                   this.$router.push('/400');
               });
           },
-          validate() {
-              this.$children.forEach(function(element){
-                    if(element.isInput) element.validate();
-              });
-              this.validator.validateAll(this.item).then(() => {
-                  this.save();
-
-              }).catch(() => {
-                  console.log("ERRORES:", this.validator.getErrors());
-              });
-              this.$set(this, 'errors', this.validator.errorBag);
-              console.log(this.validator.getErrors());
-          },
-          createValidator() {
-
-              this.validator = new VeeValidate.Validator();
-              this.validator.attach('partner_id', 'required|numeric', { prettyName: 'Partner' });
-              this.validator.attach('campaign_id', 'required|numeric', { prettyName: 'Campaign' });
-              this.validator.attach('audience_id', 'required|numeric', { prettyName: 'Audience' });
-              this.validator.attach('region_id', 'required|numeric', { prettyName: 'Region' });
-              this.validator.attach('country_id', 'required|numeric', { prettyName: 'Country' });
-              this.validator.attach('language_id', 'required|numeric', { prettyName: 'Language' });
-              this.validator.attach('type_id', 'required|numeric', { prettyName: 'Type' });
-              this.validator.attach('size_id', 'required|numeric', { prettyName: 'Size' });
-              this.validator.attach('name', 'required|max:255', { prettyName: 'Name' });
-              this.validator.validateAll(this.item).then(() => {}).catch(() => {});
-              this.$set(this, 'errors', this.validator.errorBag);
-
-          },
+         validate() {
+                this.isValidForm = true;
+                    this.$children.forEach(function(element){
+                        if(element.isInput){
+                          element.validate();
+                          if (this.isValidForm) this.isValidForm = element.isValid;
+                        } 
+                        
+                         console.log(element,element.isValid);
+                    }.bind(this));
+                  if (this.isValidForm) {
+                        this.save();
+                       
+                    }else{
+                      console.log("invalid")
+                    }
+              
+            },
+          
           clearErrors() {
               this.errors.clear();
           }

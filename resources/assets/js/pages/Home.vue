@@ -5,7 +5,7 @@
               <div class="col-md-12 ">
                   <div class="panel panel-default">
                       <div class="panel-heading">
-                      <h2><i class="lnr lnr-code"></i>  JSON<small>Deliverys<a type="button" class="btn btn-default pull-right" href="#/delivery/new"><i class="fa fa-fw fa-plus"></i> New</a></small></h2>
+                      <h2><i class="lnr lnr-code"></i>  Banners <small><a type="button" class="btn btn-default pull-right" href="#/delivery/new"><i class="fa fa-fw fa-plus"></i> New</a></small></h2>
                       
                       </div>
 
@@ -33,6 +33,7 @@
                                 <td><span :class="statusLabelClass(item.status)">{{item.status.name|uppercase}}</span></td>
                                 <td>
                                      <div class="btn-group btn-group-xs" role="group" aria-label="...">
+                                        <a class="btn btn-default" :href="item.preview_url" target="_blank"  v-show="item.preview_url!=null"><i class="fa fa-eye" ></i> Preview </a>
                                         <a class="btn btn-default" @click="publish(item)" v-show="item.status.id!=2"><i class="fa fa-cloud-upload" ></i> Publish</a>
                                         <a class="btn btn-default" @click="expire(item)" v-show="item.status.id==2"><i class="fa fa-cloud-download" ></i> Expire</a>
                                         <a class="btn btn-default" :href="'#deliveries/'+item.id+'/edit'" ><i class="fa fa-fw fa-edit"></i> Edit</a>

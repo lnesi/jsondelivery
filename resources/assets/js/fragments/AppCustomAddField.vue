@@ -1,6 +1,6 @@
 <template>
   <div>
-    <modal id="addFieldModal" ref="modal">
+    <modal id="addFieldModal" ref="addCustomFiled">
           <h4 class="modal-title" slot="header">Add Field</h4>
           <form slot="body">
               <tbvue-input name="name" id="in_name" placeholder="Name" rules="required|max:255" v-model="item.name">Name / Description</tbvue-input>
@@ -9,21 +9,18 @@
 		          <tbvue-ajax-dropdown data-url="ajax/components?paginate=false" name="input_type_id" rules="required" id="input_type_id" v-model="item.component_id">Input Type</tbvue-ajax-dropdown>
           </form>
           <button type="button" slot="footer" class="btn btn-default"  data-dismiss="modal">Cancel</button>
-          <button type="button" slot="footer" class="btn btn-success" :class="{'btn btn-success': true, 'disabled': hasValidateErrors}" @click="validate"><i class="fa fa-fw fa-floppy-o" ></i> Save</button>
+          <button type="button" slot="footer" class="btn btn-success" :class="{'btn btn-success': true, 'disabled': isValidForm}" @click="validate"><i class="fa fa-fw fa-floppy-o" ></i> Save</button>
       </modal>
   </div>
 </template>
 <script>
   export default {
-      validator:null,
       provider:null,
       mounted(){
         this.item.delivery_id=this.deliveryId
       },
       created(){
         this.provider = this.$resource("ajax/customs{/id}");
-        this.createValidator();
-        
       },
       data(){
         return {
@@ -34,38 +31,37 @@
               help_text:'',
               component_id:'',
             },
-          errors:null
+          isValidForm:false 
         }
+       
       },
       methods:{
         add(){
 
           this.provider.save(this.item).then(response => {
               this.$parent.value.push(response.body);
-              this.$refs.modal.hide();
+              this.$refs.addCustomFiled.hide();
               this.reset();
           }, response => {
               console.log("errorAdding");
           });
         },
         validate(){
-          this.validator.validateAll(this.item).then(() => {
-            this.add();
-          }).catch(() => {});
+            this.isValidForm=true;
+            this.$refs.addCustomFiled.$children.forEach(function(element){
+                if(element.isInput) element.validate();
+                if (this.isValidForm) this.isValidForm = element.isValid;
+            }.bind(this));
+            if (this.isValidForm) {
+                this.add();
+             
+            }
+          
         },
         show(){
-          this.$refs.modal.show();
+          this.$refs.addCustomFiled.show();
         },
-        createValidator() {
-            this.validator = new VeeValidate.Validator();
-            this.validator.attach('delivery_id', 'required|numeric', { prettyName: 'Delivery' });
-            this.validator.attach('name', 'required', { prettyName: 'Name' });
-            this.validator.attach('key', 'required', { prettyName: 'Key' });
-            this.validator.attach('help_text', '', { prettyName: 'Help Text' });
-            this.validator.attach('component_id', 'required|numeric', { prettyName: 'Input Type' });
-            this.validator.validateAll(this.item).then(() => {}).catch(() => {});
-            this.$set(this, 'errors', this.validator.errorBag);
-        },
+       
         reset(){
             this.item.name="";
             this.item.key="";
@@ -79,12 +75,7 @@
         }
       },
       props:["deliveryId"],
-      computed:{
-        hasValidateErrors(){
-          this.validator.validateAll(this.item).then(() => {}).catch(() => {});
-          return this.errors.count() > 0;
-        }
-      }
+   
 
     }
 </script>

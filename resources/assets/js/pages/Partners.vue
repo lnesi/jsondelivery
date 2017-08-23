@@ -59,12 +59,7 @@
           this.resource_url="ajax/admin/partners{/id}";
           this.singular="Partner";
           this.addObject={name:"",abbr:""}
-          this.validator=new VeeValidate.Validator();
-          this.validator.attach('name', 'required|max:100', { prettyName: 'Name' });
-          this.validator.attach('abbr', 'required|max:10', { prettyName: 'Abbreviation' });
-          
-          this.validator.validateAll(this.addObject).then(() => {}).catch(() => {});
-          this.$set(this, 'errors', this.validator.errorBag);
+         
        },
        
         

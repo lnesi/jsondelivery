@@ -17,20 +17,13 @@ export default {
             addObject: {},
             toDelete: null,
             singular: "entity",
-            errors: [],
-            validator: null
+           // errors: [],
+            validator: null,
+            isValidForm:false
         }
     },
 
-    watch: {
-        addObject: {
-            handler: function() {
-                this.validator.validateAll(this.addObject).then(() => {}).catch(() => {});
-                this.$set(this, 'errors', this.validator.errorBag);
-            },
-            deep: true
-        }
-    },
+    
 
 
     computed: {
@@ -70,15 +63,21 @@ export default {
         },
 
         validate() {
+            this.isValidForm = true;
             this.$refs.addModal.$children.forEach(function(element){
-                if(element.isInput) element.validate();
-            });
-            this.validator.validateAll(this.addObject).then(result => {
+                if(element.isInput){
+                    element.validate();
+                    if (this.isValidForm) this.isValidForm = element.isValid;
+                } 
+               
+            }.bind(this));
+          if (this.isValidForm) {
                 this.add();
                 $('#addModal').modal('hide');
-                this.reset();
-            }).catch(() => null);
-            this.$set(this, 'errors', this.validator.errorBag);
+                 this.reset();
+            }
+            
+            //this.$set(this, 'errors', this.validator.errorBag);
         },
 
         reset(){

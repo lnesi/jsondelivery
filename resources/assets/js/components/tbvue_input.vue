@@ -3,10 +3,10 @@
     <label :for="id" class="control-label"><slot></slot></label>
     <div class="tbvue_input_holder">
       <input v-model="inputmodel" type="text" :name="name" class="form-control" :id="id" @blur="validate" :placeholder="placeholder" :disabled="this.disabled">
-      <i class="fa fa-fw fa-exclamation-triangle text-danger" v-show="errors.has(this.name) " ></i>
+      <i class="fa fa-fw fa-exclamation-triangle text-danger" v-show="hasErrors " ></i>
       <i class="fa fa-spinner fa-pulse fa-fw" v-show="loading"></i>
     </div>
-    <p class="help-block">{{ errors.first(this.name) }}</p>
+    <p class="help-block">{{ validator.errors.first(this.name) }}</p>
   </div>
 </template>
 
@@ -28,13 +28,8 @@
     export default {
       validator: null,
        created(){
-
         this.validator=new VeeValidate.Validator();
         this.validator.attach(this.name, this.rules , {prettyName:this.$slots.default[0].text});
-        this.$set(this, 'errors', this.validator.errorBag);
-        
-        //this.validate();
-       
        },
        mounted(){
           this.inputmodel=this.value;
@@ -42,33 +37,29 @@
        data(){
         return {
           inputmodel:null,
-          errors:null,
           loading:false,
           isInput:true,
+          validator:null
         }
        },
        watch:{
           inputmodel(value){
-        
-            // this.validator.validate(this.name, value).then(() => {
-            //     // success
-            // }).catch(() => {
-            //     // failed
-            // });
             this.$emit('input', value);
-            
           },
           value(value){
              this.inputmodel=value;
           }
        },
-      
       computed:{
+      
+      
         hasErrors(){
-          return this.errors.has(this.name);
+          return this.validator.errors.has(this.name);
+        },
+        isValid(){
+          return this.validator.errors.count()==0;
         }
       },
-       
        methods:{
 
           validate(){
@@ -79,12 +70,8 @@
             }).catch(() => {
                 this.loading=false;
                 // failed
-            });;
+            });
           },
-          // updateValue(value){
-          //   console.log("change",value)
-          //   this.$emit('input', value);
-          // }
        },
        props:{
           value:{default:null},

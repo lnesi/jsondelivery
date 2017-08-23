@@ -54,7 +54,7 @@
   	data(){
   		return{
   			delivery_id:null,
-  			errors:[],
+  		
         toRemove:null
   		}
   	},

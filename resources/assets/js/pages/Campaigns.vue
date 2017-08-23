@@ -63,14 +63,6 @@
             this.singular = "Campaign";
             this.addObject = { name: "", abbr: "", partner_id: "" }
 
-            this.validator=new VeeValidate.Validator();
-
-            this.validator.attach('partner_id', 'required|numeric', { prettyName: 'Partner' });
-            this.validator.attach('name', 'required|max:100', { prettyName: 'Name' });
-            this.validator.attach('abbr', 'required|max:10', { prettyName: 'Abbreviation' });
-            
-            this.validator.validateAll(this.addObject).then(() => {}).catch(() => {});
-            this.$set(this, 'errors', this.validator.errorBag);
         },
         
 

@@ -12,7 +12,7 @@
                             <hr>
                             <tbvue-input name="name" id="in_name" placeholder="Name" rules="required|max:100" v-model="lookup_name">Lookup Name</tbvue-input>
                             <hr>
-                            <div :is="field.component" v-for="field in fields" v-bind="field.props" ref="customs"></div>
+                            <div :is="field.component" v-for="field in fields_list" v-bind="field.props" ref="customs"></div>
                         </div>
                         <div class="panel-footer">
                             <a  class="btn btn-default" :href="backURL" ><i class="fa fa-fw fa-chevron-left"></i> Back</a>
@@ -32,7 +32,7 @@
                   
                     delivery:{},
                     content:{name:''},
-                    fields:[],
+                    fields_list:[],
                     lookup_name:''
                 }
             },
@@ -54,7 +54,7 @@
                         this.delivery = response.body;
                         this.content=this.getContent(this.$route.params.content_id);
                         this.lookup_name=this.content.name;
-                        this.createForm();
+                        this.createForm(); 
                     }, response => {
                         this.$parent.$emit("HIDE_PRELOADER");
                         this.$router.push('/400');
@@ -90,7 +90,7 @@
                                             value:  this.getValue(field.id)
                                             }
                                 }
-                        this.fields.push(oField);
+                        this.fields_list.push(oField);
                         
                         $("#formHolder").append("<alert></alert>");
                         
