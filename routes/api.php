@@ -74,3 +74,33 @@ Route::get("/delivery/{id}/{content_id?}/{jsonp?}/{debug?}",function(Request $re
 	return response()->json([ 'error'=> 404, 'message'=> 'Not found' ]);
 	
 });
+
+
+Route::get("/dcfeed/{id}",function(Request $request, $id){
+	$delivery=App\Delivery::findOrFail($id);
+	$xml='<?xml version="1.0" encoding="UTF-8"  ?>';
+	$xml.='<feed>';
+	foreach($delivery->contents as $content){
+		$xml.='<content>';
+			$xml.='<unique_id>'.$delivery->id.'080'.$content->id.'</unique_id>';
+			$xml.='<reporting_label>'.str_replace(' ','_',strtolower($content->name)).'</reporting_label>';
+			foreach($delivery->customs as $custom){
+				$xml.="<".$custom->key.">";
+				if($custom->component->tag=="app-wysiwyg") $xml.="<![CDATA[";
+				$xml.=$content->getValueByCustomId($custom->id);
+				if($custom->component->tag=="app-wysiwyg") $xml.="]]>";
+				$xml.="</".$custom->key.">";
+			}
+			$xml.="<default>FALSE</default>";
+			if($content->status->name=="Live"){
+				$xml.="<active>TRUE</active>";
+			}else{
+				$xml.="<active>FALSE</active>";
+			}
+			$xml.='<weights>'.$content->distribution.'</weights>';
+		$xml.='</content>';
+	}
+	
+	$xml.='</feed>';
+	return Response::make($xml, '200')->header('Content-Type', 'text/xml');
+});

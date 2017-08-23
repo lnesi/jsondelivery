@@ -25,5 +25,10 @@ class DeliveryContent extends Model
     public function values(){
         return $this->hasMany(CustomValue::class,'set_id');
     }
-
+    public function getValueByCustomId($id){
+        foreach($this->values as $value){
+            if ($value->custom_id==$id) return $value->data;
+        }
+        return null;
+    }
 }

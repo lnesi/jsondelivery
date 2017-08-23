@@ -8,6 +8,8 @@ use App\DeliveryContent;
 use App\CustomValue;
 use App\Status;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Contracts\Filesystem\Filesystem;
+use Illuminate\Support\Facades\Storage;
 class ContentController extends Controller
 {
     public function add(Request $request, $id){
@@ -25,8 +27,11 @@ class ContentController extends Controller
 			}else{
 				$fileUpload=$request->file($custom->id);
                 if($fileUpload){
-                    $file=file_get_contents($fileUpload->path());
-                    CustomValue::create(['set_id'=>$content->id,'custom_id'=>$custom->id,"data"=>$file]);
+                    $s3 = Storage::disk('s3');
+                    $imageFileName = time() . '.' . $fileUpload->getClientOriginalExtension();
+                    $filePath = 'images/' . $imageFileName;
+                    $result=$s3->put($filePath, file_get_contents($fileUpload), 'public');
+                    CustomValue::create(['set_id'=>$content->id,'custom_id'=>$custom->id,"data"=>Storage::cloud()->url($filePath)]);
                 }
 				
 			}
@@ -52,8 +57,11 @@ class ContentController extends Controller
             }else{
                 $fileUpload=$request->file($custom->id);
                 if($fileUpload){
-                    echo 'hi';
-                    $data=file_get_contents($fileUpload->path());
+                    $s3 = Storage::disk('s3');
+                    $imageFileName = time() . '.' . $fileUpload->getClientOriginalExtension();
+                    $filePath = 'images/' . $imageFileName;
+                    $result=$s3->put($filePath, file_get_contents($fileUpload), 'public');
+                    $data=Storage::cloud()->url($filePath);//file_get_contents($fileUpload->path());
                 }
             }
             if($data){

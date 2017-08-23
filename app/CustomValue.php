@@ -23,7 +23,7 @@ class CustomValue extends Model
     
     public function getDataAttribute($value){
         if($this->custom->component->tag=="app-image"){
-            return base64_encode($value);
+            //return base64_encode($value);
         }
         if($this->custom->component->tag=="app-checkbox"){
             return (strtolower($value)=="true");
