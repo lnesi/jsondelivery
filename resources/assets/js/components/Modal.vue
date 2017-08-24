@@ -1,6 +1,6 @@
 <template>
     <div class="modal fade" tabindex="-1" role="dialog" :id="id">
-      <div class="modal-dialog" role="document">
+      <div :class="modalClasses" role="document">
         <div class="modal-content">
           <div class="modal-header">
                 <slot name="header"></slot>
@@ -19,7 +19,15 @@
 <script>
     export default {
      
-        props:['id'],
+        props:{
+          id:String,
+          size:{default:'',type:String}
+        },
+        computed:{
+          modalClasses(){
+            return "modal-dialog "+this.size;
+          }
+        },
         methods:{
           show(){
              $("#"+this.id).modal("show");

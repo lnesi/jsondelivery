@@ -12,11 +12,11 @@
                             <hr>
                             <tbvue-input name="name" id="in_name" placeholder="Name" rules="required|max:100" v-model="lookup_name">Lookup Name</tbvue-input>
                             <hr>
-                            <div :is="field.component" v-for="field in fields" v-bind="field.props" ref="customs"></div>
+                            <div :is="field.component" v-for="field in field_list" v-bind="field.props" ref="customs"></div>
                         </div>
                         <div class="panel-footer">
                             <a  class="btn btn-default" :href="backURL" ><i class="fa fa-fw fa-chevron-left"></i> Back</a>
-                            <button type="button" @click="process"  :class="{'btn btn-success pull-right': true }"><i class="fa fa-fw fa-floppy-o" ></i> Save</button>
+                            <button type="button" @click="validate"  :class="{'btn btn-success pull-right': true }"><i class="fa fa-fw fa-floppy-o" ></i> Save</button>
                         </div>
                     </div>
                 </form>
@@ -31,7 +31,8 @@
                 return{
                     lookup_name:'',
                     delivery:{},
-                    fields:[]
+                    field_list:[],
+                    isValidForm:false 
                 }
             },
             mounted() {
@@ -79,15 +80,29 @@
                                             custom_id:field.id,
                                             name:field.key,
                                             label: field.name,
-                                            help_text:field.help_text
+                                            help_text:field.help_text,
+                                            data:field.data
                                             }
                                 }
-                        this.fields.push(oField);
+                        this.field_list.push(oField);
                         
                         $("#formHolder").append("<alert></alert>");
                         
                     }.bind(this));
                  
+                },
+                validate(){
+                    this.isValidForm = true;
+                    this.$children.forEach(function(element){
+                        if(element.isInputComponent){
+                            element.validate();
+                            if (this.isValidForm) this.isValidForm = element.isValid;
+                        } 
+                       
+                    }.bind(this));
+                   if (this.isValidForm) {
+                        //this.process();
+                    }
                 }
             }
     }

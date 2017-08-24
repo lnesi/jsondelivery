@@ -19,8 +19,8 @@
 		
 		created(){
 			this.validator=new VeeValidate.Validator();
-	        this.validator.attach('password1', 'required:true|min:8|passregex', {prettyName:"Password"});
-	        this.validator.attach('password2', {required:true,confirmed:'password1'}, {prettyName:"Password"});
+	        this.validator.attach('password1', 'required:true|min:8|passregex', {alias:"Password"});
+	        this.validator.attach('password2', {required:true,confirmed:'password1'}, {alias:"Password"});
 	        
 	        this.$set(this, 'errors', this.validator.errorBag);
 		},

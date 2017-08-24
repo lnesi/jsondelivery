@@ -39,7 +39,7 @@ export default{
 			if(value instanceof File){
 				 this.createImage(value);
 			}else if(value!=null && value!=""){
-				this.image="data:image/png;base64,"+value;
+				this.image=value;//"data:image/png;base64,"+value; 
 			}
 			
 		}

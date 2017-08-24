@@ -33,7 +33,8 @@
             if (this.$slots.default) {
                 prettyName = this.$slots.default[0].text;
             }
-            this.validator.attach(this.name, this.rules, { prettyName: prettyName });
+            
+            var test=this.validator.attach(this.name, this.rules, { alias: prettyName });
           
             if (this.dataUrl != "") {
                 this.load();

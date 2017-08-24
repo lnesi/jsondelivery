@@ -29,7 +29,7 @@
       validator: null,
        created(){
         this.validator=new VeeValidate.Validator();
-        this.validator.attach(this.name, this.rules , {prettyName:this.$slots.default[0].text});
+        this.validator.attach(this.name, this.rules , {alias:this.$slots.default[0].text});
        },
        mounted(){
           this.inputmodel=this.value;

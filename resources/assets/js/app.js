@@ -37,6 +37,8 @@ Vue.component('app-customaddfield', require('./fragments/AppCustomAddField.vue')
 Vue.component('app-customeditfield', require('./fragments/AppCustomEditField.vue'));
 Vue.component('app-deliverydetails', require('./fragments/AppDeliveryDetails.vue'));
 Vue.component('app-deliverycontentlist', require('./fragments/AppDeliveryContentList.vue'));
+Vue.component('app-customfieldvalidation', require('./fragments/CustomFieldValidation.vue'));
+
 
 //Delivery Components
 Vue.component('app-plaintext', require('./components/app/Text.vue'));

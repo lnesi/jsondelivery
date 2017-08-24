@@ -13,10 +13,21 @@ class DeliveryCustomController extends CrudAjaxController{
   public function store(Request $request){
   	 $custom=new DeliveryCustom();
   	 $custom->fill($request->input());
+     $custom->data=json_encode($request->input('data'));
   	 $custom->save();
      $custom->component;
      return $custom;
   }
-     
+
+  public function update(Request $request, $id){
+    $custom=DeliveryCustom::findOrFail($id);
+    $custom->fill($request->input());
+    $custom->data=json_encode($request->input('data'));
+    $custom->save();
+    $custom->component;
+    return $custom;
+  }
+
+ 
       
 }

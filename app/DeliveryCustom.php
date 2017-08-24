@@ -10,7 +10,7 @@ class DeliveryCustom extends Model
     
     protected $table = 'delivery_customs';
     protected $dates = ['created_at','updated_at'];
-    protected $fillable=['delivery_id','component_id','name','key','data','help_text'];
+    protected $fillable=['delivery_id','component_id','name','key','help_text'];
     protected $with=['component'];
     protected $hidden=['delivery_id','component_id'];
 
@@ -20,5 +20,9 @@ class DeliveryCustom extends Model
 
     public function component(){
     	return $this->belongsTo(Component::class);
+    }
+
+    public function getDataAttribute($value){
+        return json_decode($value);
     }
 }
