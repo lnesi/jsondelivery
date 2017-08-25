@@ -2,7 +2,7 @@ export default {
 	data(){
 		return{
 			valueModel:null,
-			isInputComponent:true,
+			isValidatorEnabled:true,
 			validator:null,
 		}
 		
@@ -11,20 +11,24 @@ export default {
 		if(this.value) this.valueModel=this.value;
 	},
 	computed:{
+		id(){
+			return "custom_"+this.custom.id
+		},
         hasErrors(){
           return this.validator.errors.has(this.id);
         },
         isValid(){
           return this.validator.errors.count()==0;
         }
+
       },
-	props:['label','help_text','id','name','value','custom_id','data'],
+	props:['value','custom'],
 	methods:{
 		getValue(){
 			return this.valueModel;
 		},
 		validate(){
-			this.validator.validate(this.id, this.valueModel).then(() => {}).catch(() => {});
+			if(this.isValidatorEnabled)	this.validator.validate(this.id, this.valueModel).then(() => {}).catch(() => {});
 		}
 	},
 	watch:{
@@ -32,7 +36,7 @@ export default {
 			console.log("value prop",val);
 		},
 		valueModel(value){
-			if (value !== undefined) {
+			if (value !== undefined && this.isValidatorEnabled) {
            		this.validator.validate(this.id, this.valueModel).then(() => {}).catch(() => {});
         	}
 		}

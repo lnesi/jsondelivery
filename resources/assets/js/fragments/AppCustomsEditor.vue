@@ -32,8 +32,8 @@
                     </td>
                     <td>
                       <div class="btn-group btn-group-xs" role="group" aria-label="..." v-show="hasMoreOne">
-                          <button type="button" class="btn btn-default btn-xs" v-show="index>0" @click="sortUp(index)"><i class="fa fa-fw fa-chevron-circle-up"></i></button>
-                          <button type="button" class="btn btn-default btn-xs" v-show="index<value.length-1" @click="sortDown(index)"><i class="fa fa-fw fa-chevron-circle-down"></i></button>
+                          <button type="button" class="btn btn-success btn-xs" v-show="index>0" @click="sortUp(index)"><i class="fa fa-fw fa-chevron-circle-up"></i></button>
+                          <button type="button" class="btn btn-danger btn-xs" v-show="index<value.length-1" @click="sortDown(index)"><i class="fa fa-fw fa-chevron-circle-down"></i></button>
                       </div>
                     </td>
                   </tr>  

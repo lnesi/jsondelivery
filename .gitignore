@@ -7,4 +7,9 @@
 Homestead.json
 Homestead.yaml
 .env
-/.phpintel
+.phpintel
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml

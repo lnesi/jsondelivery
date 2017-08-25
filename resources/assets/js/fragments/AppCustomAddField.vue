@@ -2,7 +2,7 @@
   <div>
     <modal id="addFieldModal" size="modal-lg" ref="addCustomFiled">
           <h4 class="modal-title" slot="header">Add Field</h4>
-          <form slot="body">
+          <form slot="body" ref="form">
               <tbvue-input name="name" id="in_name" placeholder="Name" rules="required|max:255" v-model="item.name">Name / Description</tbvue-input>
               <div class="row">
                     <div class="col-md-6">
@@ -36,10 +36,15 @@
   export default {
       provider:null,
       mounted(){
-        this.item.delivery_id=this.deliveryId
+        this.item.delivery_id=this.deliveryId;
+        this.$refs.addCustomFiled.$on('HIDE',function(){
+            this.reset();
+        }.bind(this));
       },
       created(){
         this.provider = this.$resource("ajax/customs{/id}");
+
+       
       },
       data(){
         return {

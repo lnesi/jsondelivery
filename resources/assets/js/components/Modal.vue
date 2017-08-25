@@ -23,6 +23,17 @@
           id:String,
           size:{default:'',type:String}
         },
+        mounted(){
+          var self=this;
+          $("#"+this.id).on('hide.bs.modal', function (e) {
+            self.$emit('HIDE');
+          });
+
+          var self=this;
+          $("#"+this.id).on('show.bs.modal', function (e) {
+            self.$emit('SHOW');
+          });
+        },
         computed:{
           modalClasses(){
             return "modal-dialog "+this.size;
@@ -33,6 +44,7 @@
              $("#"+this.id).modal("show");
            },
            hide(){
+             
              $("#"+this.id).modal("hide");
            }
         }

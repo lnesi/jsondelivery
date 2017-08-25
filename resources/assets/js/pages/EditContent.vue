@@ -10,13 +10,13 @@
                             <h4  data-toggle="collapse" data-target="#detailsHolder" id="detailsTitle" class="collapsed">Details <i class="fa fa-fw fa-plus-circle" ></i><i class="fa fa-fw fa-minus-circle" ></i></h4>
                             <app-deliverydetails v-model="delivery" collapseId="detailsHolder" collapse="true"></app-deliverydetails>
                             <hr>
-                            <tbvue-input name="name" id="in_name" placeholder="Name" rules="required|max:100" v-model="lookup_name">Lookup Name</tbvue-input>
+                            <tbvue-input name="name" id="in_name" ref="lookup_name" placeholder="Name" rules="required|max:100" v-model="lookup_name">Lookup Name</tbvue-input>
                             <hr>
                             <div :is="field.component" v-for="field in fields_list" v-bind="field.props" ref="customs"></div>
                         </div>
                         <div class="panel-footer">
                             <a  class="btn btn-default" :href="backURL" ><i class="fa fa-fw fa-chevron-left"></i> Back</a>
-                            <button type="button" @click="process"  :class="{'btn btn-success pull-right': true }"><i class="fa fa-fw fa-floppy-o" ></i> Save</button>
+                            <button type="button" @click="validate"  :class="{'btn btn-success pull-right': true,'disabled':!isValidForm }"><i class="fa fa-fw fa-floppy-o" ></i> Save</button>
                         </div>
                     </div>
                 </form>
@@ -33,7 +33,8 @@
                     delivery:{},
                     content:{name:''},
                     fields_list:[],
-                    lookup_name:''
+                    lookup_name:'',
+                    isValidForm:false
                 }
             },
             mounted() {
@@ -66,7 +67,7 @@
                     formData.append('lookup_name',this.lookup_name);
                     formData.append('_method','put');
                     $.each(this.$refs.customs,function(i,v){
-                            formData.append(v.custom_id, v.getValue()); 
+                            formData.append(v.custom.id, v.getValue()); 
                     });
                      this.$http.post('/ajax/content/'+this.delivery.id+'/'+this.$route.params.content_id, formData).then(response => {
                        console.log("ok",response);
@@ -76,18 +77,29 @@
                         this.$parent.$emit("HIDE_PRELOADER");
                       });
                 },
+                validate(){
+                    this.isValidForm = true;
+                    this.$children.forEach(function(element){
+                        if(element.isValidatorEnabled){
+                            element.validate();
+                            if (this.isValidForm) this.isValidForm = element.isValid;
+                        } 
+                       
+                    }.bind(this));
+                   this.$refs.lookup_name.validate();
+                   if (this.isValidForm) this.isValidForm = this.$refs.lookup_name.isValid;
+                   if (this.isValidForm) {
+                        this.process();
+                    }
+                },
                 createForm(){
                     $.each(this.delivery.customs,function(i,field){
                        
                        
                         var oField={
                                     component: field.component.tag, 
-                                    props: {id:"custom_"+field.id,
-                                            custom_id:field.id,
-                                            name:field.key,
-                                            label: field.name,
-                                            help_text:field.help_text,
-                                            value:  this.getValue(field.id)
+                                    props: {value:  this.getValue(field.id),
+                                            custom:field
                                             }
                                 }
                         this.fields_list.push(oField);

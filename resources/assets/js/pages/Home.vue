@@ -5,7 +5,7 @@
               <div class="col-md-12 ">
                   <div class="panel panel-default">
                       <div class="panel-heading">
-                      <h2><i class="lnr lnr-code"></i>  Banners <small><a type="button" class="btn btn-default pull-right" href="#/delivery/new"><i class="fa fa-fw fa-plus"></i> New</a></small></h2>
+                      <h2><i class="lnr lnr-code"></i>  Deliveries <small><a type="button" class="btn btn-default pull-right" href="#/delivery/new"><i class="fa fa-fw fa-plus"></i> New</a></small></h2>
                       
                       </div>
 
