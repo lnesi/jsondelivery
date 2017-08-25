@@ -4,7 +4,9 @@
             <div class="col-md-12">
                  
                     <div class="panel panel-default">
-                        <div class="panel-heading">Delivery</div>
+                        <div class="panel-heading">Delivery
+                        <a class="btn btn-primary btn-xs pull-right" :href="delivery.preview_url" target="_blank"  v-show="delivery.preview_url!=null"><i class="fa fa-eye" ></i> Preview </a>
+                        </div>
 
                         <div class="panel-body">
                             <h4>Details</h4>

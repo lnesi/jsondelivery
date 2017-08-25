@@ -28,11 +28,10 @@
 				addObject:{
 					name:'',
 					email:'',
-					
+					isValidForm:false,
 					partner_id:''
 				},
-				errors: [],
-            	validator: null
+			
 			}
 		},
     computed:{
@@ -43,26 +42,18 @@
 		created: function () {          
           this.provider = this.$resource("ajax/admin/users");
 
-          this.validator=new VeeValidate.Validator();
-          this.validator.attach('name', 'required|max:100', { prettyName: 'Name' });
-          this.validator.attach('email', 'required|email', { prettyName: 'Email' });
-          this.validator.attach('partner_id', 'required|numeric', { prettyName: 'Partner' });
-          this.validator.validateAll(this.addObject).then(() => {}).catch(() => {});
-          this.$set(this, 'errors', this.validator.errorBag);
+          
        },
 		methods:{
 			validate() {
+        this.isValidForm = true;
         this.$children.forEach(function(element){
           if(element.isInput){
-            element.validate()
+            element.validate();
+            if (this.isValidForm) this.isValidForm = element.isValid;
           }
-        });
-     
-	      this.validator.validateAll(this.addObject).then(result => {
-	          console.log("is valid");
-            this.sendInvitation();
-	      }).catch(() => null);
-	      this.$set(this, 'errors', this.validator.errorBag);
+        }.bind(this));
+        if(this.isValidForm) this.sendInvitation();
       },
       sendInvitation() {
             this.$root.$emit("SHOW_PRELOADER");
@@ -70,7 +61,7 @@
              this.$http.post('/ajax/admin/users/invite',this.addObject).then(response => {
                 this.$root.$emit("HIDE_PRELOADER");
                 this.$root.$emit("ALERT", "Ok!", "The invitation has been sent successfully", "success", 3);
-                //this.$parent.$router.push('/users/');
+                this.$parent.$router.push('/users/');
             }, response => {
             	this.$root.$emit("HIDE_PRELOADER");
                 console.log("Error");

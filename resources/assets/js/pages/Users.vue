@@ -37,7 +37,7 @@
                                         <a class="btn btn-default" :href="'#users/edit/'+item.id" ><i class="fa fa-fw fa-edit"></i> Edit</a>
                                         <button type="button" class="btn btn-default" @click="activate(item)" v-show="!item.is_admin && !item.active"><i class="fa fa-fw fa-toggle-off"></i> Activate</button>
                                         <button type="button" class="btn btn-default" @click="deactivate(item)" v-show="!item.is_admin && item.active"><i class="fa fa-fw fa-toggle-on"></i> Deactivate</button>
-                                        <button type="button" class="btn btn-default" @click="trash(item)" ><i class="fa fa-fw fa-trash"></i> Delete</button>
+                                        <button type="button" class="btn btn-default" @click="trash(item)"  v-show="!item.is_admin"><i class="fa fa-fw fa-trash"></i> Delete</button>
                                         <button type="button" class="btn btn-default" v-show="item.invite_token!=null" @click="reinvite(item)" ><i class="fa fa-fw fa-send"></i> re-send Invite</button>
                                      </div>
                                 </td>
@@ -85,8 +85,7 @@ export default {
         return {
             toDelete: null,
             toStatus: null,
-            errors: [],
-            validator: null
+          
         }
     },
     created: function() {

@@ -11,6 +11,7 @@ Vue.use(VeeValidate);
 Vue.use(VueResource);
 Vue.use(VueRouter);
 
+ 
 /**
  * Next, we will create a fresh Vue application instance and attach it to
  * the page. Then, you may begin adding components to this application
@@ -141,7 +142,7 @@ VeeValidate.Validator.extend('passregex', passregex);
 
 window.app = new Vue({
     el: '#app',
-    component: ["modal", "alert", "confirm", "preloader", "mainnav","vue-slider"],
+   
     router: router,
     data() {
         return {
