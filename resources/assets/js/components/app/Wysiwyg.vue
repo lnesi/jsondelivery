@@ -1,8 +1,8 @@
 <template>
 	<div class="form-group">
-		<label for="">{{label}}</label>
-		<textarea type="text" class="form-control custom" :name="name" :id="id"></textarea>
-		<p class="help-block">{{help_text}}</p>
+		<label for="">{{custom.name}}</label>
+		<textarea type="text" class="form-control custom" :name="custom.name" :id="id"></textarea>
+		<p class="help-block">{{custom.help_text}}</p>
 	</div>
 </template>
 <script>
@@ -11,7 +11,8 @@ export default{
 	mixins:[comp.default],
 	data(){
 		return{
-			editor:null
+			editor:null,
+			isValidatorEnabled:false
 		}
 	},
 	mounted(){
