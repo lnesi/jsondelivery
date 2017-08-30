@@ -4,7 +4,7 @@
 <p>This is a work in progress for educational purposes. This software is not intent for distribution</p>
 <h3>Author:</h3>
 <p>Luis Nesi <a href="https://twitter.com/lnesi" target="_blank">@lnesi</a></p>
-<p><a href='http://luisnesi.tumblr.com/' target="_blank">http://luisnesi.tumblr.com/</a></p>
+<p><a href='https://lnesi.github.io/' target="_blank">https://lnesi.github.io/</a></p>
 <h3>License</h3>
 <p>The JSON Dynamic Content Delivery is open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT).</p>
 <hr>
