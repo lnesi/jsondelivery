@@ -1,6 +1,6 @@
 <template>
 	<div :class="{'form-group': true, 'has-error': hasErrors || (validateSize && !validSize) }"> 
-		<label :for="id" class="control-label">{{custom.name}}</label>
+		<label :for="id" class="control-label">{{custom.name}} <span class="text-danger" v-show="isRequired">*</span></label>
 		<p v-show="hasImage">
 		<img :src="image" ref="imagecontainer" class="img-thumbnail">
 		</p>
@@ -27,6 +27,14 @@ export default{
 			validSize:true
 		}
 	},
+	mounted(){
+		this.$refs.imagecontainer.onload=function(){
+			this.validate();
+		}.bind(this);
+		if(this.value){
+			this.valueModel=this.value;
+		}
+	},
 	methods:{
 		getValue(){
 			return this.valueModel;
@@ -37,22 +45,23 @@ export default{
 			 this.createImage(files[0]);
 		},
 		createImage(file){
-			
+			console.log("createImage");
 			 this.valueModel=file;
 			 var reader = new FileReader();
 			 reader.onload=function(e){
 			 	this.image=e.target.result;
-			 	this.validate();
 			 }.bind(this);
 			 reader.readAsDataURL(file);
 
 		},
 		validate(){
+			console.log('validate');
 			if(this.custom.data.validation.required){
 				this.hasErrors=!this.hasImage;
 			}
 			if(this.validateSize){
 				this.validSize=true;
+				
 				if(this.image && this.custom.data.validation.data.w!=this.$refs.imagecontainer.width){
 					this.validSize=false;
 				}
@@ -72,12 +81,13 @@ export default{
 		valueModel(value){
 			console.log("valueModel",value instanceof File);
 			if(value instanceof File){
-				 this.createImage(value);
+				// Not sure i need this
 			}else if(value!=null && value!=""){
 				this.image=value;//"data:image/png;base64,"+value; 
 			}
 			
-		}
+		},
+
 	},
 	props:['value','custom'],
 	computed:{
@@ -93,7 +103,11 @@ export default{
         },
 		hasImage(){
 			return this.image!="" && this.image!=null;
-		}
+		},
+		isRequired(){
+        	if(this.custom.data && this.custom.data.validation && this.custom.data.validation.required) return true;
+        	return false;
+        }
 	}
 }
 </script>

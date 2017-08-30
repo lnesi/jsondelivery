@@ -1,6 +1,6 @@
 <template>
 	<div :class="{'form-group': true, 'has-error': hasErrors }">
-		<label :for="id" class="control-label">{{custom.name}}</label>
+		<label :for="id" class="control-label">{{custom.name}} <span class="text-danger" v-show="isRequired">*</span></label>
 		<div class="tbvue_dropdown_holder">
 			<select class="form-control custom" v-model="valueModel" :name="custom.name" :id="id">
 				<option value="">Select...</option>

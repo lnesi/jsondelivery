@@ -40,6 +40,7 @@ class ContentController extends Controller
     	$content=$content->fresh('values');
     	return $content;
     }
+    
     public function edit(Request $request, $delivery_id,$content_id){
         $delivery=Delivery::findOrFail($delivery_id);
         $content=DeliveryContent::findOrFail($content_id);

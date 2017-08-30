@@ -111,4 +111,55 @@ class DeliveryController extends ReadAjaxController
         return $item;
     }          
    
+    public function downloadTemplate($id){
+
+        $delivery=\App\Delivery::findOrFail($id);
+    
+        $temp_folder=sys_get_temp_dir()."/".$id;
+        if(!file_exists($temp_folder))  mkdir($temp_folder);
+        if(!file_exists($temp_folder."/content"))  mkdir($temp_folder."/content");
+
+        $this->recurse_copy(base_path('resources/templates/delivery/'),$temp_folder."/content");
+
+        $plain=$delivery->jsonSerialize();
+        unset($plain['contents']);
+
+        file_put_contents($temp_folder."/content/banner.json",json_encode($plain));
+        
+        $zip=\App\Libraries\ZipTemplate::make($id);
+        ignore_user_abort(true);
+        \App\Libraries\ZipTemplate::download($id);
+        $this->recurse_delete($temp_folder);
+        ignore_user_abort(false);
+
+    }
+
+    private function recurse_copy($src,$dst) { 
+        $dir = opendir($src); 
+        @mkdir($dst); 
+        while(false !== ( $file = readdir($dir)) ) { 
+            if (( $file != '.' ) && ( $file != '..' )) { 
+                if ( is_dir($src . '/' . $file) ) { 
+                    $this->recurse_copy($src . '/' . $file,$dst . '/' . $file); 
+                } 
+                else { 
+                    copy($src . '/' . $file,$dst . '/' . $file); 
+                } 
+            } 
+        } 
+        closedir($dir); 
+    } 
+
+   private  function recurse_delete($path) {
+        $i = new \DirectoryIterator($path);
+        foreach($i as $f) {
+            if($f->isFile()) {
+                unlink($f->getRealPath());
+            } else if(!$f->isDot() && $f->isDir()) {
+                $this->recurse_delete($f->getRealPath());
+            }
+        }
+        rmdir($path);
+    }
+
 }

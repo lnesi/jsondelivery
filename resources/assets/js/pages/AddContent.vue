@@ -10,7 +10,7 @@
                             <h4  data-toggle="collapse" data-target="#detailsHolder" id="detailsTitle" class="collapsed">Details <i class="fa fa-fw fa-plus-circle" ></i><i class="fa fa-fw fa-minus-circle" ></i></h4>
                             <app-deliverydetails v-model="delivery" collapseId="detailsHolder" collapse="true"></app-deliverydetails>
                             <hr>
-                            <tbvue-input name="name" id="in_name" ref="lookup_name" placeholder="Name" rules="required|max:100" v-model="lookup_name">Lookup Name</tbvue-input>
+                            <tbvue-input name="name" id="in_name" ref="lookup_name" placeholder="Name" rules="required|max:100" v-model="lookup_name">Lookup Name <span class="text-danger">*</span></tbvue-input>
                             <hr>
                             <div :is="field.component" v-for="field in field_list" v-bind="field.props" ref="customs"></div>
                         </div>
@@ -61,7 +61,7 @@
                     var formData = new FormData();
                     formData.append('lookup_name',this.lookup_name);
                     $.each(this.$refs.customs,function(i,v){
-                            formData.append(v.custom_id, v.getValue()); 
+                            formData.append(v.custom.id, v.getValue()); 
                     });
                      this.$parent.$emit("SHOW_PRELOADER");
                      this.$http.post('/ajax/content/'+this.delivery.id, formData).then(response => {

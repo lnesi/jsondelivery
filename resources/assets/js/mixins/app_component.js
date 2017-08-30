@@ -19,6 +19,10 @@ export default {
         },
         isValid(){
           return this.validator.errors.count()==0;
+        },
+        isRequired(){
+        	if(this.custom.data && this.custom.data.validation && this.custom.data.validation.required) return true;
+        	return false;
         }
 
       },

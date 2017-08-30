@@ -15,6 +15,7 @@ Route::get('/', 'FrontController@index');
 
 Route::get('/accept/{token}','UserController@accept');
 
+Route::get('/preview/{id}','PreviewController@index');
 
 Route::group(['prefix' => 'ajax','middleware' => 'auth'], function () {
 	Route::get('user', function (Request $request) {
@@ -66,4 +67,5 @@ Route::group(['prefix' => 'ajax','middleware' => 'auth'], function () {
 
 Auth::routes();
 
+Route::get('/download_template/{id}','DeliveryController@downloadTemplate')->middleware('auth');
 

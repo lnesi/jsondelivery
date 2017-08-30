@@ -1,6 +1,6 @@
 <template>
 	<div :class="{'form-group': true, 'has-error': hasErrors }"> 
-		<label :for="id" class="control-label">{{custom.name}}</label>
+		<label :for="id" class="control-label">{{custom.name}} <span class="text-danger" v-show="isRequired">*</span></label>
 		<div class="tbvue_input_holder">
 		<input type="text" v-show="custom.data.validation.data.type=='text'" class="form-control custom" :name="custom.key" :id="id" v-model="valueModel"/>
 		<input type="text" v-show="custom.data.validation.data.type=='url'" class="form-control custom" :name="custom.key" :id="id" v-model="valueModel"/>

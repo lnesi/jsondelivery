@@ -1,0 +1,26 @@
+{
+  "name": "json_delivery_template",
+  "version": "1.0.0",
+  "description": "Delivery Template",
+  "main": "main.js",
+  "author": "Luis Nesi",
+  "license": "ISC",
+  "devDependencies": {
+    "clear": "0.0.1",
+    "fs": "0.0.1-security",
+    "gulp": "^3.9.1",
+    "gulp-clean": "^0.3.2",
+    "gulp-clean-css": "^3.7.0",
+    "gulp-htmlmin": "^3.0.0",
+    "gulp-if": "^2.0.2",
+    "gulp-open": "^2.0.0",
+    "gulp-s3": "^0.11.0",
+    "gulp-sass": "^3.1.0",
+    "gulp-uglify": "^3.0.0",
+    "gulp-useref": "^3.1.2",
+    "gulp-util": "^3.0.8",
+    "gulp-webserver": "^0.9.1",
+    "gulp-zip": "^4.0.0",
+    "run-sequence": "^2.1.0"
+  }
+}

@@ -10,7 +10,7 @@
                             <h4  data-toggle="collapse" data-target="#detailsHolder" id="detailsTitle" class="collapsed">Details <i class="fa fa-fw fa-plus-circle" ></i><i class="fa fa-fw fa-minus-circle" ></i></h4>
                             <app-deliverydetails v-model="delivery" collapseId="detailsHolder" collapse="true"></app-deliverydetails>
                             <hr>
-                            <tbvue-input name="name" id="in_name" ref="lookup_name" placeholder="Name" rules="required|max:100" v-model="lookup_name">Lookup Name</tbvue-input>
+                            <tbvue-input name="name" id="in_name" ref="lookup_name" placeholder="Name" rules="required|max:100" v-model="lookup_name">Lookup Name <span class="text-danger">*</span></tbvue-input>
                             <hr>
                             <div :is="field.component" v-for="field in fields_list" v-bind="field.props" ref="customs"></div>
                         </div>
@@ -70,7 +70,7 @@
                             formData.append(v.custom.id, v.getValue()); 
                     });
                      this.$http.post('/ajax/content/'+this.delivery.id+'/'+this.$route.params.content_id, formData).then(response => {
-                       console.log("ok",response);
+                       this.$parent.$emit("ALERT", "Ok!", "The content has been updated", "success", 3);
                        this.$parent.$emit("HIDE_PRELOADER");
                       }, response => {
                         console.log("error",response);
@@ -98,7 +98,7 @@
                        
                         var oField={
                                     component: field.component.tag, 
-                                    props: {value:  this.getValue(field.id),
+                                    props: { value:  this.getValue(field.id),
                                             custom:field
                                             }
                                 }
