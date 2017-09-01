@@ -15,7 +15,7 @@ var runSequence   = require('run-sequence');
 var s3            = require('gulp-s3');
 var open          = require('gulp-open');
 
-var banner = JSON.parse(fs.readFileSync('./banner.json'));
+var delivery = JSON.parse(fs.readFileSync('./delivery.json'));
 
 gulp.task('minify_html', function() {
   return gulp.src('src/*.html')
@@ -34,7 +34,7 @@ gulp.task('serve', function() {
     }));
 });
 
-gulp.task('s3', () => {
+gulp.task('deploy', () => {
   if(process.env.AWS_ACCESS_KEY_ID){
     var AWS_CREDENTIALS = {
       "key":    process.env.AWS_ACCESS_KEY_ID,
@@ -44,7 +44,7 @@ gulp.task('s3', () => {
     }
 
     gulp.src('./dist/**')
-      .pipe(s3(AWS_CREDENTIALS, {uploadPath: 'previews/'+banner.partner.id+'/'+banner.id+'/',failOnError: true}));
+      .pipe(s3(AWS_CREDENTIALS, {uploadPath: 'previews/'+delivery.partner.id+'/'+delivery.id+'/',failOnError: true}));
   }else{
       console.log(gutil.colors.red('Error:'),"AWS credentiasl not set in bash envitoment. Please export in ~/.bash_profile");
   }
@@ -55,7 +55,7 @@ gulp.task('s3', () => {
 
 gulp.task('preview', function(){
   gulp.src(__filename)
-  .pipe(open({uri:'http://two-adcms-test-env.eu-west-1.elasticbeanstalk.com/preview/'+banner.id}));
+  .pipe(open({uri:'http://localhost/'+delivery.id}));
 });
 
 
@@ -77,7 +77,7 @@ gulp.task('sass', function () {
 
 gulp.task('compress', () =>
     gulp.src(['dist/*','dist/**/*'])
-        .pipe(zip(settings.banner.name.replaceAll(' ','_')+'.zip'))
+        .pipe(zip(delivery.name.replaceAll(' ','_')+'.zip'))
         .pipe(gulp.dest('.'))
 );
 
@@ -86,8 +86,8 @@ gulp.task('sass:watch', function () {
 });
 
 gulp.task("images",function(){
-	return gulp.src(["src/img/*","src/img/**/*"])
-		.pipe(gulp.dest("dist/img"));
+  return gulp.src(["src/img/*","src/img/**/*"])
+    .pipe(gulp.dest("dist/img"));
 });
 
 gulp.task('clean_dist', function () {
@@ -130,29 +130,31 @@ gulp.task('default',function(){
     console.log("| | (_| | | | | |  __/\__ \ |");
     console.log(" \ \__,_|_|_| |_|\___||___/_|");
     console.log("  \____/                     ");
-                              
+
     console.log("");
     console.log('Developed by @lnesi');
-		console.log("");
+    console.log(gutil.colors.green('lnesi.github.io'));
+    console.log("");
+
     console.log(gutil.colors.magenta('AVAILABLE TASKS:'));
     console.log(gutil.colors.green('serve'),"Creates local webserver and open in browser for development.");
     console.log(gutil.colors.green('build'),"Generate distribution files and create zip file for upload to Sizmek");
-    console.log(gutil.colors.green('deploy'),"Upload to FTP and open Test URL");
+    console.log(gutil.colors.green('deploy'),"Upload to S3 and open Test URL");
     console.log(gutil.colors.green('sass:watch'),"Use Sass and watch changes to generate css");
     console.log(gutil.colors.green('preview'),"Open Test URL");
     console.log(gutil.colors.green('clean'),"Cleans Project");
     console.log(gutil.colors.magenta('---------------------------------------------------------------------------------------------'));
     console.log(gutil.colors.magenta('BANNER INFO:'));
-    console.log(gutil.colors.green('ID:'),banner.id);
-    console.log(gutil.colors.green('Name:'),banner.name);
-    console.log(gutil.colors.green('Type:'),banner.type.name);
-    console.log(gutil.colors.green('Size:'),banner.size.name);
-    console.log(gutil.colors.green('Partner:'),banner.partner.name,"("+banner.partner.abbr+")");
-    console.log(gutil.colors.green('Campaign:'),banner.campaign.name,"("+banner.campaign.abbr+")");
-    console.log(gutil.colors.green('Country:'),banner.country.name,"("+banner.country.code+")");
-    console.log(gutil.colors.green('Language:'),banner.language.name,"("+banner.language.code+")");
-    console.log(gutil.colors.green('Region:'),banner.region.name,"("+banner.region.abbr+")");
-    console.log(gutil.colors.green('Audience:'),banner.audience.name,"("+banner.audience.abbr+")");
+    console.log(gutil.colors.green('ID:'),delivery.id);
+    console.log(gutil.colors.green('Name:'),delivery.name);
+    console.log(gutil.colors.green('Type:'),delivery.type.name);
+    console.log(gutil.colors.green('Size:'),delivery.size.name);
+    console.log(gutil.colors.green('Partner:'),delivery.partner.name,"("+delivery.partner.abbr+")");
+    console.log(gutil.colors.green('Campaign:'),delivery.campaign.name,"("+delivery.campaign.abbr+")");
+    console.log(gutil.colors.green('Country:'),delivery.country.name,"("+delivery.country.code+")");
+    console.log(gutil.colors.green('Language:'),delivery.language.name,"("+delivery.language.code+")");
+    console.log(gutil.colors.green('Region:'),delivery.region.name,"("+delivery.region.abbr+")");
+    console.log(gutil.colors.green('Audience:'),delivery.audience.name,"("+delivery.audience.abbr+")");
     console.log(gutil.colors.magenta('---------------------------------------------------------------------------------------------'));
 });
 

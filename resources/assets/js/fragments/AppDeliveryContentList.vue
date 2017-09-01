@@ -19,6 +19,7 @@
                             <a class="btn btn-default" :href="'#deliveries/'+delivery.id+'/editcontent/'+content.id" ><i class="fa fa-fw fa-edit"></i> Edit</a>
                             <a class="btn btn-default" @click="publish(content)" v-show="content.status.id!=2"><i class="fa fa-cloud-upload" ></i> Publish</a>
                             <a class="btn btn-default" @click="unpublish(content)" v-show="content.status.id==2"><i class="fa fa-cloud-download" ></i> Unpublish</a>
+                            <a class="btn btn-default" :href="'/preview/'+delivery.id+'/'+content.id" target="_blank"><i class="fa fa-eye" ></i> Preview</a>
                             <button type="button" class="btn btn-default" @click="deleteContent(content)" v-show="content.status.id!=2" ><i class="fa fa-fw fa-trash"></i> Delete</button>
                          </div>
 					</td>

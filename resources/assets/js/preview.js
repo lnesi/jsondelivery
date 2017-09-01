@@ -24,7 +24,7 @@ window.rulerGenerator = function(options) {
     canvas.setAttribute('width', options.width+'px');
     canvas.setAttribute('height', options.height+'px');
     var ctx = canvas.getContext('2d');
-    ctx.translate(0.5,0.5); 
+    ctx.translate(0.5,0.5);
     ctx.beginPath();
     ctx.rect(0,0,options.width,options.height);
     ctx.fillStyle=options.backgroundColor;

@@ -18,5 +18,5 @@ use App\Http\Controllers;
 // });
 
 
-Route::get("/delivery/{id}/{content_id?}/{jsonp?}/{debug?}",'ApiController@JSONDelivery');
+Route::get("/delivery/{id}/{content_id?}/{jsonp?}/{debug?}",'ApiController@JSONDelivery')->middleware('cors');
 Route::get("/dcfeed/{id}",'ApiController@XMLFeed');

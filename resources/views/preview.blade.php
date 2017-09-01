@@ -100,7 +100,7 @@
                         <tr>
                             <td width="40px" id="rulerHeight" style="vertical-align: top;"></td>
                             <td style="text-align: left" >
-                                <iframe src="{{env('AWS_S3_HOST_URL')}}/previews/{{$delivery->partner->id}}/{{$delivery->id}}/index.html" id="iframePreview" scrolling="no"></iframe>
+                                <iframe src="{{env('AWS_S3_HOST_URL',$_SERVER['AWS_S3_HOST_URL'])}}/previews/{{$delivery->partner->id}}/{{$delivery->id}}/index.html?debug=true<?php if($content_id) echo '&content_id='.$content_id?>" id="iframePreview" scrolling="no"></iframe>
                             </td>
                         </tr>
                     </table>
