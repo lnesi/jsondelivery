@@ -1,40 +1,8 @@
-var $jsonp = (function(){
-  var that = {};
-
-  that.send = function(src, options) {
-    var options = options || {},
-      callback_name = options.callbackName || 'callback',
-      on_success = options.onSuccess || function(){},
-      on_timeout = options.onTimeout || function(){},
-      timeout = options.timeout || 10;
-
-    var timeout_trigger = window.setTimeout(function(){
-      window[callback_name] = function(){};
-      on_timeout();
-    }, timeout * 1000);
-
-    window[callback_name] = function(data){
-      window.clearTimeout(timeout_trigger);
-      on_success(data);
-    };
-
-    var script = document.createElement('script');
-    script.type = 'text/javascript';
-    script.async = true;
-    script.src = src;
-
-    document.getElementsByTagName('head')[0].appendChild(script);
-  };
-
-  return that;
-})();
-
 var deliverySDK={
   rootURL:'',
   deliveryID:null,
   debugMode:false,
   contentID:null,
-  
   init:function(delivery_id){
     this.deliveryID=delivery_id;
     this.debugMode=this.getParameterByName('debug') && this.getParameterByName('debug')=="true";
@@ -44,20 +12,24 @@ var deliverySDK={
   },
 
   loadContent:function(callback){
-    var url=this.rootURL+'/api/delivery/'+this.deliveryID;
+    var url=this.rootURL+'/api/delivery/debug/'+this.deliveryID;
     if(this.contentID){
-      url+="/"+this.contentID+"/jdeliveryCallback/debug";
+      url+="/"+this.contentID;
     }
-    $jsonp.send(url, {
-        callbackName: 'jdeliveryCallback',
-        onSuccess: function(json){
+    //Require Zpto.js
+    $.ajax({
+      url:url,
+      dataType:'jsonp',
+      jsonpCallback:"jdeliveryCallback",
+
+      success:function(json){
           callback(json)
-        },
-        onTimeout: function(){
-          console.log('timeout!');
-        },
-        timeout: 5
-      });
+      },
+      error: function(){
+          console.log('error');
+      }
+    });
+    
     
   },
   getParameterByName:function(name, url) {

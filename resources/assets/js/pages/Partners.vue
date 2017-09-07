@@ -32,6 +32,7 @@
                             </tr>
                             </tbody>
                         </table>
+                        <pagination :list="list"/>
                       </div>
                   </div>
               </div>
@@ -52,7 +53,7 @@
 </template>
 
 <script>
-    var crud_mix = require('../mixins/crd.js').default;
+    let crud_mix = require('../mixins/crd.js').default;
     export default {
         mixins: [crud_mix],
         created: function () {

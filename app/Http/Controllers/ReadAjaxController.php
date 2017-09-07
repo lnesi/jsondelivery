@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
+use App\Delivery;
 class ReadAjaxController extends Controller{
 	protected $modelClass;
    
@@ -12,7 +14,9 @@ class ReadAjaxController extends Controller{
    * @return \Illuminate\Http\Response
    */
   public function index(){
+
       $baseQuery=call_user_func($this->modelClass."::query");
+      
 
       if(isset($_GET['filter']) && trim($_GET['filter'])!=""){
         $filters=$this->parseFilter($_GET['filter']);
@@ -28,12 +32,17 @@ class ReadAjaxController extends Controller{
            }
            $baseQuery->orderBy($_GET['orderby'],$direction);
       }
+      
+      if(array_search("App\Traits\BelongsToPartner",class_uses($this->modelClass)) && !Auth::user()->is_admin){
+        $baseQuery=$baseQuery->where('partner_id',Auth::user()->partner->id);
+      }
 
       if(isset($_GET['paginate']) && $_GET['paginate']=="false"){
           $result=$baseQuery->get();
       }else{
           $result=$baseQuery->paginate();
-      }    
+      }   
+
       return $result;
   }
 

@@ -34,6 +34,9 @@
     </div>
 
     <!-- Scripts -->
+    <script>
+        var currentUser={!!Auth::user()->toJson()!!};
+    </script>
     <script src="{{ asset('js/app.js') }}"></script>
     <script>
         console.log('DEV Key','UkdWMlpXeHZjR1ZrSUVKNUlFeDFhWE1nVG1WemFTQXRJR3h1WlhOcExtZHBkR2gxWWk1cGJ3PT0=');

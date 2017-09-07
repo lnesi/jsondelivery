@@ -21,6 +21,7 @@
                               </tr>
                             </thead>
                             <tbody>
+                             <tr v-show="list.data.length==0"><td colspan="4">No data found.</td></tr>
                             <tr v-for="item in list.data">
                                 <td>{{item.partner.abbr | uppercase}}</td>
                                 <td>{{item.name}}</td>
@@ -34,6 +35,7 @@
                             </tr>
                             </tbody>
                         </table>
+                        <pagination :list="list"/>
                       </div>
                   </div>
               </div>
@@ -54,10 +56,10 @@
 </template>
 
 <script>
-    var crud_mix = require('../mixins/crd.js');
-
+    let crud_mix = require('../mixins/crd.js');
+    let admin_only = require('../mixins/admin_only.js').default;
     export default {
-        mixins: [crud_mix.default],
+        mixins: [admin_only,crud_mix.default],
         created: function() {
             this.resource_url = "ajax/campaigns{/id}";
             this.singular = "Campaign";

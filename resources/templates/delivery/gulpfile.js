@@ -12,10 +12,53 @@ var zip           = require('gulp-zip');
 var clear         = require('clear');
 var fs            = require('fs');
 var runSequence   = require('run-sequence');
-var s3            = require('gulp-s3');
 var open          = require('gulp-open');
+var rename        = require("gulp-rename");
+var cloudfront    = require('gulp-cloudfront-invalidate-aws-publish');
+var awspublish    = require('gulp-awspublish');
 
 var delivery = JSON.parse(fs.readFileSync('./delivery.json'));
+
+
+
+var headers = {
+  'Cache-Control': 'max-age=60, no-transform, public'
+};
+
+var cfSettings = {
+  distribution: '...', // Cloudfront distribution ID 
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,             // Optional AWS Access Key ID 
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,         // Optional AWS Secret Access Key 
+  wait: true,                     // Whether to wait until invalidation is completed (default: false) 
+  indexRootPath: true             // Invalidate index.html root paths (`foo/index.html` and `foo/`) (default: false) 
+}
+
+var publisher = awspublish.create({
+  region: 'eu-west-1',
+  params: {
+    Bucket: 'advresources.two-uk.net'
+  },
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+});
+
+gulp.task('deploy', function () {
+ if(process.env.AWS_ACCESS_KEY_ID){
+    return gulp.src('./dist/**/*')
+      .pipe(rename(function (path) {
+            path.dirname = '/'+'previews/'+delivery.partner.id+'/'+delivery.id+'/'+path.dirname;
+      }))
+      .pipe(publisher.publish(headers))
+      .pipe(cloudfront(cfSettings))
+      .pipe(publisher.cache())
+      .pipe(awspublish.reporter());
+    }else{
+      console.log(gutil.colors.red('Error:'),"AWS credentiasl not set in bash envitoment. Please export in ~/.bash_profile");
+      return true;
+    }
+});
+
+
 
 gulp.task('minify_html', function() {
   return gulp.src('src/*.html')
@@ -34,28 +77,9 @@ gulp.task('serve', function() {
     }));
 });
 
-gulp.task('deploy', () => {
-  if(process.env.AWS_ACCESS_KEY_ID){
-    var AWS_CREDENTIALS = {
-      "key":    process.env.AWS_ACCESS_KEY_ID,
-      "secret": process.env.AWS_SECRET_ACCESS_KEY,
-      "bucket": "two-adcms-test-env",
-      "region": "eu-west-1"
-    }
-
-    gulp.src('./dist/**')
-      .pipe(s3(AWS_CREDENTIALS, {uploadPath: 'previews/'+delivery.partner.id+'/'+delivery.id+'/',failOnError: true}));
-  }else{
-      console.log(gutil.colors.red('Error:'),"AWS credentiasl not set in bash envitoment. Please export in ~/.bash_profile");
-  }
-  
-
- 
-});
-
 gulp.task('preview', function(){
   gulp.src(__filename)
-  .pipe(open({uri:'http://localhost/'+delivery.id}));
+  .pipe(open({uri:delivery.app_preview_url}));
 });
 
 
@@ -135,7 +159,6 @@ gulp.task('default',function(){
     console.log('Developed by @lnesi');
     console.log(gutil.colors.green('lnesi.github.io'));
     console.log("");
-
     console.log(gutil.colors.magenta('AVAILABLE TASKS:'));
     console.log(gutil.colors.green('serve'),"Creates local webserver and open in browser for development.");
     console.log(gutil.colors.green('build'),"Generate distribution files and create zip file for upload to Sizmek");

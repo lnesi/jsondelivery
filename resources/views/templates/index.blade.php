@@ -24,7 +24,9 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="ad.size" content="width={{$delivery->size->width}},height={{$delivery->size->height}}">
-	<!-- build:js js/vendor.min.js --><script src="js/zepto.js"></script><?php /*Inline to have propper formating on generation*/?>
+	<!-- build:js js/vendor.min.js -->
+	<script src="js/zepto.js"></script>
+	<script src="js/zepto.plugins.js"></script><?php /*Inline to have propper formating on generation*/?>
 	<!-- endbuild --><script src="https://s0.2mdn.net/ads/studio/cached_libs/tweenlite_1.19.1_9fecaf2f68ee2520ddaa79e268d743a6_min.js"></script>
 	<script src="https://s0.2mdn.net/ads/studio/cached_libs/cssplugin_1.19.1_3e055071719ea45b6807509f844b72d9_min.js"></script>
 	<script src="https://s0.2mdn.net/ads/studio/Enabler.js"></script>

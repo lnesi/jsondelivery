@@ -22,8 +22,10 @@ Vue.use(VueRouter);
 Vue.component('example', require('./components/Example.vue'));
 Vue.component('modal', require('./components/Modal.vue'));
 Vue.component('alert', require('./components/Alert.vue'))
+Vue.component('pagination', require('./components/Pagination.vue'))
 Vue.component('confirm', require('./components/Confirm.vue'));
 Vue.component('preloader', require('./components/Preloader.vue'));
+Vue.component('tablefilter', require('./components/Tablefilter.vue'));
 Vue.component('mainnav', require('./components/MainNav.vue'));
 Vue.component('tbvue-ajax-dropdown', require('./components/tbvue_ajax_dropdown.vue'));
 Vue.component('tbvue-input', require('./components/tbvue_input.vue'));
@@ -151,6 +153,7 @@ window.app = new Vue({
         }
     },
     created: function() {
+        this.user=window.currentUser;
         $(window).resize(function() {
             this.resize();
         }.bind(this));
@@ -171,19 +174,10 @@ window.app = new Vue({
             this.$emit("HIDE_PRELOADER");
         });
         this.$emit("HIDE_PRELOADER");
-        this.loadUser();
+
         this.resize();
     },
     methods: {
-        loadUser() {
-            this.$http.get("ajax/user").then(response => {
-                if (response.body) {
-                    this.user = response.body
-                    this.is_logged = true;
-                }
-
-            });
-        },
         resize() {
             $('#app').css({
                 overflow: 'hidden',

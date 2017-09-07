@@ -5,7 +5,9 @@
                  <form  @submit="validate()" onsubmit="return false;">
                     <div class="panel panel-default">
                         <div class="panel-heading">Edit Delivery
-                        <a :href="'/download_template/'+delivery.id" target="_blank" class="btn btn-primary btn-xs pull-right"><i class="fa fa-fw fa-download" ></i> Download Template</a>
+                        <div class="btn-group btn-group-xs pull-right" role="group" aria-label="...">
+                        <a :href="'/download_template/'+delivery.id" target="_blank" class="btn btn-primary"><i class="fa fa-fw fa-download" ></i> Template</a>
+                        </div>
                         </div>
 
                         <div class="panel-body">

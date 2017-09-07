@@ -18,7 +18,7 @@
                            
                             <hr>
                             <form >
-                                <tbvue-ajax-dropdown data-url="ajax/countries?paginate=false" name="country_id"  id="country_id" v-model="countryToAdd">Countries</tbvue-ajax-dropdown>
+                                <tbvue-ajax-dropdown data-url="ajax/countries?paginate=false" rules="" name="country_id"  id="country_id" v-model="countryToAdd">Countries</tbvue-ajax-dropdown>
                                 <button type="button" class="btn btn-default" :disabled="checkSelectedCountry" @click="addCountry()"><i class="fa fa-fw fa-plus"></i>Add</button>
                             </form>
                             <br>
@@ -53,8 +53,9 @@
 
 <script>
     var edit_mix = require('../mixins/edit.js');
+    let admin_only = require('../mixins/admin_only.js').default;
     export default {
-        mixins: [edit_mix.default],
+        mixins: [admin_only,edit_mix.default],
         created: function () {
           this.resource_url="ajax/regions{/id}";
           this.singular="Region";

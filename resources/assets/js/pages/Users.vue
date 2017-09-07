@@ -44,6 +44,7 @@
                             </tr>
                             </tbody>
                         </table>
+                        <pagination :list="list"/>
                       </div>
                   </div>
               </div>

@@ -48,9 +48,11 @@
         </div>
     </div>
 </template>
+
 <script>
+    let admin_only = require('../mixins/admin_only.js').default;
     export default {
-     
+        mixins:[admin_only],
         data() {
             return {
                 delivery: {

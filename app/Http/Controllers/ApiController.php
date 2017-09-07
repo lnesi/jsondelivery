@@ -8,7 +8,8 @@ use \App\Delivery;
 class ApiController extends Controller
 {
     //
-    public function JSONDelivery(Request $request,$id,$content_id=null,$jsonp="jdeliveryCallback",$debug=false){
+    public function JSONDelivery(Request $request,$debug=false,$id,$content_id=null,$jsonp="jdeliveryCallback"){
+    
     	if($debug && $debug==="debug"){
 			$debug=true;
 		}else{
@@ -81,9 +82,9 @@ class ApiController extends Controller
 				foreach($delivery->customs as $custom){
 					if($custom->component->tag!="app-separator"){
 						$xml.="<".$custom->key.">";
-						if($custom->component->tag=="app-wysiwyg") $xml.="<![CDATA[";
+						if($custom->component->tag=="app-wysiwyg" || $custom->component->tag=="app-plaintext") $xml.="<![CDATA[";
 						$xml.=$content->getValueByCustomId($custom->id);
-						if($custom->component->tag=="app-wysiwyg") $xml.="]]>";
+						if($custom->component->tag=="app-wysiwyg" || $custom->component->tag=="app-plaintext") $xml.="]]>";
 						$xml.="</".$custom->key.">";
 					}
 				}

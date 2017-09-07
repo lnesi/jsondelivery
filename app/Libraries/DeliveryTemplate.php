@@ -49,7 +49,7 @@ class DeliveryTemplate{
 
         $this->delivery_plain=$this->delivery->jsonSerialize();
 	    unset($this->delivery_plain['contents']);
-
+	    $this->delivery_plain['app_preview_url']=config('app.url')."/preview/".$this->delivery->id;
 	    file_put_contents($this->temp_folder."/content/delivery.json",json_encode($this->delivery_plain,JSON_PRETTY_PRINT));
         file_put_contents($this->temp_folder."/content/src/index.html",$this->index_html);
         file_put_contents($this->temp_folder."/content/src/scss/styles.scss",$this->styles_scss);

@@ -72,7 +72,7 @@ class DeliveryController extends ReadAjaxController
         $user = Auth::user();
         if($user->is_admin){
             $item=Delivery::findOrFail($id);
-            //$item->delete();
+            $item->delete();
             $response=['message'=>'ok'];
             return $response;
         }else{

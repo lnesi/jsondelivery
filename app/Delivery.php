@@ -5,10 +5,12 @@ namespace App;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Observers\DeliveryObserver;
+use App\Traits\BelongsToPartner;
 class Delivery extends Model
 {
     //
     use SoftDeletes;
+    use BelongsToPartner;
     protected $table = 'deliveries';
     protected $dates = ['deleted_at','created_at','updated_at','published_at'];
     protected $fillable=['name','partner_id','campaign_id','audience_id','country_id','language_id','region_id','size_id','type_id','preview_url'];
@@ -19,9 +21,6 @@ class Delivery extends Model
       Delivery::observe(new DeliveryObserver());
     }
 
-    public function partner(){
-    	return $this->belongsTo(Partner::class);
-    }
     
     public function campaign(){
         return $this->belongsTo(Campaign::class);

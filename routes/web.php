@@ -24,6 +24,8 @@ Route::group(['prefix' => 'ajax','middleware' => 'auth'], function () {
 	Route::get('user', function (Request $request) {
 	    return Auth::user();
 	});
+	Route::get('status','StatusController@index');
+	
 	Route::resource('partners', PartnerController::class,['only' => ['index','show']]);
 	Route::resource('audiences', AudienceController::class,['except' => ['create', 'edit']]);
 	Route::resource('regions', RegionController::class,['except' => ['create', 'edit']]);

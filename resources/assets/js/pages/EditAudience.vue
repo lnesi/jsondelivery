@@ -27,9 +27,10 @@
 </template>
 
 <script>
-    var edit_mix = require('../mixins/edit.js');
+    let edit_mix = require('../mixins/edit.js');
+    let admin_only = require('../mixins/admin_only.js').default;
     export default {
-        mixins: [edit_mix.default],
+        mixins: [admin_only,edit_mix.default],
         created: function () {
           this.resource_url="ajax/audiences{/id}";
           this.singular="Audience";
